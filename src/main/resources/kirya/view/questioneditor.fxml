@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="1.0" type="VBox" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+   <children>
+      <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="1.0" onMouseClicked="#onDropdownLabelClick">
+         <children>
+            <Label fx:id="headerLabel" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" text="Question Text" wrapText="true" HBox.hgrow="ALWAYS" />
+            <Label fx:id="dropdownLabel" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" text="🔺" wrapText="true" />
+         </children>
+      </HBox>
+      <VBox fx:id="configurationVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="1.0">
+         <children>
+            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="1.0">
+               <children>
+                  <ComboBox fx:id="questionTypeComboBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="10.0" promptText="Question Type" HBox.hgrow="NEVER" />
+                  <TextField fx:id="questionTextField" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="10.0" promptText="Question Title" HBox.hgrow="ALWAYS" />
+               </children>
+            </HBox>
+            <TextArea fx:id="answerTextArea" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="1.0" promptText="Question Answer" />
+         </children>
+      </VBox>
+   </children>
+</fx:root>

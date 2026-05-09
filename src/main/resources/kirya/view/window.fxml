@@ -1,0 +1,78 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.Menu?>
+<?import javafx.scene.control.MenuBar?>
+<?import javafx.scene.control.MenuItem?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.ToggleButton?>
+<?import javafx.scene.layout.ColumnConstraints?>
+<?import javafx.scene.layout.GridPane?>
+<?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
+<?import kirya.view.HomePane?>
+<?import kirya.view.StudyGuideEditor?>
+<?import kirya.view.StudyGuideViewer?>
+
+<GridPane maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1" fx:controller="kirya.view.Window">
+  <columnConstraints>
+    <ColumnConstraints hgrow="SOMETIMES" maxWidth="1.7976931348623157E308" minWidth="100.0" />
+      <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="100.0" />
+  </columnConstraints>
+  <rowConstraints>
+    <RowConstraints maxHeight="1.7976931348623157E308" minHeight="-Infinity" vgrow="NEVER" />
+      <RowConstraints maxHeight="1.7976931348623157E308" minHeight="100.0" vgrow="ALWAYS" />
+  </rowConstraints>
+   <children>
+      <MenuBar maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" GridPane.columnSpan="2147483647">
+        <menus>
+          <Menu text="_File">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Close" />
+            </items>
+          </Menu>
+          <Menu text="_Edit">
+            <items>
+              <MenuItem mnemonicParsing="false" text="Delete" />
+            </items>
+          </Menu>
+          <Menu text="_Help">
+            <items>
+              <MenuItem mnemonicParsing="false" text="About" />
+            </items>
+          </Menu>
+        </menus>
+      </MenuBar>
+      <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" GridPane.rowIndex="1">
+         <content>
+            <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" spacing="5.0">
+               <children>
+                  <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" mnemonicParsing="false" onAction="#onHomeButtonClick" text="Home" />
+                  <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0">
+                     <children>
+                        <ToggleButton fx:id="favoritesToggleButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="-Infinity" mnemonicParsing="false" text="Favorites" />
+                        <ListView fx:id="favoriteStudyGuidesListView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" />
+                     </children>
+                  </VBox>
+               </children>
+            </VBox>
+         </content>
+         <padding>
+            <Insets left="5.0" right="5.0" top="5.0" />
+         </padding>
+         <GridPane.margin>
+            <Insets right="5.0" />
+         </GridPane.margin>
+      </ScrollPane>
+      <HomePane fx:id="homePane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="true" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.rowSpan="2147483647" GridPane.valignment="TOP" GridPane.vgrow="NEVER">
+      </HomePane>
+      <StudyGuideEditor fx:id="studyGuideEditor" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="false" GridPane.columnIndex="1" GridPane.columnSpan="2147483647" GridPane.halignment="LEFT" GridPane.hgrow="NEVER" GridPane.rowIndex="1" GridPane.rowSpan="2147483647" GridPane.valignment="TOP" GridPane.vgrow="NEVER">
+         <padding>
+            <Insets top="5.0" />
+         </padding>
+      </StudyGuideEditor>
+      <StudyGuideViewer fx:id="studyGuideViewer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" visible="false" GridPane.columnIndex="1" GridPane.rowIndex="1" />
+   </children>
+</GridPane>
