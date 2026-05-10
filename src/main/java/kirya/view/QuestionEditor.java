@@ -7,6 +7,8 @@ import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
+import javafx.scene.control.ListCell;
+import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.VBox;
@@ -95,6 +97,14 @@ public class QuestionEditor extends VBox {
     private void onDropdownLabelClick() {
         this.configurationVBox.setVisible(!this.configurationVBox.isVisible());
         this.updateDropdownButtonDisplay();
+    }
+
+    @FXML
+    private void onTrashButtonClick() {
+        if (this.getParent() instanceof ListCell<?> listCell) {
+            var listView = (ListView<?>) listCell.getListView();
+            listView.getItems().remove(this);
+        }
     }
 
     private void updateDropdownButtonDisplay() {

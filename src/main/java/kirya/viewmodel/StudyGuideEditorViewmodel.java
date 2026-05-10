@@ -23,7 +23,6 @@ public class StudyGuideEditorViewmodel {
         this.titleProperty = new SimpleStringProperty(this.studyGuide.getTitle());
         this.descriptionProperty = new SimpleStringProperty(this.studyGuide.getDescription());
         this.questionsProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
-        this.questionsProperty.addAll(this.studyGuide.getQuestions());
     }
 
     public Collection<QuestionEditorViewmodel> getExistingQuestionEditorViewmodels() {
@@ -39,7 +38,7 @@ public class StudyGuideEditorViewmodel {
         
         this.studyGuide.setTitle(newTitle);
         this.studyGuide.setDescription(newDescription);
-        this.studyGuide.addQuestions(newQuestions);
+        this.studyGuide.setQuestions(newQuestions);
     }
 
     public StringProperty getTitleProperty() {

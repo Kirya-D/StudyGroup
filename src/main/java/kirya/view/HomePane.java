@@ -41,6 +41,11 @@ public class HomePane extends GridPane {
 
     @FXML
     private void initialize() {
+        this.visibleProperty().addListener((_, _, newVal) -> {
+            if (newVal) {
+                this.downloadedStudyGuidesListView.refresh();
+            }
+        });
         this.setDownloadedStudyGuidesCellFactory();
         this.addEventHandler(ActionEvent.ACTION, event -> {
             var sender = event.getTarget();
