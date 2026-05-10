@@ -30,6 +30,7 @@ public class Window {
     public Window() {
         this.viewGroup = new NodeGroup();
         this.viewmodel = new WindowViewmodel();
+        this.viewmodel.load();
     }
 
     @FXML
@@ -43,13 +44,13 @@ public class Window {
         viewGroup.add(this.studyGuideEditor);
         viewGroup.add(this.studyGuideViewer);
 
-        this.homePane.savedStudyGuidesListView.setItems((ObservableList<DisplayableStudyGuide>) this.viewmodel.getSavedStudyGuidesProperty());
+        this.homePane.downloadedStudyGuidesListView.setItems((ObservableList<DisplayableStudyGuide>) this.viewmodel.getDownloadedStudyGuidesProperty());
         this.favoriteStudyGuidesListView
                 .setItems((ObservableList<DisplayableStudyGuide>) this.viewmodel.getFavoritedStudyGuidesProperty());
         this.favoriteStudyGuidesListView.visibleProperty().bind(this.favoritesToggleButton.selectedProperty());
         this.favoriteStudyGuidesListView.managedProperty().bind(this.favoriteStudyGuidesListView.visibleProperty());
 
-        this.studyGuideViewer.studyGuideProperty.bind(this.homePane.savedStudyGuidesListView.getSelectionModel().selectedItemProperty());
+        this.studyGuideViewer.studyGuideProperty.bind(this.homePane.downloadedStudyGuidesListView.getSelectionModel().selectedItemProperty());
 
         this.homePane.createNewStudyGuideButton.setOnAction(handler -> {
             this.onCreateNewStudyGuideButtonClick();
@@ -57,10 +58,10 @@ public class Window {
     }
 
     private void addListeners() {
-        this.homePane.savedStudyGuidesListView.getSelectionModel().selectedItemProperty()
+        this.homePane.downloadedStudyGuidesListView.getSelectionModel().selectedItemProperty()
                 .addListener((_, _, newVal) -> {
-            this.studyGuideViewer.setVisible(true);
-        });
+                    this.studyGuideViewer.setVisible(true);
+                });
         this.studyGuideEditor.cancelledEdits.addListener((_, _, newVal) -> {
             if (newVal) {
                 this.onHomeButtonClick();
@@ -72,6 +73,21 @@ public class Window {
                 this.viewmodel.getEditingStudyGuide().set(false);
                 this.onHomeButtonClick();
             }
+        });
+        this.homePane.sceneProperty().addListener((_, _, scene) -> {
+            if (scene != null) {
+                scene.windowProperty().addListener((_, _, window) -> {
+                    if (window != null) {
+                        this.bindOnApplicationExit(window);
+                    }
+                });
+            }
+        });
+    }
+    
+    private void bindOnApplicationExit(javafx.stage.Window window) {
+        window.setOnCloseRequest(handler -> {
+            this.viewmodel.save();
         });
     }
     

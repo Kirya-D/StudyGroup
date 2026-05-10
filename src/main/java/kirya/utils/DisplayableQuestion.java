@@ -1,6 +1,6 @@
 package kirya.utils;
 
-import java.util.List;
+import java.util.SequencedCollection;
 
 public abstract class DisplayableQuestion {
     /**
@@ -17,12 +17,12 @@ public abstract class DisplayableQuestion {
      * Gets this questions' answer choices.
      * @return The answer choices as a list of strings
      */
-    public abstract List<String> getChoices();
+    public abstract SequencedCollection<String> getChoices();
     /**
      * Gets this questions' answer(s)
      * @return The answer(s) as a list of strings
      */
-    public abstract List<String> getAnswers();
+    public abstract SequencedCollection<String> getAnswers();
 
     @Override
     public String toString() {

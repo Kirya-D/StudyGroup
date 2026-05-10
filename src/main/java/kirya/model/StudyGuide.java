@@ -8,18 +8,18 @@ import java.util.Set;
 import kirya.utils.DisplayableQuestion;
 import kirya.utils.DisplayableStudyGuide;
 
-public class StudyGuide extends DisplayableStudyGuide{
+public class StudyGuide extends DisplayableStudyGuide {
 
+    private boolean isFavorited;
     private String title;
     private String description;
     private final Set<Question> questions;
-    private boolean isFavorited;
 
     public StudyGuide() {
+        this.isFavorited = false;
         this.title = "";
         this.description = "";
         this.questions = new LinkedHashSet<>();
-        this.isFavorited = true;
     }
 
     public void setTitle(String title) {
@@ -35,6 +35,11 @@ public class StudyGuide extends DisplayableStudyGuide{
     }
 
     public void addQuestions(Collection<Question> questions) {
+        this.questions.addAll(questions);
+    }
+
+    public void setQuestions(Collection<Question> questions) {
+        this.questions.clear();
         this.questions.addAll(questions);
     }
 

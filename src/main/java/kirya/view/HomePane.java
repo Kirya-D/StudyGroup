@@ -17,7 +17,7 @@ public class HomePane extends GridPane {
     public Button createNewStudyGuideButton;
 
     @FXML
-    public ListView<DisplayableStudyGuide> savedStudyGuidesListView;
+    public ListView<DisplayableStudyGuide> downloadedStudyGuidesListView;
 
     public HomePane() {
         var loader = new FXMLLoader(this.getClass().getResource("homepane.fxml"));
@@ -32,11 +32,11 @@ public class HomePane extends GridPane {
 
     @FXML
     private void initialize() {
-        this.setSavedStudyGuidesCellFactory();
+        this.setDownloadedStudyGuidesCellFactory();
     }
 
-    private void setSavedStudyGuidesCellFactory() {
-        this.savedStudyGuidesListView.setCellFactory(listview -> new ListCell<DisplayableStudyGuide>() {
+    private void setDownloadedStudyGuidesCellFactory() {
+        this.downloadedStudyGuidesListView.setCellFactory(listview -> new ListCell<DisplayableStudyGuide>() {
             private final StudyGuideOverview overview = new StudyGuideOverview();
 
             @Override
