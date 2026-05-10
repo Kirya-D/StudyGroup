@@ -7,6 +7,7 @@
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <maven.compiler.release>25</maven.compiler.release>
+        <jackson.version>3.0.0</jackson.version>
     </properties>
     <dependencies>
         <dependency>
@@ -14,11 +15,15 @@
             <artifactId>javafx-fxml</artifactId>
             <version>25.0.3</version>
         </dependency>
-        
         <dependency>
             <groupId>org.openjfx</groupId>
             <artifactId>javafx-controls</artifactId>
             <version>25.0.3</version>
+        </dependency>
+        <dependency>
+            <groupId>tools.jackson.core</groupId>
+            <artifactId>jackson-databind</artifactId>
+            <version>${jackson.version}</version>
         </dependency>
     </dependencies>
     <build>

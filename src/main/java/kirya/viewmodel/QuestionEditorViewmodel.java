@@ -36,47 +36,46 @@ public class QuestionEditorViewmodel {
     }
     
     public QuestionEditorViewmodel(String question) {
-        var questionObj = new Question();
-        questionObj.setQuestion(question);
-        this(questionObj);
+        var newQuestion = new Question();
+        newQuestion.setQuestion(question);
+        this(newQuestion);
     }
     
     private void addPropertyListeners() {
         this.questionTypeProperty.addListener((_, _, newVal) -> {
             this.questionObj.setQuestionType(newVal);
             switch (newVal) {
-                case FREE_RESPONSE: {
+                case FREE_RESPONSE -> {
                         var choices = new ArrayList<String>();
                         var answers = new ArrayList<String>();
                         answers.add(QuestionEditorViewmodel.this.answerProperty.get());
-                        this.questionObj.setAnswerChoices(choices);
-                        this.questionObj.setCorrectAnswers(answers);
+                        this.questionObj.setChoices(choices);
+                        this.questionObj.setAnswers(answers);
                     }
-                    break;
-                case MULTIPLE_CHOICE:{
+                case MULTIPLE_CHOICE -> {
                         javafx.collections.ObservableList<java.lang.String> choices = QuestionEditorViewmodel.this.choicesProperty.get();
                         javafx.collections.ObservableList<java.lang.String> answers = QuestionEditorViewmodel.this.answersProperty.get();
-                        this.questionObj.setAnswerChoices(choices);
-                        this.questionObj.setCorrectAnswers(answers);
+                        this.questionObj.setChoices(choices);
+                        this.questionObj.setAnswers(answers);
                     }
-                    break;
-                default:
+                default -> {
                     throw new EnumConstantNotPresentException(newVal.getClass(), newVal.name());
+                }
             }
         });
         this.questionProperty.addListener((_, _, newVal) -> {
             this.questionObj.setQuestion(newVal);
         });
         this.choicesProperty.addListener((_, _, newVal) -> {
-            this.questionObj.setAnswerChoices(newVal);
+            this.questionObj.setChoices(newVal);
         });
         this.answersProperty.addListener((_, _, newVal) -> {
-            this.questionObj.setCorrectAnswers(newVal);
+            this.questionObj.setAnswers(newVal);
         });
         this.answerProperty.addListener((_, _, newVal) -> {
             var answerAsCollection = new ArrayList<String>();
             answerAsCollection.add(newVal);
-            this.questionObj.setCorrectAnswers(answerAsCollection);
+            this.questionObj.setAnswers(answerAsCollection);
         });
     }
 

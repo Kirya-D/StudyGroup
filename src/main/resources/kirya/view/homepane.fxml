@@ -6,7 +6,7 @@
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
 
-<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="1.0" minWidth="1.0" type="GridPane" xmlns:fx="http://javafx.com/fxml/1" xmlns="http://javafx.com/javafx/26">
+<fx:root maxHeight="-Infinity" maxWidth="-Infinity" minHeight="1.0" minWidth="1.0" type="GridPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
   <columnConstraints>
       <ColumnConstraints maxWidth="1.7976931348623157E308" minWidth="0.0" />
     <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="0.0" />
@@ -18,6 +18,6 @@
   </rowConstraints>
    <children>
       <Button fx:id="createNewStudyGuideButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" mnemonicParsing="false" text="Create New Study Guide" GridPane.columnIndex="1" />
-      <ListView fx:id="savedStudyGuidesListView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
+      <ListView fx:id="downloadedStudyGuidesListView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" />
    </children>
 </fx:root>
