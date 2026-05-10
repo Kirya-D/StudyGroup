@@ -36,6 +36,8 @@ public class StudyGuideOverview extends GridPane {
     public Button uploadButton;
     @FXML
     public Button downloadButton;
+    @FXML
+    public Button deleteButton;
     public ObjectProperty<DisplayableStudyGuide> studyGuideProperty = new SimpleObjectProperty<>(null);
     
     public StudyGuideOverview() {

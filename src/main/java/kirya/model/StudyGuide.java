@@ -29,14 +29,6 @@ public class StudyGuide extends DisplayableStudyGuide {
     public void setDescription(String description) {
         this.description = description;
     }
-    
-    public void addQuestion(Question question) {
-        this.questions.add(question);
-    }
-
-    public void addQuestions(Collection<Question> questions) {
-        this.questions.addAll(questions);
-    }
 
     public void setQuestions(Collection<Question> questions) {
         this.questions.clear();

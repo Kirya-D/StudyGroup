@@ -9,6 +9,7 @@ import javafx.scene.Node;
 import javafx.scene.control.ListView;
 import javafx.scene.control.ToggleButton;
 import kirya.utils.DisplayableStudyGuide;
+import kirya.viewmodel.StudyGuideEditorViewmodel;
 import kirya.viewmodel.WindowViewmodel;
 
 public class Window {
@@ -55,25 +56,14 @@ public class Window {
         this.homePane.createNewStudyGuideButton.setOnAction(handler -> {
             this.onCreateNewStudyGuideButtonClick();
         });
+        this.homePane.setStudyGuideEditAction(this::onEditStudyGuideButtonClick);
     }
 
     private void addListeners() {
         this.homePane.downloadedStudyGuidesListView.getSelectionModel().selectedItemProperty()
                 .addListener((_, _, newVal) -> {
-                    this.studyGuideViewer.setVisible(true);
+                    this.studyGuideViewer.setVisible(newVal != null);
                 });
-        this.studyGuideEditor.cancelledEdits.addListener((_, _, newVal) -> {
-            if (newVal) {
-                this.onHomeButtonClick();
-            }
-        });
-        this.studyGuideEditor.confirmedEdits.addListener((_, _, newVal) -> {
-            if (newVal) {
-                this.studyGuideEditor.confirmedEdits.set(false);
-                this.viewmodel.getEditingStudyGuide().set(false);
-                this.onHomeButtonClick();
-            }
-        });
         this.homePane.sceneProperty().addListener((_, _, scene) -> {
             if (scene != null) {
                 scene.windowProperty().addListener((_, _, window) -> {
@@ -82,6 +72,22 @@ public class Window {
                     }
                 });
             }
+        });
+        this.studyGuideEditor.cancelledEdits.addListener((_, _, newVal) -> {
+            if (newVal) {
+                this.onHomeButtonClick();
+            }
+        });
+        this.studyGuideEditor.confirmedEdits.addListener((_, _, newVal) -> {
+            if (newVal) {
+                this.studyGuideEditor.confirmedEdits.set(false);
+                this.viewmodel.getCurrentlyEditingStudyGuide().set(false);
+                this.onHomeButtonClick();
+            }
+        });
+        this.studyGuideViewer.finishButton.setOnAction(handler -> {
+            this.onHomeButtonClick();
+            handler.consume();
         });
     }
     
@@ -93,14 +99,24 @@ public class Window {
     
     @FXML
     private void onHomeButtonClick() {
+        this.homePane.downloadedStudyGuidesListView.getSelectionModel().select(null);
         this.homePane.setVisible(true);
     }
     
     @FXML
     private void onCreateNewStudyGuideButtonClick() {
-        this.viewmodel.getEditingStudyGuide().set(true);
         var newEditorViewmodel = this.viewmodel.createNewStudyGuide();
-        this.studyGuideEditor.setViewmodel(newEditorViewmodel);
+        this.editStudyGuide(newEditorViewmodel);
+    }
+
+    private void onEditStudyGuideButtonClick(DisplayableStudyGuide studyGuide) {
+        var newEditorViewmodel = this.viewmodel.editStudyGuide(studyGuide);
+        this.editStudyGuide(newEditorViewmodel);
+    }
+
+    private void editStudyGuide(StudyGuideEditorViewmodel viewmodel) {
+        this.viewmodel.getCurrentlyEditingStudyGuide().set(true);
+        this.studyGuideEditor.setViewmodel(viewmodel);
         this.studyGuideEditor.setVisible(true);
     }
 

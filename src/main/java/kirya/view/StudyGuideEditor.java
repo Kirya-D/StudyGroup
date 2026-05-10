@@ -107,12 +107,13 @@ public class StudyGuideEditor extends GridPane {
 
     private void addNewQuestionEditor(QuestionEditor questionEditor) {
         this.questionsListView.getItems().add(questionEditor);
-        this.questionsProperty.add(questionEditor.getQuestion());
     }
     
     @FXML
     private void onConfirmButtonClick() {
         if (this.initializedAndViewmodelExists()) {
+            var allQuestions = this.questionsListView.getItems().stream().map(editor -> editor.getQuestion()).toList();
+            this.questionsProperty.setAll(allQuestions);
             this.viewmodel.confirmEditChanges();
             this.confirmedEdits.set(true);
         }
