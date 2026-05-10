@@ -44,8 +44,10 @@ public class StudyGuideViewer extends GridPane {
     private void initialize() {
         this.setupCellFactory();
         this.studyGuideProperty.addListener((_, _, newVal) -> {
-            this.questionsListView.getItems().setAll(newVal.getQuestions());
-            this.populateQuestionJumpTilePane();
+            if (newVal != null) {
+                this.questionsListView.getItems().setAll(newVal.getQuestions());
+                this.populateQuestionJumpTilePane();
+            }
         });
     }
 

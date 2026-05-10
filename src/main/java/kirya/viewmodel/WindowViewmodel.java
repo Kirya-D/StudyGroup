@@ -14,30 +14,35 @@ public class WindowViewmodel {
 
     private final ObservableList<StudyGuide> downloadedStudyGuidesProperty;
     private final ObservableList<StudyGuide> favoritedStudyGuidesProperty;
-    private final BooleanProperty editingStudyGuide;
-    private StudyGuide newStudyGuide;
+    private final BooleanProperty currentlyEditingStudyGuide;
+    private StudyGuide freshStudyGuide;
 
     public WindowViewmodel() {
         this.downloadedStudyGuidesProperty = FXCollections.observableArrayList();
         this.favoritedStudyGuidesProperty = FXCollections.observableArrayList();
-        this.editingStudyGuide = new SimpleBooleanProperty(false);
-        this.newStudyGuide = null;
+        this.currentlyEditingStudyGuide = new SimpleBooleanProperty(false);
+        this.freshStudyGuide = null;
         this.addListeners();
     }
 
     private void addListeners() {
-        this.editingStudyGuide.addListener((_, oldVal, newVal) -> {
+        this.currentlyEditingStudyGuide.addListener((_, oldVal, newVal) -> {
             var justStoppedEditing = oldVal && !newVal;
-            if (this.newStudyGuide != null && justStoppedEditing) {
-                this.downloadedStudyGuidesProperty.add(this.newStudyGuide);
-                this.newStudyGuide = null;
+            if (this.freshStudyGuide != null && justStoppedEditing) {
+                this.downloadedStudyGuidesProperty.add(this.freshStudyGuide);
+                this.freshStudyGuide = null;
             }
         });
     }
 
     public StudyGuideEditorViewmodel createNewStudyGuide() {
-        this.newStudyGuide = new StudyGuide();
-        return new StudyGuideEditorViewmodel(this.newStudyGuide);
+        this.freshStudyGuide = new StudyGuide();
+        return new StudyGuideEditorViewmodel(this.freshStudyGuide);
+    }
+
+    public StudyGuideEditorViewmodel editStudyGuide(DisplayableStudyGuide studyGuide) {
+        var existingStudyGuide = studyGuide instanceof StudyGuide ? (StudyGuide) studyGuide : null;
+        return new StudyGuideEditorViewmodel(existingStudyGuide);
     }
 
     public void save() {
@@ -58,7 +63,7 @@ public class WindowViewmodel {
         return this.favoritedStudyGuidesProperty;
     }
 
-    public BooleanProperty getEditingStudyGuide() {
-        return this.editingStudyGuide;
+    public BooleanProperty getCurrentlyEditingStudyGuide() {
+        return this.currentlyEditingStudyGuide;
     }
 }
