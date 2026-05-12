@@ -2,6 +2,9 @@ package kirya.utils;
 
 import java.util.SequencedCollection;
 
+/**
+ * Abstract class that represents a UI displayable question.
+ */
 public abstract class DisplayableQuestion {
     /**
      * Gets this questions' question type.

@@ -1,5 +1,8 @@
 package kirya.utils;
 
+/**
+ * Utility methods.
+ */
 public class Utils {
         /**
          * Works the same as enum.valueOf but returns null instead of throwing an exception if the key isn't found
