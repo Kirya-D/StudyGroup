@@ -2,11 +2,6 @@ package kirya.view;
 
 import java.io.IOException;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.ListProperty;
-import javafx.beans.property.SimpleBooleanProperty;
-import javafx.beans.property.SimpleListProperty;
-import javafx.collections.FXCollections;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
@@ -16,110 +11,90 @@ import javafx.scene.control.TextArea;
 import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import kirya.utils.DisplayableQuestion;
+import kirya.utils.DisplayableStudyGuide;
 import kirya.viewmodel.StudyGuideEditorViewmodel;
 
+/**
+ * Code-behind for studyguideeditor.fxml
+ */
 public class StudyGuideEditor extends GridPane {
-
     @FXML
     private TextField titleTextField;
     @FXML
     private TextArea descriptionTextArea;
     @FXML
-    private ListView<QuestionEditor> questionsListView;
-    private StudyGuideEditorViewmodel viewmodel;
-    private boolean initialized = false;
-    private ListProperty<DisplayableQuestion> questionsProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
+    private ListView<DisplayableQuestion> questionsListView;
+    
+    private StudyGuideEditorViewmodel viewmodel = new StudyGuideEditorViewmodel();
 
-    public BooleanProperty cancelledEdits = new SimpleBooleanProperty(false);
-    public BooleanProperty confirmedEdits = new SimpleBooleanProperty(false);
-
+    /**
+     * Initializes a new StudyGuideEditor component.
+     */
     public StudyGuideEditor() {
-        FXMLLoader loader = new FXMLLoader(getClass().getResource("studyguideeditor.fxml"));
-        loader.setRoot(this);
+        var loader = new FXMLLoader(this.getClass().getResource("studyguideeditor.fxml"));
         loader.setController(this);
+        loader.setRoot(this);
         try {
             loader.load();
+            this.setupCellFactory();
+            this.bindToViewmodel();
         } catch (IOException e) {
-            throw new RuntimeException(e);
+            e.printStackTrace();
         }
     }
 
-    public StudyGuideEditor(StudyGuideEditorViewmodel viewmodel) {
-        this();
-        this.setViewmodel(viewmodel);
-    }
-
-    public final void setViewmodel(StudyGuideEditorViewmodel viewmodel) {
-        this.viewmodel = viewmodel;
-        this.bindToViewmodel();
-    }
-
-    @FXML
-    private void initialize() {
-        this.initialized = true;
-        this.setupCellFactory();
-        this.bindToViewmodel();
-    }
-    
     private void setupCellFactory() {
-        this.questionsListView.setCellFactory(listview -> new ListCell<QuestionEditor>() {
+        this.questionsListView.setCellFactory(listview -> new ListCell<DisplayableQuestion>() {
+            private final QuestionEditor questionEditor = new QuestionEditor();
+
             @Override
-            protected void updateItem(QuestionEditor editor, boolean empty) {
-                super.updateItem(editor, empty);
-                if (empty || editor == null) {
-                    setText(null);
-                    setGraphic(null);
-                } else {
+            public void updateItem(DisplayableQuestion question, boolean empty) {
+                super.updateItem(question, empty);
+                if (empty || question == null) {
+                    this.setText(null);
+                    this.setGraphic(null);
+                }
+                else {
                     setPadding(Insets.EMPTY);
-                    setText(null);
-                    setGraphic(editor);
+                    setGraphic(this.questionEditor);
+                    this.questionEditor.setQuestion(question);
                 }
             }
         });
     }
 
     private void bindToViewmodel() {
-        if (this.initializedAndViewmodelExists()) {
-            this.titleTextField.textProperty().bindBidirectional(this.viewmodel.getTitleProperty());
-            this.descriptionTextArea.textProperty().bindBidirectional(this.viewmodel.getDescriptionProperty());
-            this.questionsProperty.bindBidirectional(this.viewmodel.getQuestionsProperty());
-            this.loadExistingQuestions();
-        }
+        this.titleTextField.textProperty().bindBidirectional(this.viewmodel.getTitleProperty());
+        this.descriptionTextArea.textProperty().bindBidirectional(this.viewmodel.getDescriptionProperty());
+        this.questionsListView.setItems(this.viewmodel.getQuestionsObservableList());
     }
 
-    private void loadExistingQuestions() {
-        this.questionsListView.getItems().clear();
-        for (var questionViewmodel : this.viewmodel.getExistingQuestionEditorViewmodels()) {
-            var newQuestionEditor = new QuestionEditor(questionViewmodel);
-            this.addNewQuestionEditor(newQuestionEditor);
-        }
+    /**
+     * Sets the study guide to edit.
+     * @param studyGuide The study guide to edit
+     */
+    public void setStudyGuide(DisplayableStudyGuide studyGuide) {
+        this.viewmodel.getStudyGuideProperty().set(studyGuide);
     }
     
+    @FXML
+    private void onCancelButtonClick() {
+        this.fireEditEvent(false);
+    }
+
     @FXML
     private void onNewQuestionButtonClick() {
-        var items = this.questionsListView.getItems();
-        var count = items.size();
-        var question = "Question " + (count + 1);
-        var questionEditor = new QuestionEditor(question);
-        this.addNewQuestionEditor(questionEditor);
-        
+        this.viewmodel.addNewQuestion();
     }
 
-    private void addNewQuestionEditor(QuestionEditor questionEditor) {
-        this.questionsListView.getItems().add(questionEditor);
-    }
-    
     @FXML
     private void onConfirmButtonClick() {
-        if (this.initializedAndViewmodelExists()) {
-            var allQuestions = this.questionsListView.getItems().stream().map(editor -> editor.getQuestion()).toList();
-            this.questionsProperty.setAll(allQuestions);
-            this.viewmodel.confirmEditChanges();
-            this.confirmedEdits.set(true);
-        }
+        this.viewmodel.applyChanges();
+        this.fireEditEvent(true);
     }
 
-    private boolean initializedAndViewmodelExists() {
-        return this.initialized && this.viewmodel != null;
+    private void fireEditEvent(boolean appliedChanges) {
+        var studyGuide = this.viewmodel.getStudyGuideProperty().get();
+        this.fireEvent(new StudyGuideEvent(studyGuide, appliedChanges));
     }
 }

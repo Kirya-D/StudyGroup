@@ -2,6 +2,9 @@ package kirya.utils;
 
 import java.util.Collection;
 
+/**
+ * Abstract class that represents a UI displayable study guide.
+ */
 public abstract class DisplayableStudyGuide {
     /**
      * Gets the title.
@@ -24,7 +27,8 @@ public abstract class DisplayableStudyGuide {
      */
     public abstract boolean getIsFavorited();
 
-    public final String ToString() {
+    @Override
+    public String toString() {
         return this.getTitle();
     }
 }

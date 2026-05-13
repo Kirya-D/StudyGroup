@@ -11,6 +11,9 @@ import java.util.SequencedCollection;
 import tools.jackson.core.type.TypeReference;
 import tools.jackson.databind.ObjectMapper;
 
+/**
+ * Class to handle reading and writing object information to and from file.
+ */
 public class FileIO {
 
     private final static String STORAGE_DIRECTORY = Path.of(System.getenv("LOCALAPPDATA"), "StudyGroup").toString();
@@ -19,12 +22,21 @@ public class FileIO {
     private final static File DATA_FILE = new File(FileIO.DATA_PATH);
     private final static File CUSTOMIZATION_FILE = new File(FileIO.CUSTOMIZATION_PATH);
 
+    /**
+     * Serializes the given collection of StudyGuides and to file.
+     * Creates the necessary directories and file if needed.
+     * @param collection The collection of StudyGuides to write to file.
+     */
     public static void Write(SequencedCollection<StudyGuide> collection) {
         ObjectMapper mapper = new ObjectMapper();
         FileIO.verifyFileExists(FileIO.DATA_FILE);
         mapper.writeValue(FileIO.DATA_FILE, collection);
     }
 
+    /**
+     * Reads from file and returns a collection of StudyGuides.
+     * @return The deserialized StudyGuides collection
+     */
     public static SequencedCollection<StudyGuide> Read() {
         ObjectMapper mapper = new ObjectMapper();
         FileIO.verifyFileExists(FileIO.DATA_FILE);

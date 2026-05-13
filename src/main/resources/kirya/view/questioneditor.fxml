@@ -29,7 +29,7 @@
                   <TextField fx:id="questionTextField" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="10.0" promptText="Question Title" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
-            <TextArea fx:id="answerTextArea" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="1.0" promptText="Question Answer" />
+            <TextArea fx:id="answerTextArea" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="1.0" promptText="Question Answer" wrapText="true" />
          </children>
       </VBox>
    </children>
