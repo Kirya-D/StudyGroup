@@ -18,6 +18,7 @@ import kirya.utils.DisplayableStudyGuide;
  * Viewmodel of the StudyGuideEditor view class.
  */
 public class StudyGuideEditorViewmodel {
+
     private final ObjectProperty<DisplayableStudyGuide> studyGuideProperty;
     private final StringProperty titleProperty;
     private final StringProperty descriptionProperty;
@@ -58,9 +59,10 @@ public class StudyGuideEditorViewmodel {
         question.setQuestion("Question " + questionCount);
         this.questionsObservableList.add(question);
     }
-    
+
     /**
-     * Applies the changes made to the study guide in the editor to the actual object.
+     * Applies the changes made to the study guide in the editor to the actual
+     * object.
      */
     public void applyChanges() {
         var studyGuide = this.getStudyGuide();
@@ -87,6 +89,7 @@ public class StudyGuideEditorViewmodel {
 
     /**
      * Gets the studyGuideProperty.
+     *
      * @return The studyGuideProperty
      */
     public ObjectProperty<DisplayableStudyGuide> getStudyGuideProperty() {
@@ -95,6 +98,7 @@ public class StudyGuideEditorViewmodel {
 
     /**
      * Gets the title StringProperty.
+     *
      * @return The title StringProperty
      */
     public StringProperty getTitleProperty() {
@@ -103,6 +107,7 @@ public class StudyGuideEditorViewmodel {
 
     /**
      * Gets the description StringProperty.
+     *
      * @return The description StringProperty
      */
     public StringProperty getDescriptionProperty() {
@@ -111,6 +116,7 @@ public class StudyGuideEditorViewmodel {
 
     /**
      * Gets the questions ObservableList.
+     *
      * @return The observable list containing the questions
      */
     public ObservableList<DisplayableQuestion> getQuestionsObservableList() {

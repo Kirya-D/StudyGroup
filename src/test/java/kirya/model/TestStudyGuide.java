@@ -33,7 +33,8 @@ public class TestStudyGuide {
                     () -> assertEquals(expectedFavorited, actualFavorited),
                     () -> assertEquals(expectedTitle, actualTitle),
                     () -> assertEquals(expectedDescription, actualDescription),
-                    () -> assertEquals(expectedQuestions, actualQuestions));
+                    () -> assertEquals(expectedQuestions, actualQuestions)
+            );
         }
     }
 
@@ -76,7 +77,8 @@ public class TestStudyGuide {
                     }),
                     () -> assertThrows(IllegalArgumentException.class, () -> {
                         this.studyGuide.setTitle("     ");
-                    }));
+                    })
+            );
         }
     }
 

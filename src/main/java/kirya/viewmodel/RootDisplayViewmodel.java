@@ -47,7 +47,9 @@ public class RootDisplayViewmodel {
     }
 
     /**
-     * Creates and returns a new study guide and sets it as the current editing study guide.
+     * Creates and returns a new study guide and sets it as the current editing
+     * study guide.
+     *
      * @return The new study guide
      */
     public DisplayableStudyGuide createNewStudyGuide() {
@@ -55,22 +57,33 @@ public class RootDisplayViewmodel {
     }
 
     /**
-     * Add the given study guide to the downloaded collection if its not already in it.
-     * @param studyGuide The study guide to download
+     * Add the given study guide to the downloaded collection if its not already
+     * in it.
+     *
+     * @param studyGuide The non-null study guide to download
+     * @throws IllegalArgumentException If studyGuide == null
      */
     public void downloadStudyGuide(DisplayableStudyGuide studyGuide) {
-        if (studyGuide instanceof StudyGuide concreteGuide) {
-            if (!this.downloadedStudyGuidesProperty.contains(concreteGuide)) {
-                this.downloadedStudyGuidesProperty.add(concreteGuide);
-            }
+        if (studyGuide == null) {
+            throw new IllegalArgumentException("studyGuide can't be null");
+        }
+
+        if (!this.downloadedStudyGuidesProperty.contains(studyGuide)) {
+            this.downloadedStudyGuidesProperty.add(studyGuide);
         }
     }
 
     /**
-     * Removes the given study guide from the downloaded study guides list property
+     * Removes the given study guide from the downloaded study guides list
+     * property
+     *
      * @param studyGuide The study guide to delete
      */
     public void deleteStudyGuide(DisplayableStudyGuide studyGuide) {
+        if (studyGuide == null) {
+            throw new IllegalArgumentException("studyGuide can't be null");
+        }
+
         if (this.downloadedStudyGuidesProperty.contains(studyGuide)) {
             this.downloadedStudyGuidesProperty.remove(studyGuide);
         }
@@ -78,6 +91,7 @@ public class RootDisplayViewmodel {
 
     /**
      * Get the list property of favorited studyguides.
+     *
      * @return The favorited studyguides property
      */
     public ListProperty<DisplayableStudyGuide> getFavoritedStudyGuidesProperty() {
@@ -86,6 +100,7 @@ public class RootDisplayViewmodel {
 
     /**
      * Get the list property of downloaded studyguides.
+     *
      * @return The downloaded studyguides property
      */
     public ListProperty<DisplayableStudyGuide> getDownloadedStudyGuidesProperty() {

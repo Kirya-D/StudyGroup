@@ -1,11 +1,12 @@
 package kirya.model;
 
-import java.util.List;
-import java.util.SequencedCollection;
-
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+
+import java.util.List;
+import java.util.SequencedCollection;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,6 +17,7 @@ public class TestQuestion {
 
     @Nested
     public class TestConstructor {
+
         @Test
         public void testParameterlessDefaultMemberValues() {
             var parameterlessQuestion = new Question();
@@ -33,12 +35,14 @@ public class TestQuestion {
                     () -> assertEquals(expectedType, actualType),
                     () -> assertEquals(expectedQuestion, actualQuestion),
                     () -> assertEquals(expectedChoices, actualChoices),
-                    () -> assertEquals(expectedAnswers, actualAnswers));
+                    () -> assertEquals(expectedAnswers, actualAnswers)
+            );
         }
     }
-    
+
     @Nested
     public class TestSetQuestionType {
+
         Question question;
 
         @BeforeEach
@@ -67,6 +71,7 @@ public class TestQuestion {
 
     @Nested
     public class TestSetQuestion {
+
         Question question;
 
         @BeforeEach
@@ -110,6 +115,7 @@ public class TestQuestion {
 
     @Nested
     public class TestSetChoices {
+
         Question question;
 
         @BeforeEach
@@ -131,9 +137,15 @@ public class TestQuestion {
             question3.setChoices(someChoices);
 
             assertAll("Varying collection lengths",
-                    () -> {assertEquals(emptyChoices, this.question.getChoices());},
-                    () -> {assertEquals(oneChoice, question2.getChoices());},
-                    () -> {assertEquals(someChoices, question3.getChoices());}
+                    () -> {
+                        assertEquals(emptyChoices, this.question.getChoices());
+                    },
+                    () -> {
+                        assertEquals(oneChoice, question2.getChoices());
+                    },
+                    () -> {
+                        assertEquals(someChoices, question3.getChoices());
+                    }
             );
         }
 
@@ -147,6 +159,7 @@ public class TestQuestion {
 
     @Nested
     public class TestSetAnswers {
+
         Question question;
 
         @BeforeEach
@@ -168,9 +181,15 @@ public class TestQuestion {
             question3.setAnswers(someAnswers);
 
             assertAll("Varying collection lengths",
-                    () -> {assertEquals(emptyAnswers, this.question.getAnswers());},
-                    () -> {assertEquals(oneAnswer, question2.getAnswers());},
-                    () -> {assertEquals(someAnswers, question3.getAnswers());}
+                    () -> {
+                        assertEquals(emptyAnswers, this.question.getAnswers());
+                    },
+                    () -> {
+                        assertEquals(oneAnswer, question2.getAnswers());
+                    },
+                    () -> {
+                        assertEquals(someAnswers, question3.getAnswers());
+                    }
             );
         }
 

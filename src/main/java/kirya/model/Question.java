@@ -18,11 +18,15 @@ public class Question extends DisplayableQuestion {
 
     /**
      * Initializes a new Question object with default state.
-     * 
-     * <p>Postcondition: this.getQuestionType() == QuestionType.FREE_RESPONSE
-     * <p>Postcondition: this.getQuestion() == ""
-     * <p>Postcondition: this.getChoices() == {}
-     * <p>Postcondition: this.getAnswers() == {}
+     *
+     * <p>
+     * Postcondition: this.getQuestionType() == QuestionType.FREE_RESPONSE
+     * <p>
+     * Postcondition: this.getQuestion() == ""
+     * <p>
+     * Postcondition: this.getChoices() == {}
+     * <p>
+     * Postcondition: this.getAnswers() == {}
      */
     public Question() {
         this.questionType = QuestionType.FREE_RESPONSE;
@@ -33,6 +37,7 @@ public class Question extends DisplayableQuestion {
 
     /**
      * Sets the type of question this Question is.
+     *
      * @param questionType The new type of question
      * @throws IllegalArgumentException If questionType is null
      */
@@ -45,8 +50,10 @@ public class Question extends DisplayableQuestion {
 
     /**
      * Sets the question
+     *
      * @param question The new question being asked
-     * @throws IllegalArgumentException If answerChoices is null or blank as determined by {@code String.isBlank()}
+     * @throws IllegalArgumentException If answerChoices is null or blank as
+     * determined by {@code String.isBlank()}
      */
     public void setQuestion(String question) {
         if (question == null || question.isBlank()) {
@@ -57,6 +64,7 @@ public class Question extends DisplayableQuestion {
 
     /**
      * Sets the answer choices.
+     *
      * @param answerChoices The new answer choices
      * @throws IllegalArgumentException If answerChoices is null
      */
@@ -69,6 +77,7 @@ public class Question extends DisplayableQuestion {
 
     /**
      * Sets the correct answers.
+     *
      * @param correctAnswers The new correct answers
      * @throws IllegalArgumentException If correctAnswers is null
      */

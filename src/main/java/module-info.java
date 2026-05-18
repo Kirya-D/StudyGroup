@@ -10,4 +10,7 @@ module kirya {
     opens kirya.model to tools.jackson.databind;
 
     exports kirya;
+    exports kirya.model;
+    exports kirya.utils;
+    exports kirya.viewmodel;
 }
