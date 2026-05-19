@@ -59,4 +59,9 @@ public class QuestionViewer extends GridPane {
         this.answerLabel.setText(singleAnswer);
         this.multipleChoiceAnswerListView.getItems().setAll(allAnswers);
     }
+
+    @FXML
+    private void onRevealAnswerButtonClick() {
+        this.answerLabel.setVisible(!this.answerLabel.isVisible());
+    }
 }

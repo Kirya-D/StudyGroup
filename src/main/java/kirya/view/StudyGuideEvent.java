@@ -9,6 +9,14 @@ import kirya.utils.DisplayableStudyGuide;
  */
 public class StudyGuideEvent extends Event {
     /**
+     * Event to view.
+     */
+    public static final EventType<StudyGuideEvent> VIEW = new EventType<>(Event.ANY, "VIEW_STUDYGUIDE");
+    /**
+     * Event to close.
+     */
+    public static final EventType<StudyGuideEvent> CLOSE = new EventType<>(Event.ANY, "CLOSE_STUDYGUIDE");
+    /**
      * Event to download.
      */
     public static final EventType<StudyGuideEvent> DOWNLOAD = new EventType<>(Event.ANY, "DOWNLOAD");

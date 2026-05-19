@@ -95,6 +95,6 @@ public class StudyGuideViewer extends GridPane {
 
     @FXML
     private void onFinishButtonClick() {
-        this.setVisible(false);
+        this.fireEvent(new StudyGuideEvent(null, StudyGuideEvent.CLOSE));
     }
 }

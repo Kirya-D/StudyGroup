@@ -58,6 +58,16 @@ public class RootDisplay {
     }
 
     private void addEventListeners() {
+        this.rootPane.addEventHandler(StudyGuideEvent.VIEW, handler -> {
+            var guide = handler.getStudyGuide();
+            if (guide != null) {
+                this.studyGuideViewer.setStudyGuide(guide);
+                this.studyGuideViewer.setVisible(true);
+            }
+        });
+        this.rootPane.addEventHandler(StudyGuideEvent.CLOSE, handler -> {
+            this.homeVBox.setVisible(true);
+        });
         this.rootPane.addEventHandler(StudyGuideEvent.DOWNLOAD, handler -> {
             // TODO implement this
         });

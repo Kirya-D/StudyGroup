@@ -52,6 +52,9 @@ public class StudyGuideOverview extends GridPane {
     }
 
     private void bindToSelf() {
+        this.setOnMouseClicked(handler -> {
+            this.fireEvent(new StudyGuideEvent(this.displayableStudyGuide, StudyGuideEvent.VIEW));
+        });
         this.extendedUsernameAndTitleLabel.managedProperty().bind(this.extendedUsernameAndTitleLabel.visibleProperty());
         this.extendedUsernameBottomSeparator.managedProperty()
                 .bind(this.extendedUsernameBottomSeparator.visibleProperty());
