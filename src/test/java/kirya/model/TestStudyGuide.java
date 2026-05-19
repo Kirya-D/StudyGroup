@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.SequencedCollection;
 
@@ -134,26 +135,20 @@ public class TestStudyGuide {
 
         @Test
         public void testWhenSuccessful() {
-            SequencedCollection<Question> emptyQuestions = List.of();
             SequencedCollection<Question> oneQuestion = List.of(new Question());
             SequencedCollection<Question> someQuestions = List.of(new Question(), new Question());
 
             var studyGuide2 = new StudyGuide();
-            var studyGuide3 = new StudyGuide();
 
-            this.studyGuide.setQuestions(emptyQuestions);
-            studyGuide2.setQuestions(oneQuestion);
-            studyGuide3.setQuestions(someQuestions);
+            this.studyGuide.setQuestions(oneQuestion);
+            studyGuide2.setQuestions(someQuestions);
 
             assertAll("Varying collection lengths",
                     () -> {
-                        assertEquals(emptyQuestions, this.studyGuide.getQuestions());
+                        assertEquals(oneQuestion, this.studyGuide.getQuestions());
                     },
                     () -> {
-                        assertEquals(oneQuestion, studyGuide2.getQuestions());
-                    },
-                    () -> {
-                        assertEquals(someQuestions, studyGuide3.getQuestions());
+                        assertEquals(someQuestions, studyGuide2.getQuestions());
                     }
             );
         }
@@ -162,6 +157,13 @@ public class TestStudyGuide {
         public void throwsWhenNull() {
             assertThrows(IllegalArgumentException.class, () -> {
                 this.studyGuide.setQuestions(null);
+            });
+        }
+
+        @Test
+        public void throwsWhenEmpty() {
+            assertThrows(IllegalArgumentException.class, () -> {
+                this.studyGuide.setQuestions(Collections.emptyList());
             });
         }
     }

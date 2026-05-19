@@ -2,6 +2,7 @@ package kirya.viewmodel;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -38,16 +39,22 @@ public class StudyGuideEditorViewmodel {
 
     private void setupStudyGuideListener() {
         this.studyGuideProperty.addListener((_, _, newValue) -> {
-            if (newValue != null) {
-                this.titleProperty.set(newValue.getTitle());
-                this.descriptionProperty.set(newValue.getDescription());
-                this.questionsObservableList.setAll(newValue.getQuestions());
-            } else {
-                this.titleProperty.set("");
-                this.descriptionProperty.set("");
-                this.questionsObservableList.clear();
-            }
+            this.syncPropertiesToStudyGuideState();
         });
+    }
+    
+    public void syncPropertiesToStudyGuideState() {
+        var studyGuide = this.studyGuideProperty.get();
+
+        if (studyGuide != null) {
+            this.titleProperty.set(studyGuide.getTitle());
+            this.descriptionProperty.set(studyGuide.getDescription());
+            this.questionsObservableList.setAll(studyGuide.getQuestions());
+        } else {
+            this.titleProperty.set("");
+            this.descriptionProperty.set("");
+            this.questionsObservableList.clear();
+        }
     }
 
     /**
@@ -57,17 +64,23 @@ public class StudyGuideEditorViewmodel {
         var question = new Question();
         var questionCount = this.questionsObservableList.size() + 1;
         question.setQuestion("Question " + questionCount);
+        question.setChoices(List.of("Answer choice 1"));
+        question.setAnswers(List.of("Answer choice 1"));
         this.questionsObservableList.add(question);
     }
 
     /**
-     * Applies the changes made to the study guide in the editor to the actual
+     * Applies the changes made to the study guide in the editor to the associated
      * object.
+     *
+     * @throws NullPointerException If studyguide == null
+     * @throws IllegalArgumentException If studyguide title is blank
+     * @throws IllegalArgumentException If studyguide questions is null or {@link Collection#isEmpty()}
      */
-    public void applyChanges() {
+    public void applyStudyGuideChanges() {
         var studyGuide = this.getStudyGuide();
         if (studyGuide == null) {
-            return;
+            throw new NullPointerException("Study guide is null");
         }
 
         Collection<Question> concreteQuestions = new ArrayList<>();

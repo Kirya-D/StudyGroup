@@ -5,6 +5,7 @@ import java.io.IOException;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.geometry.Insets;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ListCell;
 import javafx.scene.control.ListView;
 import javafx.scene.control.TextArea;
@@ -12,19 +13,21 @@ import javafx.scene.control.TextField;
 import javafx.scene.layout.GridPane;
 import kirya.utils.DisplayableQuestion;
 import kirya.utils.DisplayableStudyGuide;
+import kirya.utils.Utils;
 import kirya.viewmodel.StudyGuideEditorViewmodel;
 
 /**
  * Code-behind for studyguideeditor.fxml
  */
 public class StudyGuideEditor extends GridPane {
+
     @FXML
     private TextField titleTextField;
     @FXML
     private TextArea descriptionTextArea;
     @FXML
     private ListView<DisplayableQuestion> questionsListView;
-    
+
     private StudyGuideEditorViewmodel viewmodel = new StudyGuideEditorViewmodel();
 
     /**
@@ -53,8 +56,7 @@ public class StudyGuideEditor extends GridPane {
                 if (empty || question == null) {
                     this.setText(null);
                     this.setGraphic(null);
-                }
-                else {
+                } else {
                     setPadding(Insets.EMPTY);
                     setGraphic(this.questionEditor);
                     this.questionEditor.setQuestion(question);
@@ -71,12 +73,13 @@ public class StudyGuideEditor extends GridPane {
 
     /**
      * Sets the study guide to edit.
+     *
      * @param studyGuide The study guide to edit
      */
     public void setStudyGuide(DisplayableStudyGuide studyGuide) {
         this.viewmodel.getStudyGuideProperty().set(studyGuide);
     }
-    
+
     @FXML
     private void onCancelButtonClick() {
         this.fireEditEvent(false);
@@ -89,8 +92,27 @@ public class StudyGuideEditor extends GridPane {
 
     @FXML
     private void onConfirmButtonClick() {
-        this.viewmodel.applyChanges();
-        this.fireEditEvent(true);
+        Alert alert = null;
+
+        try {
+            this.viewmodel.applyStudyGuideChanges();
+            this.fireEditEvent(true);
+        }
+        catch (IllegalArgumentException e) {
+            var warningMessage = Utils.capitalizeString(e.getMessage());
+            alert = new Alert(Alert.AlertType.WARNING);
+            alert.setHeaderText(warningMessage);
+        }
+        catch (NullPointerException e) {
+            var errorMessage = Utils.capitalizeString(e.getMessage());
+            alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText(errorMessage);
+        }
+
+        if (alert != null) {
+            this.viewmodel.syncPropertiesToStudyGuideState();
+            alert.showAndWait();
+        }
     }
 
     private void fireEditEvent(boolean appliedChanges) {

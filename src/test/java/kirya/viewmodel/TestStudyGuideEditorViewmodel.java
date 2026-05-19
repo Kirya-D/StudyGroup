@@ -3,8 +3,11 @@ package kirya.viewmodel;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -13,6 +16,8 @@ import org.junit.jupiter.api.Test;
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
+import kirya.model.Question;
+import kirya.model.StudyGuide;
 
 public class TestStudyGuideEditorViewmodel {
 
@@ -37,6 +42,57 @@ public class TestStudyGuideEditorViewmodel {
                     () -> assertInstanceOf(expectedTitleType, actualTitleProperty),
                     () -> assertInstanceOf(expectedDescriptionType, actualDescription),
                     () -> assertInstanceOf(expectedQuestionsType, actualQuestions));
+        }
+    }
+
+    @Nested
+    public class TestSyncPropertiesToStudyGuideState {
+        
+        @Test
+        public void testWhenStudyGuideIsNotNull() {
+            var studyGuide = new StudyGuide();
+            studyGuide.setTitle("Unique Study Guide Title");
+            studyGuide.setDescription("Even more unique description");
+            studyGuide.setQuestions(List.of(new Question(), new Question()));
+            var viewmodel = new StudyGuideEditorViewmodel();
+            viewmodel.getStudyGuideProperty().set(studyGuide);
+
+            var expectedTitle = studyGuide.getTitle();
+            var expectedDescription = studyGuide.getDescription();
+            var expectedQuestions = studyGuide.getQuestions();
+
+            viewmodel.syncPropertiesToStudyGuideState();
+
+            var actualTitle = viewmodel.getTitleProperty().get();
+            var actualDescription = viewmodel.getDescriptionProperty().get();
+            var actualQuestions = new ArrayList<>(viewmodel.getQuestionsObservableList());
+
+            assertAll("Member checks", 
+                () -> assertEquals(expectedTitle, actualTitle),
+                () -> assertEquals(expectedDescription, actualDescription),
+                () -> assertEquals(expectedQuestions, actualQuestions)
+            );
+        }
+
+        @Test
+        public void testWhenStudyGuideIsNull() {
+            var viewmodel = new StudyGuideEditorViewmodel();
+
+            var expectedTitle = "";
+            var expectedDescription = "";
+            var expectedQuestions = Collections.emptyList();
+
+            viewmodel.syncPropertiesToStudyGuideState();
+
+            var actualTitle = viewmodel.getTitleProperty().get();
+            var actualDescription = viewmodel.getDescriptionProperty().get();
+            var actualQuestions = new ArrayList<>(viewmodel.getQuestionsObservableList());
+
+            assertAll("Member checks", 
+                () -> assertEquals(expectedTitle, actualTitle),
+                () -> assertEquals(expectedDescription, actualDescription),
+                () -> assertEquals(expectedQuestions, actualQuestions)
+            );
         }
     }
 
@@ -110,24 +166,65 @@ public class TestStudyGuideEditorViewmodel {
     }
 
     @Nested
-    public class TestApplyChanges {
+    public class TestApplyStudyGuideChanges {
 
         StudyGuideEditorViewmodel viewmodel;
 
         @BeforeEach
         public void setup() {
             this.viewmodel = new StudyGuideEditorViewmodel();
+            this.viewmodel.getStudyGuideProperty().set(new StudyGuide());
         }
 
         @Test
-        public void testWhenNullStudyGuide() {
-            var beforeAdd = new ArrayList<>(this.viewmodel.getQuestionsObservableList());
+        public void testWhenSuccessful() {
+            var expectedTitle = "Valid Title";
+            var expectedDescription = "Meh";
+            var expectedQuestions = List.of(new Question(), new Question());
 
-            this.viewmodel.applyChanges();
+            this.viewmodel.getTitleProperty().set(expectedTitle);
+            this.viewmodel.getDescriptionProperty().set(expectedDescription);
+            this.viewmodel.getQuestionsObservableList().setAll(expectedQuestions);
+            this.viewmodel.applyStudyGuideChanges();
 
-            var afterAdd = new ArrayList<>(this.viewmodel.getQuestionsObservableList());
+            var studyGuide = this.viewmodel.getStudyGuideProperty().get();
+            var actualTitle = studyGuide.getTitle();
+            var actualDescription = studyGuide.getDescription();
+            var actualQuestions = studyGuide.getQuestions();
 
-            assertEquals(beforeAdd, afterAdd);
+            assertAll("Member checks", 
+                () -> assertEquals(expectedTitle, actualTitle),
+                () -> assertEquals(expectedDescription, actualDescription),
+                () -> assertEquals(expectedQuestions, actualQuestions)
+            );
+        }
+
+        @Test
+        public void throwsWhenNullStudyGuide() {
+            this.viewmodel.getStudyGuideProperty().set(null);
+
+            assertThrows(NullPointerException.class, () -> {
+                this.viewmodel.applyStudyGuideChanges();
+            });
+        }
+
+        @Test
+        public void throwsWhenTitleIsBlank() {
+            this.viewmodel.getTitleProperty().set("");
+
+            assertThrows(IllegalArgumentException.class, () -> {
+                this.viewmodel.applyStudyGuideChanges();
+            });
+        }
+
+        @Test
+        public void throwsWhenQuestionsIsEmpty() {
+            this.viewmodel.getTitleProperty().set("Valid Title");
+            this.viewmodel.getQuestionsObservableList().clear();
+
+            assertThrows(IllegalArgumentException.class, () -> {
+                this.viewmodel.applyStudyGuideChanges();
+            });
         }
     }
 }

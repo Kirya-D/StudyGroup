@@ -1,9 +1,12 @@
 package kirya.view;
 
 import java.io.IOException;
+import java.util.List;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
+import javafx.scene.control.Alert;
 import javafx.scene.control.ComboBox;
 import javafx.scene.control.Label;
 import javafx.scene.control.ListCell;
@@ -14,12 +17,14 @@ import javafx.util.StringConverter;
 import kirya.utils.DisplayText;
 import kirya.utils.DisplayableQuestion;
 import kirya.utils.QuestionType;
+import kirya.utils.Utils;
 import kirya.viewmodel.QuestionEditorViewmodel;
 
 /**
  * Code-behind for questioneditor.fxml
  */
 public class QuestionEditor extends VBox {
+
     @FXML
     private Label headerLabel;
     @FXML
@@ -70,6 +75,15 @@ public class QuestionEditor extends VBox {
 
     private void bindToSelf() {
         this.configurationVBox.managedProperty().bind(this.configurationVBox.visibleProperty());
+
+        var listenedFocusNodes = List.of(this.questionTextField, this.answerTextArea);
+        for (var focusNode : listenedFocusNodes) {
+            focusNode.focusedProperty().addListener((_, _, focused) -> {
+                if (!focused) {
+                    this.applyQuestionChanges(focusNode);
+                }
+            });
+        }
     }
 
     private void bindToViewmodel() {
@@ -81,10 +95,34 @@ public class QuestionEditor extends VBox {
 
     /**
      * Sets the question to edit.
+     *
      * @param question The new question to edit
      */
     public void setQuestion(DisplayableQuestion question) {
         this.viewmodel.getQuestionObjectProperty().set(question);
+    }
+
+    private void applyQuestionChanges(Node sender) {
+        Alert alert = null;
+
+        try {
+            this.viewmodel.applyQuestionChanges();
+        }
+        catch (IllegalArgumentException e) {
+            var warningMessage = Utils.capitalizeString(e.getMessage());
+            alert = new Alert(Alert.AlertType.WARNING);
+            alert.setHeaderText(warningMessage);
+        }
+        catch (NullPointerException e) {
+            var errorMessage = Utils.capitalizeString(e.getMessage());
+            alert = new Alert(Alert.AlertType.ERROR);
+            alert.setHeaderText(errorMessage);
+        }
+
+        if (alert != null) {
+            this.viewmodel.syncPropertiesToQuestionState();
+            alert.showAndWait();
+        }
     }
 
     @FXML

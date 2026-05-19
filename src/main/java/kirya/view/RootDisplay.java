@@ -111,8 +111,8 @@ public class RootDisplay {
     private void alertUserOfDeletion(DisplayableStudyGuide studyGuide) {
         var alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle("Are you sure?");
-        alert.setHeaderText("You're about to delete this study guide");
-        alert.setContentText("This action is irreversible, are you sure you want to PERMANENTLY DELETE " + studyGuide.getTitle() + "?");
+        alert.setHeaderText("You're about to delete the study guide \"" + studyGuide.getTitle() + "\"");
+        alert.setContentText("This action is irreversible, are you sure you want to PERMANENTLY DELETE \"" + studyGuide.getTitle() + "\"?");
         var optional = alert.showAndWait();
         if (optional.isPresent() && optional.get() == ButtonType.OK) {
             this.viewmodel.deleteStudyGuide(studyGuide);

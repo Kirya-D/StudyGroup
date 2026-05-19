@@ -64,17 +64,21 @@ public class StudyGuide extends DisplayableStudyGuide {
      * Sets the questions.
      * @param questions The new non-null questions
      * @throws IllegalArgumentException If questions is null
+     * @throws IllegalArgumentException If questions {@link Collection#isEmpty()}
      */
     public void setQuestions(Collection<Question> questions) {
         if (questions == null) {
             throw new IllegalArgumentException("questions can't be null");
+        }
+        if (questions.isEmpty()) {
+            throw new IllegalArgumentException("There must be at least one question");
         }
         this.questions.clear();
         this.questions.addAll(questions);
     }
 
     /**
-     * Sets if this is favorited.
+     * Sets if this studyguide is favorited.
      * @param favorited The new non-null favorited state
      */
     public void setIsFavorited(boolean favorited) {
