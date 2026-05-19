@@ -2,7 +2,7 @@ package kirya.view;
 
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 
-import java.util.Collection;
+import java.util.ArrayList;
 import java.util.List;
 
 import javafx.fxml.FXML;
@@ -69,13 +69,17 @@ public class RootDisplay {
             this.homeVBox.setVisible(true);
         });
         this.rootPane.addEventHandler(StudyGuideEvent.DOWNLOAD, handler -> {
-            // TODO implement this
+            var guide = handler.getStudyGuide();
+            this.viewmodel.downloadStudyGuide(guide);
+            this.refreshBothStudyGuidePanes();
         });
         this.rootPane.addEventHandler(StudyGuideEvent.FAVORITE, handler -> {
-            // TODO implement this
+            var guide = handler.getStudyGuide();
+            this.viewmodel.toggleFavoriteStudyGuide(guide);
+            this.refreshBothStudyGuidePanes();
         });
         this.rootPane.addEventHandler(StudyGuideEvent.UPLOAD, handler -> {
-            // TODO implement this
+            // TODO implement uploading (when DB is implemented)
         });
         this.rootPane.addEventHandler(StudyGuideEvent.DELETE, handler -> {
             var studyGuide = handler.getStudyGuide();
@@ -107,12 +111,13 @@ public class RootDisplay {
             }
         });
     }
-    
+
     private void alertUserOfDeletion(DisplayableStudyGuide studyGuide) {
         var alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle("Are you sure?");
         alert.setHeaderText("You're about to delete the study guide \"" + studyGuide.getTitle() + "\"");
-        alert.setContentText("This action is irreversible, are you sure you want to PERMANENTLY DELETE \"" + studyGuide.getTitle() + "\"?");
+        alert.setContentText("This action is irreversible, are you sure you want to PERMANENTLY DELETE \""
+                + studyGuide.getTitle() + "\"?");
         var optional = alert.showAndWait();
         if (optional.isPresent() && optional.get() == ButtonType.OK) {
             this.viewmodel.deleteStudyGuide(studyGuide);
@@ -129,22 +134,49 @@ public class RootDisplay {
             this.homeVBox.setVisible(true);
         }
     }
-    
+
     private void bindToViewmodel() {
         this.viewmodel.getFavoritedStudyGuidesProperty().addListener((_, _, newList) -> {
-            this.refreshTilePane(this.favoritedStudyGuidesTilePane, newList);
+            this.refreshFavoritedTilePane();
         });
         this.viewmodel.getDownloadedStudyGuidesProperty().addListener((_, _, newList) -> {
-            this.refreshTilePane(this.downloadedStudyGuidesTilePane, newList);
+            this.refreshDownloadedTilePane();
         });
     }
-    
-    private void refreshTilePane(TilePane pane, Collection<DisplayableStudyGuide> content) {
-        pane.getChildren().clear();
-        for (var guide : content) {
-            var overview = new StudyGuideOverview();
-            overview.setStudyGuide(guide);
-            pane.getChildren().add(overview);
+
+    private void refreshBothStudyGuidePanes() {
+        this.refreshDownloadedTilePane();
+        this.refreshFavoritedTilePane();
+    }
+
+    private void refreshFavoritedTilePane() {
+        this.refreshTilePane(this.favoritedStudyGuidesTilePane, this.viewmodel.getFavoritedStudyGuidesProperty());
+    }
+
+    private void refreshDownloadedTilePane() {
+        this.refreshTilePane(this.downloadedStudyGuidesTilePane, this.viewmodel.getDownloadedStudyGuidesProperty());
+    }
+
+    private void refreshTilePane(TilePane pane, List<DisplayableStudyGuide> content) {
+        var paneChildren = new ArrayList<>(pane.getChildren());
+        paneChildren.stream().map(child -> {
+            child.setVisible(false);
+            return child;
+        });
+        for (int i = 0; i < content.size(); i++) {
+            var studyGuide = content.get(i);
+            if (i < paneChildren.size()) {
+                var child = paneChildren.get(i);
+                if (child instanceof StudyGuideOverview overview) {
+                    overview.setStudyGuide(studyGuide);
+                    overview.setVisible(true);
+                }
+            } else {
+                var overview = new StudyGuideOverview();
+                overview.managedProperty().bind(overview.visibleProperty());
+                overview.setStudyGuide(studyGuide);
+                pane.getChildren().add(overview);
+            }
         }
     }
 
@@ -158,17 +190,17 @@ public class RootDisplay {
         this.studyGuideEditor.setStudyGuide(studyGuide);
         this.studyGuideEditor.setVisible(true);
     }
-    
+
     @FXML
     private void onFavoritedStudyGuidesDropdownClick() {
         this.toggleDropdown(this.favoritedStudyGuidesTilePane, this.favoritedStudyGuidesToggleLabel);
     }
-    
+
     @FXML
     private void onDownloadedStudyGuidesDropdownClick() {
         this.toggleDropdown(this.downloadedStudyGuidesTilePane, this.downloadedStudyGuidesToggleLabel);
     }
-    
+
     private void toggleDropdown(TilePane toToggle, Label label) {
         var currentlyVisible = toToggle.isVisible();
         var newLabelText = currentlyVisible ? DisplayText.TRIANGLE_DOWN : DisplayText.TRIANGLE_UP;

@@ -7,23 +7,27 @@ import java.util.Collection;
  */
 public abstract class DisplayableStudyGuide {
     /**
-     * Gets the title.
-     * @return The title
+     * {@return the title}
      */
     public abstract String getTitle();
+
     /**
-     * Gets the description.
-     * @return The description
+     * {@return the description}
      */
     public abstract String getDescription();
+
     /**
-     * Gets the questions
-     * @return The questions
+     * {@return the questions}
      */
     public abstract Collection<DisplayableQuestion> getQuestions();
+
     /**
-     * Gets if the study guide is favorited.
-     * @return The favorited status
+     * {@return the downloaded status}
+     */
+    public abstract boolean getIsDownloaded();
+
+    /**
+     * {@return The favorited status}
      */
     public abstract boolean getIsFavorited();
 

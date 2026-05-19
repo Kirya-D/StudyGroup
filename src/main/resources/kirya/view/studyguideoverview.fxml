@@ -47,7 +47,7 @@
       <Separator layoutX="160.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" orientation="VERTICAL" GridPane.columnIndex="3" />
       <VBox layoutX="166.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="5.0" GridPane.columnIndex="4">
          <children>
-            <Button layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onDownloadButtonClick" text="⭳" VBox.vgrow="ALWAYS">
+            <Button fx:id="downloadButton" layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onDownloadButtonClick" text="⭳" VBox.vgrow="ALWAYS">
                <font>
                   <Font size="26.0" />
                </font>
@@ -57,12 +57,12 @@
                   <Font size="16.0" />
                </font>
             </Button>
-            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onFavoriteButtonClick" text="🌟" VBox.vgrow="ALWAYS">
+            <Button fx:id="favoriteButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onFavoriteButtonClick" text="🌟" VBox.vgrow="ALWAYS">
                <font>
                   <Font size="16.0" />
                </font>
             </Button>
-            <Button layoutX="15.0" layoutY="126.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onUploadButtonClick" rotate="180.0" text="⭳" VBox.vgrow="ALWAYS">
+            <Button fx:id="uploadButton" layoutX="15.0" layoutY="126.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onUploadButtonClick" rotate="180.0" text="⭳" VBox.vgrow="ALWAYS">
                <font>
                   <Font size="26.0" />
                </font>

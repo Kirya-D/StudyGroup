@@ -10,10 +10,12 @@ import java.io.IOException;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.Separator;
 import javafx.scene.image.ImageView;
 import javafx.scene.layout.GridPane;
+import javafx.scene.paint.Color;
 import kirya.utils.DisplayableStudyGuide;
 
 /**
@@ -33,9 +35,15 @@ public class StudyGuideOverview extends GridPane {
     private Label questionCountLabel;
     @FXML
     private Label descriptionLabel;
+    @FXML
+    private Button downloadButton;
+    @FXML
+    private Button favoriteButton;
+    @FXML
+    private Button uploadButton;
 
     private DisplayableStudyGuide displayableStudyGuide;
-    
+
     /**
      * Initializes a new StudyGuideOverview component.
      */
@@ -58,17 +66,21 @@ public class StudyGuideOverview extends GridPane {
         this.extendedUsernameAndTitleLabel.managedProperty().bind(this.extendedUsernameAndTitleLabel.visibleProperty());
         this.extendedUsernameBottomSeparator.managedProperty()
                 .bind(this.extendedUsernameBottomSeparator.visibleProperty());
+
+        this.downloadButton.managedProperty().bind(this.downloadButton.visibleProperty());
+        this.uploadButton.managedProperty().bind(this.uploadButton.visibleProperty());
     }
 
     /**
      * Sets the study guide to overview.
+     * 
      * @param studyGuide The new study guide to overview
-    */
+     */
     public void setStudyGuide(DisplayableStudyGuide studyGuide) {
         this.displayableStudyGuide = studyGuide;
         this.refreshDisplay();
     }
-    
+
     private void refreshDisplay() {
         this.titleByUsernameLabel.setText(this.displayableStudyGuide.getTitle());
         this.extendedUsernameAndTitleLabel.setText("");
@@ -78,6 +90,17 @@ public class StudyGuideOverview extends GridPane {
         var extendedTextIsEmpty = this.extendedUsernameAndTitleLabel.getText().isBlank();
         this.extendedUsernameAndTitleLabel.setVisible(!extendedTextIsEmpty);
         this.extendedUsernameBottomSeparator.setVisible(!extendedTextIsEmpty);
+
+        this.updateButtonsDisplay();
+    }
+
+    private void updateButtonsDisplay() {
+        this.downloadButton.setVisible(false);
+        var favorited = this.displayableStudyGuide.getIsFavorited();
+        var favoriteButtonTextColor = favorited ? Color.YELLOW : Color.BLACK;
+        this.favoriteButton.setTextFill(favoriteButtonTextColor);
+        this.uploadButton.setVisible(true);
+
     }
 
     @FXML
@@ -94,7 +117,7 @@ public class StudyGuideOverview extends GridPane {
     private void onFavoriteButtonClick() {
         this.fireEvent(new StudyGuideEvent(this.displayableStudyGuide, FAVORITE));
     }
-    
+
     @FXML
     private void onUploadButtonClick() {
         this.fireEvent(new StudyGuideEvent(this.displayableStudyGuide, UPLOAD));

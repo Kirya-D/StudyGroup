@@ -30,8 +30,7 @@ public class TestRootDisplayViewmodel {
 
             assertAll("Members",
                     () -> assertInstanceOf(expectedFavoritedType, actualFavoritedType),
-                    () -> assertInstanceOf(expectedDownloadedType, actualDownloadedType)
-            );
+                    () -> assertInstanceOf(expectedDownloadedType, actualDownloadedType));
         }
     }
 
@@ -119,6 +118,55 @@ public class TestRootDisplayViewmodel {
         public void throwsWhenNull() {
             assertThrows(IllegalArgumentException.class, () -> {
                 this.viewmodel.downloadStudyGuide(null);
+            });
+        }
+    }
+
+    @Nested
+    public class TestToggleFavoriteStudyGuide {
+
+        RootDisplayViewmodel viewmodel;
+        StudyGuide studyGuide;
+
+        @BeforeEach
+        public void setup() {
+            this.viewmodel = new RootDisplayViewmodel();
+            this.studyGuide = new StudyGuide();
+        }
+
+        @Test
+        public void testWhenStudyGuideNotYetFavorited() {
+            this.studyGuide.setIsFavorited(false);
+
+            this.viewmodel.toggleFavoriteStudyGuide(this.studyGuide);
+
+            var expectedFavorited = true;
+            var actualFavorited = this.studyGuide.getIsFavorited();
+
+            assertAll("Member checks",
+                    () -> assertEquals(expectedFavorited, actualFavorited),
+                    () -> assertTrue(this.viewmodel.getFavoritedStudyGuidesProperty().contains(this.studyGuide)));
+        }
+
+        @Test
+        public void testWhenStudyGuideAlreadyFavorited() {
+            this.studyGuide.setIsFavorited(true);
+            this.viewmodel.getFavoritedStudyGuidesProperty().add(this.studyGuide);
+
+            this.viewmodel.toggleFavoriteStudyGuide(this.studyGuide);
+
+            var expectedFavorited = false;
+            var actualFavorited = this.studyGuide.getIsFavorited();
+
+            assertAll("Member checks",
+                    () -> assertEquals(expectedFavorited, actualFavorited),
+                    () -> assertTrue(!this.viewmodel.getFavoritedStudyGuidesProperty().contains(this.studyGuide)));
+        }
+
+        @Test
+        public void throwsWhenStudyGuideIsNull() {
+            assertThrows(IllegalArgumentException.class, () -> {
+                this.viewmodel.toggleFavoriteStudyGuide(null);
             });
         }
     }
