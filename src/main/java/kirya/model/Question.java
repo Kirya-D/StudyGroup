@@ -1,6 +1,7 @@
 package kirya.model;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.SequencedCollection;
 
 import kirya.utils.DisplayableQuestion;
@@ -20,13 +21,13 @@ public class Question extends DisplayableQuestion {
      * Initializes a new Question object with default state.
      *
      * <p>
-     * Postcondition: this.getQuestionType() == QuestionType.FREE_RESPONSE
+     * Postcondition: this.getQuestionType() == {@link QuestionType#FREE_RESPONSE}
      * <p>
      * Postcondition: this.getQuestion() == ""
      * <p>
-     * Postcondition: this.getChoices() == {}
+     * Postcondition: this.getChoices() == {@link Collections#emptyList()}
      * <p>
-     * Postcondition: this.getAnswers() == {}
+     * Postcondition: this.getAnswers() == {@link Collections#emptyList()}
      */
     public Question() {
         this.questionType = QuestionType.FREE_RESPONSE;
@@ -39,7 +40,7 @@ public class Question extends DisplayableQuestion {
      * Sets the type of question this Question is.
      *
      * @param questionType The new type of question
-     * @throws IllegalArgumentException If questionType is null
+     * @throws IllegalArgumentException If {@code questionType} == {@code null}
      */
     public void setQuestionType(QuestionType questionType) {
         if (questionType == null) {
@@ -52,12 +53,14 @@ public class Question extends DisplayableQuestion {
      * Sets the question
      *
      * @param question The new question being asked
-     * @throws IllegalArgumentException If answerChoices is null or blank as
-     * determined by {@code String.isBlank()}
+     * @throws IllegalArgumentException If {@code question} == {@code null} or {@link String#isBlank()}
      */
     public void setQuestion(String question) {
-        if (question == null || question.isBlank()) {
-            throw new IllegalArgumentException("question must be a non-blank string");
+        if (question == null) {
+            throw new IllegalArgumentException("question can't be null");
+        }
+        if (question.isBlank()) {
+            throw new IllegalArgumentException("question can't be blank");
         }
         this.question = question;
     }
@@ -66,11 +69,21 @@ public class Question extends DisplayableQuestion {
      * Sets the answer choices.
      *
      * @param answerChoices The new answer choices
-     * @throws IllegalArgumentException If answerChoices is null
+     * @throws IllegalArgumentException If {@code answerChoices == null}
+     * @throws IllegalArgumentException If {@code answerChoices.isEmpty()}
+     * @throws IllegalArgumentException if any answer choice {@link String#isBlank()}
      */
     public void setChoices(SequencedCollection<String> answerChoices) {
         if (answerChoices == null) {
             throw new IllegalArgumentException("answerChoices can't be null");
+        }
+        if (answerChoices.isEmpty()) {
+            throw new IllegalArgumentException("There must be at least one answer choice");
+        }
+        for (var choice : answerChoices) {
+            if (choice.isBlank()) {
+                throw new IllegalArgumentException("Answer choice can't be blank");
+            }
         }
         this.choices = answerChoices;
     }
@@ -78,12 +91,22 @@ public class Question extends DisplayableQuestion {
     /**
      * Sets the correct answers.
      *
-     * @param correctAnswers The new correct answers
-     * @throws IllegalArgumentException If correctAnswers is null
+     * @param correctAnswers The new non-null correct answers size > 0
+     * @throws IllegalArgumentException If {@code correctAnswers == null}
+     * @throws IllegalArgumentException If {@code correctAnswers.isEmpty()}
+     * @throws IllegalArgumentException if any answer {@link String#isBlank()}
      */
     public void setAnswers(SequencedCollection<String> correctAnswers) {
         if (correctAnswers == null) {
             throw new IllegalArgumentException("correctAnswers can't be null");
+        }
+        if (correctAnswers.isEmpty()) {
+            throw new IllegalArgumentException("There must be at least one correct answer");
+        }
+        for (var answer : correctAnswers) {
+            if (answer.isBlank()) {
+                throw new IllegalArgumentException("Answer can't be blank");
+            }
         }
         this.answers = correctAnswers;
     }

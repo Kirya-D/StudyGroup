@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.util.Collections;
 import java.util.List;
 import java.util.SequencedCollection;
 
@@ -125,26 +126,20 @@ public class TestQuestion {
 
         @Test
         public void testWhenSuccessful() {
-            SequencedCollection<String> emptyChoices = List.of();
             SequencedCollection<String> oneChoice = List.of("Choice 1");
             SequencedCollection<String> someChoices = List.of("Choice 1", "Choice 2");
 
             var question2 = new Question();
-            var question3 = new Question();
 
-            this.question.setChoices(emptyChoices);
-            question2.setChoices(oneChoice);
-            question3.setChoices(someChoices);
+            this.question.setChoices(oneChoice);
+            question2.setChoices(someChoices);
 
             assertAll("Varying collection lengths",
                     () -> {
-                        assertEquals(emptyChoices, this.question.getChoices());
+                        assertEquals(oneChoice, this.question.getChoices());
                     },
                     () -> {
-                        assertEquals(oneChoice, question2.getChoices());
-                    },
-                    () -> {
-                        assertEquals(someChoices, question3.getChoices());
+                        assertEquals(someChoices, question2.getChoices());
                     }
             );
         }
@@ -154,6 +149,36 @@ public class TestQuestion {
             assertThrows(IllegalArgumentException.class, () -> {
                 this.question.setChoices(null);
             });
+        }
+
+        @Test
+        public void throwsWhenEmpty() {
+            assertThrows(IllegalArgumentException.class, () -> {
+                this.question.setChoices(Collections.emptyList());
+            });
+        }
+
+        @Test
+        public void throwsWhenBlankChoiceInChoices() {
+            var onlyBlankChoice = List.of("");
+            var firstBlankChoice = List.of("", "Valid middle choice", "Valid last choice");
+            var middleBlankChoice = List.of("Valid first choice", "", "Valid last choice");
+            var lastBlankChoice = List.of("Valid first choice", "Valid middle choice", "");
+
+            assertAll("Blank choice variations",
+                () -> assertThrows(IllegalArgumentException.class, () -> {
+                    this.question.setChoices(onlyBlankChoice);
+                }),
+                () -> assertThrows(IllegalArgumentException.class, () -> {
+                    this.question.setChoices(firstBlankChoice);
+                }),
+                () -> assertThrows(IllegalArgumentException.class, () -> {
+                    this.question.setChoices(middleBlankChoice);
+                }),
+                () -> assertThrows(IllegalArgumentException.class, () -> {
+                    this.question.setChoices(lastBlankChoice);
+                })
+            );
         }
     }
 
@@ -169,26 +194,20 @@ public class TestQuestion {
 
         @Test
         public void testWhenSuccessful() {
-            SequencedCollection<String> emptyAnswers = List.of();
             SequencedCollection<String> oneAnswer = List.of("Answer 1");
             SequencedCollection<String> someAnswers = List.of("Answer 1", "Answer 2");
 
             var question2 = new Question();
-            var question3 = new Question();
 
-            this.question.setAnswers(emptyAnswers);
-            question2.setAnswers(oneAnswer);
-            question3.setAnswers(someAnswers);
+            this.question.setAnswers(oneAnswer);
+            question2.setAnswers(someAnswers);
 
             assertAll("Varying collection lengths",
                     () -> {
-                        assertEquals(emptyAnswers, this.question.getAnswers());
+                        assertEquals(oneAnswer, this.question.getAnswers());
                     },
                     () -> {
-                        assertEquals(oneAnswer, question2.getAnswers());
-                    },
-                    () -> {
-                        assertEquals(someAnswers, question3.getAnswers());
+                        assertEquals(someAnswers, question2.getAnswers());
                     }
             );
         }
@@ -199,6 +218,35 @@ public class TestQuestion {
                 this.question.setAnswers(null);
             });
         }
-    }
 
+        @Test
+        public void throwsWhenEmpty() {
+            assertThrows(IllegalArgumentException.class, () -> {
+                this.question.setAnswers(Collections.emptyList());
+            });
+        }
+
+        @Test
+        public void throwsWhenBlankAnswerInAnswers() {
+            var onlyBlankChoice = List.of("");
+            var firstBlankChoice = List.of("", "Valid middle choice", "Valid last choice");
+            var middleBlankChoice = List.of("Valid first choice", "", "Valid last choice");
+            var lastBlankChoice = List.of("Valid first choice", "Valid middle choice", "");
+
+            assertAll("Blank choice variations",
+                () -> assertThrows(IllegalArgumentException.class, () -> {
+                    this.question.setAnswers(onlyBlankChoice);
+                }),
+                () -> assertThrows(IllegalArgumentException.class, () -> {
+                    this.question.setAnswers(firstBlankChoice);
+                }),
+                () -> assertThrows(IllegalArgumentException.class, () -> {
+                    this.question.setAnswers(middleBlankChoice);
+                }),
+                () -> assertThrows(IllegalArgumentException.class, () -> {
+                    this.question.setAnswers(lastBlankChoice);
+                })
+            );
+        }
+    }
 }

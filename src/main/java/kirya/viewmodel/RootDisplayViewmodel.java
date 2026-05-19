@@ -43,7 +43,14 @@ public class RootDisplayViewmodel {
      */
     public void load() {
         var loadedStudyGuides = FileIO.Read();
-        this.downloadedStudyGuidesProperty.addAll(loadedStudyGuides);
+        for (var studyGuide : loadedStudyGuides) {
+            if (studyGuide.getIsFavorited()) {
+                this.favoritedStudyGuidesProperty.add(studyGuide);
+            }
+            if (studyGuide.getIsDownloaded()) {
+                this.downloadedStudyGuidesProperty.add(studyGuide);
+            }
+        }
     }
 
     /**
@@ -67,14 +74,47 @@ public class RootDisplayViewmodel {
         if (studyGuide == null) {
             throw new IllegalArgumentException("studyGuide can't be null");
         }
+        var concreteGuide = this.getConcreteGuide(studyGuide);
+        if (concreteGuide == null) {
+            return;
+        }
 
-        if (!this.downloadedStudyGuidesProperty.contains(studyGuide)) {
-            this.downloadedStudyGuidesProperty.add(studyGuide);
+        if (!this.downloadedStudyGuidesProperty.contains(concreteGuide)) {
+            this.downloadedStudyGuidesProperty.add(concreteGuide);
+        }
+        concreteGuide.setIsDownloaded(true);
+    }
+
+    /**
+     * Toggles the favorited state of {@code studyGuide} if toggled to true it's
+     * added to the favorited study guides collection, otherwise removed.
+     * 
+     * @param studyGuide The study guide to toggle favorite for
+     * @throws IllegalArgumentException If {@code studyGuide} == null
+     */
+    public void toggleFavoriteStudyGuide(DisplayableStudyGuide studyGuide) {
+        if (studyGuide == null) {
+            throw new IllegalArgumentException("studyGuide can't be null");
+        }
+        var concreteGuide = this.getConcreteGuide(studyGuide);
+        if (concreteGuide == null) {
+            return;
+        }
+
+        concreteGuide.setIsFavorited(!concreteGuide.getIsFavorited());
+        if (concreteGuide.getIsFavorited()) {
+            if (!this.favoritedStudyGuidesProperty.contains(concreteGuide)) {
+                this.favoritedStudyGuidesProperty.add(concreteGuide);
+            }
+        } else {
+            if (this.favoritedStudyGuidesProperty.contains(concreteGuide)) {
+                this.favoritedStudyGuidesProperty.remove(concreteGuide);
+            }
         }
     }
 
     /**
-     * Removes the given study guide from the downloaded study guides list
+     * Removes {@code studyGuide} from the downloaded study guides list
      * property
      *
      * @param studyGuide The study guide to delete
@@ -89,19 +129,19 @@ public class RootDisplayViewmodel {
         }
     }
 
+    private StudyGuide getConcreteGuide(DisplayableStudyGuide studyGuide) {
+        return studyGuide instanceof StudyGuide concreteGuide ? concreteGuide : null;
+    }
+
     /**
-     * Get the list property of favorited studyguides.
-     *
-     * @return The favorited studyguides property
+     * {@return The favorited studyguides property}
      */
     public ListProperty<DisplayableStudyGuide> getFavoritedStudyGuidesProperty() {
         return this.favoritedStudyGuidesProperty;
     }
 
     /**
-     * Get the list property of downloaded studyguides.
-     *
-     * @return The downloaded studyguides property
+     * {@return The downloaded studyguides property}
      */
     public ListProperty<DisplayableStudyGuide> getDownloadedStudyGuidesProperty() {
         return this.downloadedStudyGuidesProperty;

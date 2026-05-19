@@ -18,4 +18,19 @@ public class Utils {
 
         return null;
     }
+
+    /**
+     * {@return the given string with the first character capitalized and nothing else changed}
+     * @param toCapitalize The string to capitalize
+     */
+    public static String capitalizeString(String toCapitalize) {
+        if (toCapitalize == null) {
+            throw new IllegalArgumentException("String can't be null");
+        }
+        if (toCapitalize.isBlank()) {
+            return toCapitalize;
+        }
+
+        return toCapitalize.substring(0, 1).toUpperCase() + toCapitalize.substring(1);
+    }
 }
