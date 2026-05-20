@@ -50,8 +50,7 @@ public class StudyGuideViewer extends GridPane {
                 if (empty || question == null) {
                     this.setText(null);
                     this.setGraphic(null);
-                }
-                else {
+                } else {
                     setPadding(Insets.EMPTY);
                     setGraphic(this.questionViewer);
                     this.questionViewer.setQuestion(question);
@@ -59,21 +58,22 @@ public class StudyGuideViewer extends GridPane {
             }
         });
     }
-    
+
     /**
      * Sets the study guide to view.
+     * 
      * @param studyGuide The new study guide to view
-    */
+     */
     public void setStudyGuide(DisplayableStudyGuide studyGuide) {
         this.studyGuide = studyGuide;
-        this.refreshDisplay();        
+        this.refreshDisplay();
     }
 
     private void refreshDisplay() {
         this.questionsListView.getItems().setAll(this.studyGuide.getQuestions());
         this.refreshJumpTilePane();
     }
-    
+
     private void refreshJumpTilePane() {
         this.jumpToQuestionsTilePane.getChildren().clear();
         var questionsList = this.questionsListView.getItems();
@@ -86,9 +86,10 @@ public class StudyGuideViewer extends GridPane {
                 jumpToQuestion(associatedQuestion);
                 handler.consume();
             });
+            this.jumpToQuestionsTilePane.getChildren().add(jumpButton);
         }
     }
-    
+
     private void jumpToQuestion(DisplayableQuestion question) {
         this.questionsListView.scrollTo(question);
     }
