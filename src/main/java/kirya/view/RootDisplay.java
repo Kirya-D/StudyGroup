@@ -2,6 +2,7 @@ package kirya.view;
 
 import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
 
+import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -40,7 +41,7 @@ public class RootDisplay {
     @FXML
     private StudyGuideViewer studyGuideViewer;
 
-    private final String deletionHeader = "You're about to delete the study guide \"{0}\"";
+    private final String deletionHeader = "You''re about to delete the study guide \"{0}\"";
     private final String deletionContent = "This action is irreversible, are you sure you want to PERMANENTLY DELETE \"{0}\"?";
     private final String cancelEditHeader = "You're about to discard your changes";
     private final String cancelEditContent = "You have unsaved changes that you will lose if you continue!";
@@ -103,7 +104,9 @@ public class RootDisplay {
         var downloading = !guide.getIsDownloaded();
         Runnable resultingAction = () -> this.viewmodel.toggleDownloadStudyGuide(guide, true);
         if (!downloading) {
-            var delete = this.confirmUserOfAction(guide, deletionHeader, deletionContent);
+            var header = MessageFormat.format(this.deletionHeader, guide);
+            var content = MessageFormat.format(this.deletionContent, guide);
+            var delete = this.confirmUserOfAction(guide, header, content);
             if (delete) {
                 resultingAction = () -> this.viewmodel.toggleDownloadStudyGuide(guide, false);
             }
@@ -124,7 +127,8 @@ public class RootDisplay {
             this.refreshBothStudyGuidePanes();
             this.homeVBox.setVisible(true);
         } else {
-            this.confirmUserOfAction(studyGuide, deletionHeader, deletionContent);
+            var confirmed = this.confirmUserOfAction(studyGuide, this.cancelEditHeader, this.cancelEditContent);
+            this.homeVBox.setVisible(confirmed);
         }
     }
 
