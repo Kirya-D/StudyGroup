@@ -67,13 +67,16 @@ public class RootDisplay {
         this.rootPane.addEventHandler(StudyGuideEvent.DOWNLOAD, handler -> this.downloadStudyGuideHandler(handler));
         this.rootPane.addEventHandler(StudyGuideEvent.FAVORITE, handler -> this.favoriteStudyGuideHandler(handler));
         this.rootPane.addEventHandler(StudyGuideEvent.UPLOAD, handler -> {
-            this.viewmodel.toggleUploadStudyGuide(null, true);
+            var studyGuide = handler.getStudyGuide();
+            this.viewmodel.toggleUploadStudyGuide(studyGuide, true);
         });
         this.rootPane.addEventHandler(StudyGuideEvent.START_EDIT, handler -> {
             var studyGuide = handler.getStudyGuide();
             this.startEditingStudyGuide(studyGuide);
         });
-        this.rootPane.addEventHandler(StudyGuideEvent.FINISH_EDIT, handler -> this.finishEditStudyGuideHandler(handler));
+        this.rootPane.addEventHandler(StudyGuideEvent.FINISH_EDIT, handler -> {
+            this.finishEditStudyGuideHandler(handler);
+        });
 
         this.studyGuideEditor.sceneProperty().addListener((_, _, scene) -> {
             if (scene != null) {
@@ -98,7 +101,7 @@ public class RootDisplay {
     private void downloadStudyGuideHandler(StudyGuideEvent handler) {
         var guide = handler.getStudyGuide();
         var downloading = !guide.getIsDownloaded();
-        Runnable resultingAction = () -> this.viewmodel.toggleDownloadStudyGuide(guide, downloading);
+        Runnable resultingAction = () -> this.viewmodel.toggleDownloadStudyGuide(guide, true);
         if (!downloading) {
             var delete = this.confirmUserOfAction(guide, deletionHeader, deletionContent);
             if (delete) {
