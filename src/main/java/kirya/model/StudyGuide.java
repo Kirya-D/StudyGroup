@@ -16,6 +16,7 @@ public class StudyGuide extends DisplayableStudyGuide {
 
     private boolean isDownloaded;
     private boolean isFavorited;
+    private boolean isUploaded;
     private String title;
     private String description;
     private final Set<Question> questions;
@@ -27,6 +28,8 @@ public class StudyGuide extends DisplayableStudyGuide {
      * <p>
      * Postcondition: {@link StudyGuide#getIsFavorited()} == false
      * <p>
+     * Postcondition: {@link StudyGuide#getIsUploaded()} == false
+     * <p>
      * Postcondition: {@link StudyGuide#getTitle()} == ""
      * <p>
      * Postcondition: {@link StudyGuide#getDescription()} == ""
@@ -37,9 +40,37 @@ public class StudyGuide extends DisplayableStudyGuide {
     public StudyGuide() {
         this.isDownloaded = false;
         this.isFavorited = false;
+        this.isUploaded = false;
         this.title = "";
         this.description = "";
         this.questions = new LinkedHashSet<>();
+    }
+
+    /**
+     * Sets the downloaded state of this study guide.
+     * 
+     * @param downloaded bool for downloaded state
+     */
+    public void setIsDownloaded(boolean downloaded) {
+        this.isDownloaded = downloaded;
+    }
+
+    /**
+     * Sets if this studyguide is favorited.
+     * 
+     * @param favorited The new favorited state
+     */
+    public void setIsFavorited(boolean favorited) {
+        this.isFavorited = favorited;
+    }
+
+    /**
+     * Sets if this studyguide is uploaded.
+     * 
+     * @param uploaded The new uploaded state
+     */
+    public void setIsUploaded(boolean uploaded) {
+        this.isUploaded = uploaded;
     }
 
     /**
@@ -89,24 +120,6 @@ public class StudyGuide extends DisplayableStudyGuide {
         this.questions.addAll(questions);
     }
 
-    /**
-     * Sets the downloaded state of this study guide.
-     * 
-     * @param downloaded bool for downloaded state
-     */
-    public void setIsDownloaded(boolean downloaded) {
-        this.isDownloaded = downloaded;
-    }
-
-    /**
-     * Sets if this studyguide is favorited.
-     * 
-     * @param favorited The new favorited state
-     */
-    public void setIsFavorited(boolean favorited) {
-        this.isFavorited = favorited;
-    }
-
     @Override
     public String getTitle() {
         return this.title;
@@ -130,5 +143,10 @@ public class StudyGuide extends DisplayableStudyGuide {
     @Override
     public boolean getIsFavorited() {
         return this.isFavorited;
+    }
+
+    @Override
+    public boolean getIsUploaded() {
+        return this.isUploaded;
     }
 }

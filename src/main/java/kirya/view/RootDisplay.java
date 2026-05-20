@@ -40,6 +40,10 @@ public class RootDisplay {
     @FXML
     private StudyGuideViewer studyGuideViewer;
 
+    private final String deletionHeader = "You're about to delete the study guide \"{0}\"";
+    private final String deletionContent = "This action is irreversible, are you sure you want to PERMANENTLY DELETE \"{0}\"?";
+    private final String cancelEditHeader = "You're about to discard your changes";
+    private final String cancelEditContent = "You have unsaved changes that you will lose if you continue!";
     private final NodeGroup nodeGroup = new NodeGroup();
     private final RootDisplayViewmodel viewmodel = new RootDisplayViewmodel();
 
@@ -52,52 +56,25 @@ public class RootDisplay {
     @FXML
     private void initialize() {
         this.nodeGroup.addNodes(List.of(this.homeVBox, this.studyGuideEditor, this.studyGuideViewer));
-        this.addEventListeners();
         this.bindToViewmodel();
+        this.addEventListeners();
         this.viewmodel.load();
     }
 
     private void addEventListeners() {
-        this.rootPane.addEventHandler(StudyGuideEvent.VIEW, handler -> {
-            var guide = handler.getStudyGuide();
-            if (guide != null) {
-                this.studyGuideViewer.setStudyGuide(guide);
-                this.studyGuideViewer.setVisible(true);
-            }
-        });
-        this.rootPane.addEventHandler(StudyGuideEvent.CLOSE, handler -> {
-            this.homeVBox.setVisible(true);
-        });
-        this.rootPane.addEventHandler(StudyGuideEvent.DOWNLOAD, handler -> {
-            var guide = handler.getStudyGuide();
-            this.viewmodel.downloadStudyGuide(guide);
-            this.refreshBothStudyGuidePanes();
-        });
-        this.rootPane.addEventHandler(StudyGuideEvent.FAVORITE, handler -> {
-            var guide = handler.getStudyGuide();
-            this.viewmodel.toggleFavoriteStudyGuide(guide);
-            this.refreshBothStudyGuidePanes();
-        });
+        this.rootPane.addEventHandler(StudyGuideEvent.VIEW, handler -> this.viewStudyGuideHandler(handler));
+        this.rootPane.addEventHandler(StudyGuideEvent.CLOSE, handler -> this.homeVBox.setVisible(true));
+        this.rootPane.addEventHandler(StudyGuideEvent.DOWNLOAD, handler -> this.downloadStudyGuideHandler(handler));
+        this.rootPane.addEventHandler(StudyGuideEvent.FAVORITE, handler -> this.favoriteStudyGuideHandler(handler));
         this.rootPane.addEventHandler(StudyGuideEvent.UPLOAD, handler -> {
-            // TODO implement uploading (when DB is implemented)
-        });
-        this.rootPane.addEventHandler(StudyGuideEvent.DELETE, handler -> {
-            var studyGuide = handler.getStudyGuide();
-            this.alertUserOfDeletion(studyGuide);
+            this.viewmodel.toggleUploadStudyGuide(null, true);
         });
         this.rootPane.addEventHandler(StudyGuideEvent.START_EDIT, handler -> {
             var studyGuide = handler.getStudyGuide();
             this.startEditingStudyGuide(studyGuide);
         });
-        this.rootPane.addEventHandler(StudyGuideEvent.FINISH_EDIT, handler -> {
-            if (handler.getSavedChanges()) {
-                var studyGuide = handler.getStudyGuide();
-                this.viewmodel.downloadStudyGuide(studyGuide);
-                this.homeVBox.setVisible(true);
-            } else {
-                this.alertUserOfCancellation();
-            }
-        });
+        this.rootPane.addEventHandler(StudyGuideEvent.FINISH_EDIT, handler -> this.finishEditStudyGuideHandler(handler));
+
         this.studyGuideEditor.sceneProperty().addListener((_, _, scene) -> {
             if (scene != null) {
                 if (scene.getWindow() != null) {
@@ -112,57 +89,83 @@ public class RootDisplay {
         });
     }
 
-    private void alertUserOfDeletion(DisplayableStudyGuide studyGuide) {
-        var alert = new Alert(AlertType.CONFIRMATION);
-        alert.setTitle("Are you sure?");
-        alert.setHeaderText("You're about to delete the study guide \"" + studyGuide.getTitle() + "\"");
-        alert.setContentText("This action is irreversible, are you sure you want to PERMANENTLY DELETE \""
-                + studyGuide.getTitle() + "\"?");
-        var optional = alert.showAndWait();
-        if (optional.isPresent() && optional.get() == ButtonType.OK) {
-            this.viewmodel.deleteStudyGuide(studyGuide);
+    private void viewStudyGuideHandler(StudyGuideEvent handler) {
+        var guide = handler.getStudyGuide();
+        this.studyGuideViewer.setStudyGuide(guide);
+        this.studyGuideViewer.setVisible(true);
+    }
+
+    private void downloadStudyGuideHandler(StudyGuideEvent handler) {
+        var guide = handler.getStudyGuide();
+        var downloading = !guide.getIsDownloaded();
+        Runnable resultingAction = () -> this.viewmodel.toggleDownloadStudyGuide(guide, downloading);
+        if (!downloading) {
+            var delete = this.confirmUserOfAction(guide, deletionHeader, deletionContent);
+            if (delete) {
+                resultingAction = () -> this.viewmodel.toggleDownloadStudyGuide(guide, false);
+            }
+        }
+        resultingAction.run();
+    }
+
+    private void favoriteStudyGuideHandler(StudyGuideEvent handler) {
+        var guide = handler.getStudyGuide();
+        var oppositeIsFavorited = !guide.getIsFavorited();
+        this.viewmodel.toggleFavoriteStudyGuide(guide, oppositeIsFavorited);
+    }
+
+    private void finishEditStudyGuideHandler(StudyGuideEvent handler) {
+        var studyGuide = handler.getStudyGuide();
+        if (handler.getSavedChanges() && studyGuide != null) {
+            this.viewmodel.saveChangesToStudyGuide(studyGuide);
+            this.refreshBothStudyGuidePanes();
+            this.homeVBox.setVisible(true);
+        } else {
+            this.confirmUserOfAction(studyGuide, deletionHeader, deletionContent);
         }
     }
 
-    private void alertUserOfCancellation() {
+    private boolean confirmUserOfAction(DisplayableStudyGuide studyGuide, String header, String content) {
+        var proceedWithAction = false;
+
         var alert = new Alert(AlertType.CONFIRMATION);
         alert.setTitle("Are you sure?");
-        alert.setHeaderText("You're about to discard your changes");
-        alert.setContentText("You have unsaved changes that you will lose if you continue!");
+        alert.setHeaderText(header);
+        alert.setContentText(content);
         var optional = alert.showAndWait();
+
         if (optional.isPresent() && optional.get() == ButtonType.OK) {
-            this.homeVBox.setVisible(true);
+            proceedWithAction = true;
         }
+
+        return proceedWithAction;
     }
 
     private void bindToViewmodel() {
         this.viewmodel.getFavoritedStudyGuidesProperty().addListener((_, _, newList) -> {
-            this.refreshFavoritedTilePane();
+            this.refreshBothStudyGuidePanes();
         });
         this.viewmodel.getDownloadedStudyGuidesProperty().addListener((_, _, newList) -> {
-            this.refreshDownloadedTilePane();
+            this.refreshBothStudyGuidePanes();
         });
     }
 
     private void refreshBothStudyGuidePanes() {
-        this.refreshDownloadedTilePane();
-        this.refreshFavoritedTilePane();
-    }
-
-    private void refreshFavoritedTilePane() {
-        this.refreshTilePane(this.favoritedStudyGuidesTilePane, this.viewmodel.getFavoritedStudyGuidesProperty());
-    }
-
-    private void refreshDownloadedTilePane() {
-        this.refreshTilePane(this.downloadedStudyGuidesTilePane, this.viewmodel.getDownloadedStudyGuidesProperty());
+        var favoritesPane = this.favoritedStudyGuidesTilePane;
+        var favoritesContent = this.viewmodel.getFavoritedStudyGuidesProperty().get();
+        var downloadPane = this.downloadedStudyGuidesTilePane;
+        var downloadContent = this.viewmodel.getDownloadedStudyGuidesProperty().get();
+        this.refreshTilePane(downloadPane, downloadContent);
+        this.refreshTilePane(favoritesPane, favoritesContent);
     }
 
     private void refreshTilePane(TilePane pane, List<DisplayableStudyGuide> content) {
-        var paneChildren = new ArrayList<>(pane.getChildren());
-        paneChildren.stream().map(child -> {
+        for (var child : pane.getChildren()) {
             child.setVisible(false);
-            return child;
-        });
+        }
+
+        var paneChildren = new ArrayList<>(pane.getChildren());
+
         for (int i = 0; i < content.size(); i++) {
             var studyGuide = content.get(i);
             if (i < paneChildren.size()) {

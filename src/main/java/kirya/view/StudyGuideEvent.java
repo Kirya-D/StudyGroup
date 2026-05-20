@@ -36,18 +36,16 @@ public class StudyGuideEvent extends Event {
      * Event to upload.
      */
     public static final EventType<StudyGuideEvent> UPLOAD = new EventType<>(Event.ANY, "UPLOAD");
-    /**
-     * Event to delete.
-     */
-    public static final EventType<StudyGuideEvent> DELETE = new EventType<>(Event.ANY, "DELETE");
 
     private final DisplayableStudyGuide studyGuide;
     private final boolean savedChanges;
 
     /**
-     * Initializes a new StudyGuideEvent with the given subEvent that isnt FINISH_EDIT.
+     * Initializes a new StudyGuideEvent with the given subEvent that isnt
+     * FINISH_EDIT.
+     * 
      * @param studyGuide The study guide associated with the event
-     * @param eventType The event type
+     * @param eventType  The event type
      */
     public StudyGuideEvent(DisplayableStudyGuide studyGuide, EventType<StudyGuideEvent> eventType) {
         if (eventType == FINISH_EDIT) {
@@ -60,7 +58,8 @@ public class StudyGuideEvent extends Event {
 
     /**
      * Initializes a new FINISH_EDIT StudyGuideEvent.
-     * @param studyGuide The study guide effected
+     * 
+     * @param studyGuide   The study guide effected
      * @param savedChanges If the changes were saved or not
      */
     public StudyGuideEvent(DisplayableStudyGuide studyGuide, boolean savedChanges) {
@@ -71,6 +70,7 @@ public class StudyGuideEvent extends Event {
 
     /**
      * Gets the study guide the event was called for.
+     * 
      * @return The study guide
      */
     public DisplayableStudyGuide getStudyGuide() {
@@ -79,6 +79,7 @@ public class StudyGuideEvent extends Event {
 
     /**
      * Gets a boolean for if the changes were saved.
+     * 
      * @return A bool for if the changes were saved
      */
     public boolean getSavedChanges() {
