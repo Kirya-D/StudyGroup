@@ -11,21 +11,20 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<fx:root prefWidth="500.0" type="GridPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root onMouseEntered="#onMouseEnter" onMouseExited="#onMouseExit" prefWidth="500.0" type="GridPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <columnConstraints>
       <ColumnConstraints hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" />
       <ColumnConstraints hgrow="NEVER" minWidth="-Infinity" />
       <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="10.0" />
-      <ColumnConstraints hgrow="NEVER" maxWidth="1.7976931348623157E308" minWidth="3.0" />
+      <ColumnConstraints hgrow="NEVER" minWidth="-Infinity" />
       <ColumnConstraints hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" />
    </columnConstraints>
    <rowConstraints>
       <RowConstraints maxHeight="1.7976931348623157E308" minHeight="10.0" vgrow="ALWAYS" />
-      <RowConstraints maxHeight="1.7976931348623157E308" minHeight="-Infinity" vgrow="NEVER" />
    </rowConstraints>
    <children>
       <ImageView fx:id="creatorProfileImageView" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true" GridPane.hgrow="NEVER" GridPane.vgrow="NEVER" />
-      <Separator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" orientation="VERTICAL" GridPane.columnIndex="1" />
+      <Separator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" orientation="VERTICAL" GridPane.columnIndex="1" GridPane.rowSpan="2147483647" />
       <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="2.0" GridPane.columnIndex="2">
          <children>
             <Label fx:id="titleByUsernameLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" text="Title Made by Username" wrapText="true" />
@@ -43,16 +42,15 @@
             <Insets top="2.0" />
          </padding>
       </VBox>
-      <Separator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" GridPane.columnSpan="2147483647" GridPane.rowIndex="1" GridPane.rowSpan="2147483647" GridPane.vgrow="NEVER" />
-      <Separator layoutX="160.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" orientation="VERTICAL" GridPane.columnIndex="3" />
+      <Separator layoutX="160.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" orientation="VERTICAL" GridPane.columnIndex="3" GridPane.rowSpan="2147483647" />
       <VBox layoutX="166.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="5.0" GridPane.columnIndex="4">
          <children>
             <Button fx:id="downloadButton" layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onDownloadButtonClick" text="⭳" VBox.vgrow="ALWAYS">
                <font>
-                  <Font size="26.0" />
+                  <Font size="24.0" />
                </font>
             </Button>
-            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onEditButtonClick" text="📝">
+            <Button fx:id="editButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onEditButtonClick" text="📝">
                <font>
                   <Font size="16.0" />
                </font>
@@ -64,12 +62,7 @@
             </Button>
             <Button fx:id="uploadButton" layoutX="15.0" layoutY="126.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onUploadButtonClick" rotate="180.0" text="⭳" VBox.vgrow="ALWAYS">
                <font>
-                  <Font size="26.0" />
-               </font>
-            </Button>
-            <Button layoutX="15.0" layoutY="170.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onDeleteButtonClick" text="🗑">
-               <font>
-                  <Font size="26.0" />
+                  <Font size="24.0" />
                </font>
             </Button>
          </children>
@@ -78,4 +71,7 @@
          </padding>
       </VBox>
    </children>
+   <padding>
+      <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+   </padding>
 </fx:root>
