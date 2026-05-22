@@ -10,6 +10,7 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import javafx.collections.ObservableList;
 import kirya.model.Question;
+import kirya.utils.AnswerChoice;
 import kirya.utils.DisplayableQuestion;
 import kirya.utils.QuestionType;
 
@@ -22,8 +23,7 @@ public class QuestionEditorViewmodel {
     private final ObjectProperty<QuestionType> questionTypeProperty;
     private final StringProperty questionProperty;
     private final StringProperty answerProperty;
-    private final ObservableList<String> choicesObservableList;
-    private final ObservableList<String> answersObservableList;
+    private final ObservableList<AnswerChoice> multChoiceOptionsObservableList;
 
     /**
      * Initializes a new QuestionEditorViewmodel.
@@ -33,8 +33,7 @@ public class QuestionEditorViewmodel {
         this.questionTypeProperty = new SimpleObjectProperty<>(null);
         this.questionProperty = new SimpleStringProperty();
         this.answerProperty = new SimpleStringProperty();
-        this.choicesObservableList = FXCollections.observableArrayList();
-        this.answersObservableList = FXCollections.observableArrayList();
+        this.multChoiceOptionsObservableList = FXCollections.observableArrayList();
 
         this.setupQuestionOjectListener();
     }
@@ -46,23 +45,41 @@ public class QuestionEditorViewmodel {
     }
 
     /**
-     * Syncs the display property contents to match the state of the associated question.
+     * Syncs the display property contents to match the state of the associated
+     * question.
      */
     public void syncPropertiesToQuestionState() {
         var questionObject = this.questionObjectProperty.get();
-        
+
         if (questionObject != null) {
-            this.questionTypeProperty.set(questionObject.getQuestionType());
-            this.questionProperty.set(questionObject.getQuestion());
-            this.answerProperty.set(String.join("", questionObject.getAnswers()));
-            this.choicesObservableList.setAll(questionObject.getChoices());
-            this.answersObservableList.setAll(questionObject.getAnswers());
+            var questionType = questionObject.getQuestionType();
+            var question = questionObject.getQuestion();
+            var freeResponseAnswer = String.join("", questionObject.getAnswers());
+            var choices = questionObject.getChoices();
+            var answers = questionObject.getAnswers();
+            var answersThatArentChoices = answers.stream().filter(a -> !choices.contains(a)).toList();
+            var answerChoices = new ArrayList<AnswerChoice>();
+
+            for (var choice : choices) {
+                var isAnswer = answers.contains(choice);
+                var answerChoice = new AnswerChoice(choice, isAnswer);
+
+                answerChoices.add(answerChoice);
+            }
+            for (var answer : answersThatArentChoices) {
+                var restoredAnswerChoice = new AnswerChoice(answer, true);
+                answerChoices.add(restoredAnswerChoice);
+            }
+
+            this.questionTypeProperty.set(questionType);
+            this.questionProperty.set(question);
+            this.answerProperty.set(freeResponseAnswer);
+            this.multChoiceOptionsObservableList.setAll(answerChoices);
         } else {
             this.questionTypeProperty.set(QuestionType.FREE_RESPONSE);
             this.questionProperty.set("");
             this.answerProperty.set("");
-            this.choicesObservableList.clear();
-            this.answersObservableList.clear();
+            this.multChoiceOptionsObservableList.clear();
         }
     }
 
@@ -75,7 +92,7 @@ public class QuestionEditorViewmodel {
      * questionProperty's value gets set to the associated question object's
      * question value.
      * 
-     * @throws NullPointerException If the associated question object == null.
+     * @throws NullPointerException     If the associated question object == null.
      *
      * @throws IllegalArgumentException If the new question is blank.
      */
@@ -87,19 +104,20 @@ public class QuestionEditorViewmodel {
         var newQuestionType = this.questionTypeProperty.get();
         var newQuestion = this.questionProperty.get();
         var newFreeResponseAnswer = List.of(this.answerProperty.get());
-        var newMultChoiceChoices = new ArrayList<>(this.choicesObservableList);
-        var newMultChoiceAnswers = new ArrayList<>(this.answersObservableList);
+        var newMultChoices = this.multChoiceOptionsObservableList.stream().map(aChoice -> aChoice.getText()).toList();
+        var newMultAnswers = this.multChoiceOptionsObservableList.stream().filter(aChoice -> aChoice.getIsCorrect())
+                .map(answer -> answer.getText()).toList();
 
         questionObj.setQuestionType(newQuestionType);
         questionObj.setQuestion(newQuestion);
-        switch (questionObj.getQuestionType()) {
+        switch (newQuestionType) {
             case FREE_RESPONSE -> {
                 questionObj.setChoices(newFreeResponseAnswer);
                 questionObj.setAnswers(newFreeResponseAnswer);
             }
             case MULTIPLE_CHOICE -> {
-                questionObj.setChoices(newMultChoiceChoices);
-                questionObj.setAnswers(newMultChoiceAnswers);
+                questionObj.setChoices(newMultChoices);
+                questionObj.setAnswers(newMultAnswers);
             }
         }
     }
@@ -138,16 +156,9 @@ public class QuestionEditorViewmodel {
     }
 
     /**
-     * {@return the choices ObservableList}
+     * {@return the {@link AnswerChoice}'s ObservableList}
      */
-    public ObservableList<String> getChoicesObservableList() {
-        return this.choicesObservableList;
-    }
-
-    /**
-     * {@return the answers ObservableList}
-     */
-    public ObservableList<String> getAnswersObservableList() {
-        return this.answersObservableList;
+    public ObservableList<AnswerChoice> getMultChoiceOptionsObservableList() {
+        return this.multChoiceOptionsObservableList;
     }
 }
