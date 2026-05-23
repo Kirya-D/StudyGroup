@@ -27,10 +27,13 @@ public class TestRootDisplayViewmodel {
             var actualFavoritedType = viewmodel.getFavoritedStudyGuidesProperty();
             var expectedDownloadedType = ListProperty.class;
             var actualDownloadedType = viewmodel.getDownloadedStudyGuidesProperty();
+            var expectedUploadedType = ListProperty.class;
+            var actualUploadedType = viewmodel.getUploadedStudyGuidesProperty();
 
             assertAll("Members",
+                    () -> assertInstanceOf(expectedDownloadedType, actualDownloadedType),
                     () -> assertInstanceOf(expectedFavoritedType, actualFavoritedType),
-                    () -> assertInstanceOf(expectedDownloadedType, actualDownloadedType));
+                    () -> assertInstanceOf(expectedUploadedType, actualUploadedType));
         }
     }
 
@@ -49,7 +52,7 @@ public class TestRootDisplayViewmodel {
     }
 
     @Nested
-    public class TestDownloadStudyGuide {
+    public class TestToggleDownloadStudyGuide {
 
         RootDisplayViewmodel viewmodel;
         StudyGuide studyGuide;
@@ -61,8 +64,8 @@ public class TestRootDisplayViewmodel {
         }
 
         @Test
-        public void testWhenNotAlreadyDownloaded() {
-            this.viewmodel.downloadStudyGuide(this.studyGuide);
+        public void testWhenToggleIsTrue() {
+            this.viewmodel.toggleDownloadStudyGuide(this.studyGuide, true);
 
             var downloadedCollection = this.viewmodel.getDownloadedStudyGuidesProperty().get();
             var expectedCount = 1;
@@ -78,17 +81,16 @@ public class TestRootDisplayViewmodel {
         }
 
         @Test
-        public void testWhenAlreadyDownloaded() {
-            this.viewmodel.downloadStudyGuide(this.studyGuide);
-            this.viewmodel.downloadStudyGuide(this.studyGuide);
+        public void testWhenToggleIsFalse() {
+            this.viewmodel.toggleDownloadStudyGuide(this.studyGuide, false);
 
             var downloadedCollection = this.viewmodel.getDownloadedStudyGuidesProperty().get();
-            var expectedCount = 1;
+            var expectedCount = 0;
             var actualCount = downloadedCollection.size();
 
             assertAll("collection check",
                     () -> {
-                        assertTrue(downloadedCollection.contains(this.studyGuide));
+                        assertTrue(!downloadedCollection.contains(this.studyGuide));
                     },
                     () -> {
                         assertEquals(expectedCount, actualCount);
@@ -96,10 +98,10 @@ public class TestRootDisplayViewmodel {
         }
 
         @Test
-        public void testWhenOtherStudyGuidesAreAlreadyDownloaded() {
-            this.viewmodel.downloadStudyGuide(new StudyGuide());
-            this.viewmodel.downloadStudyGuide(new StudyGuide());
-            this.viewmodel.downloadStudyGuide(this.studyGuide);
+        public void testToggleTrueWhenOtherStudyGuidesAreAlreadyDownloaded() {
+            this.viewmodel.toggleDownloadStudyGuide(new StudyGuide(), true);
+            this.viewmodel.toggleDownloadStudyGuide(new StudyGuide(), true);
+            this.viewmodel.toggleDownloadStudyGuide(this.studyGuide, true);
 
             var downloadedCollection = this.viewmodel.getDownloadedStudyGuidesProperty().get();
             var expectedCount = 3;
@@ -115,115 +117,11 @@ public class TestRootDisplayViewmodel {
         }
 
         @Test
-        public void throwsWhenNull() {
-            assertThrows(IllegalArgumentException.class, () -> {
-                this.viewmodel.downloadStudyGuide(null);
-            });
-        }
-    }
-
-    @Nested
-    public class TestToggleFavoriteStudyGuide {
-
-        RootDisplayViewmodel viewmodel;
-        StudyGuide studyGuide;
-
-        @BeforeEach
-        public void setup() {
-            this.viewmodel = new RootDisplayViewmodel();
-            this.studyGuide = new StudyGuide();
-        }
-
-        @Test
-        public void testWhenStudyGuideNotYetFavorited() {
-            this.studyGuide.setIsFavorited(false);
-
-            this.viewmodel.toggleFavoriteStudyGuide(this.studyGuide);
-
-            var expectedFavorited = true;
-            var actualFavorited = this.studyGuide.getIsFavorited();
-
-            assertAll("Member checks",
-                    () -> assertEquals(expectedFavorited, actualFavorited),
-                    () -> assertTrue(this.viewmodel.getFavoritedStudyGuidesProperty().contains(this.studyGuide)));
-        }
-
-        @Test
-        public void testWhenStudyGuideAlreadyFavorited() {
-            this.studyGuide.setIsFavorited(true);
-            this.viewmodel.getFavoritedStudyGuidesProperty().add(this.studyGuide);
-
-            this.viewmodel.toggleFavoriteStudyGuide(this.studyGuide);
-
-            var expectedFavorited = false;
-            var actualFavorited = this.studyGuide.getIsFavorited();
-
-            assertAll("Member checks",
-                    () -> assertEquals(expectedFavorited, actualFavorited),
-                    () -> assertTrue(!this.viewmodel.getFavoritedStudyGuidesProperty().contains(this.studyGuide)));
-        }
-
-        @Test
-        public void throwsWhenStudyGuideIsNull() {
-            assertThrows(IllegalArgumentException.class, () -> {
-                this.viewmodel.toggleFavoriteStudyGuide(null);
-            });
-        }
-    }
-
-    @Nested
-    public class TestDeleteStudyGuide {
-
-        RootDisplayViewmodel viewmodel;
-        StudyGuide studyGuide;
-
-        @BeforeEach
-        public void setup() {
-            this.viewmodel = new RootDisplayViewmodel();
-            this.studyGuide = new StudyGuide();
-        }
-
-        @Test
-        public void testWhenAlreadyDeleted() {
-            this.viewmodel.deleteStudyGuide(this.studyGuide);
-
-            var downloadedCollection = this.viewmodel.getDownloadedStudyGuidesProperty().get();
-            var expectedCount = 0;
-            var actualCount = downloadedCollection.size();
-
-            assertAll("collection check",
-                    () -> {
-                        assertTrue(!downloadedCollection.contains(this.studyGuide));
-                    },
-                    () -> {
-                        assertEquals(expectedCount, actualCount);
-                    });
-        }
-
-        @Test
-        public void testWhenNotAlreadyDeleted() {
-            this.viewmodel.downloadStudyGuide(this.studyGuide);
-            this.viewmodel.deleteStudyGuide(this.studyGuide);
-
-            var downloadedCollection = this.viewmodel.getDownloadedStudyGuidesProperty().get();
-            var expectedCount = 0;
-            var actualCount = downloadedCollection.size();
-
-            assertAll("collection check",
-                    () -> {
-                        assertTrue(!downloadedCollection.contains(this.studyGuide));
-                    },
-                    () -> {
-                        assertEquals(expectedCount, actualCount);
-                    });
-        }
-
-        @Test
-        public void testWhenOtherStudyGuidesAreCurrentlyDownloaded() {
-            this.viewmodel.downloadStudyGuide(new StudyGuide());
-            this.viewmodel.downloadStudyGuide(this.studyGuide);
-            this.viewmodel.downloadStudyGuide(new StudyGuide());
-            this.viewmodel.deleteStudyGuide(this.studyGuide);
+        public void testToggleFalseWhenOtherStudyGuidesAreAlreadyDownloaded() {
+            this.viewmodel.toggleDownloadStudyGuide(new StudyGuide(), true);
+            this.viewmodel.toggleDownloadStudyGuide(new StudyGuide(), true);
+            this.viewmodel.toggleDownloadStudyGuide(this.studyGuide, true);
+            this.viewmodel.toggleDownloadStudyGuide(this.studyGuide, false);
 
             var downloadedCollection = this.viewmodel.getDownloadedStudyGuidesProperty().get();
             var expectedCount = 2;
@@ -241,7 +139,173 @@ public class TestRootDisplayViewmodel {
         @Test
         public void throwsWhenNull() {
             assertThrows(IllegalArgumentException.class, () -> {
-                this.viewmodel.deleteStudyGuide(null);
+                this.viewmodel.toggleDownloadStudyGuide(null, true);
+            });
+        }
+    }
+
+    @Nested
+    public class TestToggleFavoriteStudyGuide {
+
+        RootDisplayViewmodel viewmodel;
+        StudyGuide studyGuide;
+
+        @BeforeEach
+        public void setup() {
+            this.viewmodel = new RootDisplayViewmodel();
+            this.studyGuide = new StudyGuide();
+        }
+
+        @Test
+        public void testWhenToggleIsTrue() {
+            this.viewmodel.toggleFavoriteStudyGuide(this.studyGuide, true);
+
+            var expectedFavorited = true;
+            var actualFavorited = this.studyGuide.getIsFavorited();
+
+            assertAll("Member checks",
+                    () -> assertEquals(expectedFavorited, actualFavorited),
+                    () -> assertTrue(this.viewmodel.getFavoritedStudyGuidesProperty().contains(this.studyGuide)));
+        }
+
+        @Test
+        public void testWhenToggleIsFalse() {
+            this.viewmodel.toggleFavoriteStudyGuide(this.studyGuide, false);
+
+            var expectedFavorited = false;
+            var actualFavorited = this.studyGuide.getIsFavorited();
+
+            assertAll("Member checks",
+                    () -> assertEquals(expectedFavorited, actualFavorited),
+                    () -> assertTrue(!this.viewmodel.getFavoritedStudyGuidesProperty().contains(this.studyGuide)));
+        }
+
+        @Test
+        public void testToggleTrueWhenOtherStudyGuidesAreAlreadyFavorited() {
+            this.viewmodel.toggleFavoriteStudyGuide(new StudyGuide(), true);
+            this.viewmodel.toggleFavoriteStudyGuide(new StudyGuide(), true);
+            this.viewmodel.toggleFavoriteStudyGuide(this.studyGuide, true);
+
+            var favoritedCollection = this.viewmodel.getFavoritedStudyGuidesProperty().get();
+            var expectedCount = 3;
+            var actualCount = favoritedCollection.size();
+
+            assertAll("collection check",
+                    () -> {
+                        assertTrue(favoritedCollection.contains(this.studyGuide));
+                    },
+                    () -> {
+                        assertEquals(expectedCount, actualCount);
+                    });
+        }
+
+        @Test
+        public void testToggleFalseWhenOtherStudyGuidesAreAlreadyFavorited() {
+            this.viewmodel.toggleFavoriteStudyGuide(new StudyGuide(), true);
+            this.viewmodel.toggleFavoriteStudyGuide(new StudyGuide(), true);
+            this.viewmodel.toggleFavoriteStudyGuide(this.studyGuide, true);
+            this.viewmodel.toggleFavoriteStudyGuide(this.studyGuide, false);
+
+            var favoritedCollection = this.viewmodel.getFavoritedStudyGuidesProperty().get();
+            var expectedCount = 2;
+            var actualCount = favoritedCollection.size();
+
+            assertAll("collection check",
+                    () -> {
+                        assertTrue(!favoritedCollection.contains(this.studyGuide));
+                    },
+                    () -> {
+                        assertEquals(expectedCount, actualCount);
+                    });
+        }
+
+        @Test
+        public void throwsWhenStudyGuideIsNull() {
+            assertThrows(IllegalArgumentException.class, () -> {
+                this.viewmodel.toggleFavoriteStudyGuide(null, true);
+            });
+        }
+    }
+
+    @Nested
+    public class TestToggleUploadStudyGuide {
+
+        RootDisplayViewmodel viewmodel;
+        StudyGuide studyGuide;
+
+        @BeforeEach
+        public void setup() {
+            this.viewmodel = new RootDisplayViewmodel();
+            this.studyGuide = new StudyGuide();
+        }
+
+        @Test
+        public void testWhenToggleIsTrue() {
+            this.viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
+
+            var expectedUploaded = true;
+            var actualUploaded = this.studyGuide.getIsUploaded();
+
+            assertAll("Member checks",
+                    () -> assertEquals(expectedUploaded, actualUploaded),
+                    () -> assertTrue(this.viewmodel.getUploadedStudyGuidesProperty().contains(this.studyGuide)));
+        }
+
+        @Test
+        public void testWhenToggleIsFalse() {
+            this.viewmodel.toggleUploadStudyGuide(this.studyGuide, false);
+
+            var expectedUploaded = false;
+            var actualUploaded = this.studyGuide.getIsUploaded();
+
+            assertAll("Member checks",
+                    () -> assertEquals(expectedUploaded, actualUploaded),
+                    () -> assertTrue(!this.viewmodel.getUploadedStudyGuidesProperty().contains(this.studyGuide)));
+        }
+
+        @Test
+        public void testToggleTrueWhenOtherStudyGuidesAreAlreadyFavorited() {
+            this.viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
+            this.viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
+            this.viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
+
+            var uploadedCollection = this.viewmodel.getUploadedStudyGuidesProperty().get();
+            var expectedCount = 3;
+            var actualCount = uploadedCollection.size();
+
+            assertAll("collection check",
+                    () -> {
+                        assertTrue(uploadedCollection.contains(this.studyGuide));
+                    },
+                    () -> {
+                        assertEquals(expectedCount, actualCount);
+                    });
+        }
+
+        @Test
+        public void testToggleFalseWhenOtherStudyGuidesAreAlreadyFavorited() {
+            this.viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
+            this.viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
+            this.viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
+            this.viewmodel.toggleUploadStudyGuide(this.studyGuide, false);
+
+            var uploadedCollection = this.viewmodel.getUploadedStudyGuidesProperty().get();
+            var expectedCount = 2;
+            var actualCount = uploadedCollection.size();
+
+            assertAll("collection check",
+                    () -> {
+                        assertTrue(!uploadedCollection.contains(this.studyGuide));
+                    },
+                    () -> {
+                        assertEquals(expectedCount, actualCount);
+                    });
+        }
+
+        @Test
+        public void throwsWhenStudyGuideIsNull() {
+            assertThrows(IllegalArgumentException.class, () -> {
+                this.viewmodel.toggleUploadStudyGuide(null, true);
             });
         }
     }

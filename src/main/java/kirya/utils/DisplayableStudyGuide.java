@@ -31,6 +31,11 @@ public abstract class DisplayableStudyGuide {
      */
     public abstract boolean getIsFavorited();
 
+    /**
+     * {@return The uploaded status}
+     */
+    public abstract boolean getIsUploaded();
+
     @Override
     public String toString() {
         return this.getTitle();

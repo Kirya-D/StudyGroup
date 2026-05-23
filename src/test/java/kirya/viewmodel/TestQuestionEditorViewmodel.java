@@ -5,9 +5,9 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.stream.Stream;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
@@ -19,6 +19,7 @@ import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.ObservableList;
 import kirya.model.Question;
+import kirya.utils.AnswerChoice;
 import kirya.utils.QuestionType;
 
 public class TestQuestionEditorViewmodel {
@@ -38,19 +39,15 @@ public class TestQuestionEditorViewmodel {
             var actualQuestion = viewmodel.getQuestionProperty();
             var expectedAnswer = StringProperty.class;
             var actualAnswer = viewmodel.getAnswerProperty();
-            var expectedChoices = ObservableList.class;
-            var actualChoices = viewmodel.getChoicesObservableList();
-            var expectedAnswers = ObservableList.class;
-            var actualAnswers = viewmodel.getAnswersObservableList();
+            var expectedMultChoices = ObservableList.class;
+            var actualMultChoices = viewmodel.getMultChoiceOptionsObservableList();
 
             assertAll("Members",
                     () -> assertInstanceOf(expectedQuestionObject, actualQuestionObject),
                     () -> assertInstanceOf(expectedQuestionType, actualQuestionType),
                     () -> assertInstanceOf(expectedQuestion, actualQuestion),
                     () -> assertInstanceOf(expectedAnswer, actualAnswer),
-                    () -> assertInstanceOf(expectedChoices, actualChoices),
-                    () -> assertInstanceOf(expectedAnswers, actualAnswers)
-            );
+                    () -> assertInstanceOf(expectedMultChoices, actualMultChoices));
         }
     }
 
@@ -58,7 +55,70 @@ public class TestQuestionEditorViewmodel {
     public class TestSyncPropertiesToQuestionState {
 
         @Test
-        public void testWhenQuestionIsNotNull() {
+        public void testWhenSomeAnswersNotChoices() {
+            var questionObj = new Question();
+            questionObj.setChoices(List.of("Choice 1", "Choice 2", "Choice 3"));
+            questionObj.setAnswers(List.of("Choice 4"));
+            var viewmodel = new QuestionEditorViewmodel();
+            viewmodel.getQuestionObjectProperty().set(questionObj);
+
+            var expectedQuestionType = questionObj.getQuestionType();
+            var expectedQuestion = questionObj.getQuestion();
+            var expectedAnswer = String.join("", questionObj.getAnswers());
+            var expectedChoices = Stream.concat(questionObj.getChoices().stream(), questionObj.getAnswers().stream())
+                    .toList();
+            var expectedMultChoiceAnswers = questionObj.getAnswers();
+
+            viewmodel.syncPropertiesToQuestionState();
+
+            var actualQuestionType = viewmodel.getQuestionTypeProperty().get();
+            var actualQuestion = viewmodel.getQuestionProperty().get();
+            var actualAnswer = viewmodel.getAnswerProperty().get();
+            var actualChoices = viewmodel.getMultChoiceOptionsObservableList().stream().map(o -> o.getText()).toList();
+            var actualMultChoiceAnswers = viewmodel.getMultChoiceOptionsObservableList().stream()
+                    .filter(o -> o.getIsCorrect()).map(o -> o.getText()).toList();
+
+            assertAll("Member checks",
+                    () -> assertEquals(expectedQuestionType, actualQuestionType),
+                    () -> assertEquals(expectedQuestion, actualQuestion),
+                    () -> assertEquals(expectedAnswer, actualAnswer),
+                    () -> assertEquals(expectedChoices, actualChoices),
+                    () -> assertEquals(expectedMultChoiceAnswers, actualMultChoiceAnswers));
+        }
+
+        @Test
+        public void testWhenQuestionHasChoices() {
+            var questionObj = new Question();
+            questionObj.setChoices(List.of("Choice 1", "Choice 2", "Choice 3"));
+            questionObj.setAnswers(List.of("Choice 1"));
+            var viewmodel = new QuestionEditorViewmodel();
+            viewmodel.getQuestionObjectProperty().set(questionObj);
+
+            var expectedQuestionType = questionObj.getQuestionType();
+            var expectedQuestion = questionObj.getQuestion();
+            var expectedAnswer = String.join("", questionObj.getAnswers());
+            var expectedChoices = questionObj.getChoices();
+            var expectedMultChoiceAnswers = questionObj.getAnswers();
+
+            viewmodel.syncPropertiesToQuestionState();
+
+            var actualQuestionType = viewmodel.getQuestionTypeProperty().get();
+            var actualQuestion = viewmodel.getQuestionProperty().get();
+            var actualAnswer = viewmodel.getAnswerProperty().get();
+            var actualChoices = viewmodel.getMultChoiceOptionsObservableList().stream().map(o -> o.getText()).toList();
+            var actualMultChoiceAnswers = viewmodel.getMultChoiceOptionsObservableList().stream()
+                    .filter(o -> o.getIsCorrect()).map(o -> o.getText()).toList();
+
+            assertAll("Member checks",
+                    () -> assertEquals(expectedQuestionType, actualQuestionType),
+                    () -> assertEquals(expectedQuestion, actualQuestion),
+                    () -> assertEquals(expectedAnswer, actualAnswer),
+                    () -> assertEquals(expectedChoices, actualChoices),
+                    () -> assertEquals(expectedMultChoiceAnswers, actualMultChoiceAnswers));
+        }
+
+        @Test
+        public void testWhenQuestionHasNoChoices() {
             var questionObj = new Question();
             var viewmodel = new QuestionEditorViewmodel();
             viewmodel.getQuestionObjectProperty().set(questionObj);
@@ -74,16 +134,16 @@ public class TestQuestionEditorViewmodel {
             var actualQuestionType = viewmodel.getQuestionTypeProperty().get();
             var actualQuestion = viewmodel.getQuestionProperty().get();
             var actualAnswer = viewmodel.getAnswerProperty().get();
-            var actualChoices = new ArrayList<>(viewmodel.getChoicesObservableList());
-            var actualMultChoiceAnswers = new ArrayList<>(viewmodel.getAnswersObservableList());
+            var actualChoices = viewmodel.getMultChoiceOptionsObservableList().stream().map(o -> o.getText()).toList();
+            var actualMultChoiceAnswers = viewmodel.getMultChoiceOptionsObservableList().stream()
+                    .filter(o -> o.getIsCorrect()).map(o -> o.getText()).toList();
 
             assertAll("Member checks",
                     () -> assertEquals(expectedQuestionType, actualQuestionType),
                     () -> assertEquals(expectedQuestion, actualQuestion),
                     () -> assertEquals(expectedAnswer, actualAnswer),
                     () -> assertEquals(expectedChoices, actualChoices),
-                    () -> assertEquals(expectedMultChoiceAnswers, actualMultChoiceAnswers)
-            );
+                    () -> assertEquals(expectedMultChoiceAnswers, actualMultChoiceAnswers));
         }
 
         @Test
@@ -101,16 +161,17 @@ public class TestQuestionEditorViewmodel {
             var actualQuestionType = viewmodel.getQuestionTypeProperty().get();
             var actualQuestion = viewmodel.getQuestionProperty().get();
             var actualAnswer = viewmodel.getAnswerProperty().get();
-            var actualChoices = new ArrayList<>(viewmodel.getChoicesObservableList());
-            var actualMultChoiceAnswers = new ArrayList<>(viewmodel.getAnswersObservableList());
+            var actualChoices = viewmodel.getMultChoiceOptionsObservableList().stream().filter(o -> !o.getIsCorrect())
+                    .map(o -> o.getText()).toList();
+            var actualMultChoiceAnswers = viewmodel.getMultChoiceOptionsObservableList().stream()
+                    .filter(o -> o.getIsCorrect()).map(o -> o.getText()).toList();
 
             assertAll("Member checks",
                     () -> assertEquals(expectedQuestionType, actualQuestionType),
                     () -> assertEquals(expectedQuestion, actualQuestion),
                     () -> assertEquals(expectedAnswer, actualAnswer),
                     () -> assertEquals(expectedChoices, actualChoices),
-                    () -> assertEquals(expectedMultChoiceAnswers, actualMultChoiceAnswers)
-            );
+                    () -> assertEquals(expectedMultChoiceAnswers, actualMultChoiceAnswers));
         }
     }
 
@@ -152,7 +213,7 @@ public class TestQuestionEditorViewmodel {
                     () -> assertEquals(expectedChoices, actualChoices),
                     () -> assertEquals(expectedAnswers, actualAnswers));
         }
-        
+
         @Test
         public void testWhenSuccessfulMultipleChoiceQuestion() {
             var expectedQuestionType = QuestionType.MULTIPLE_CHOICE;
@@ -162,8 +223,8 @@ public class TestQuestionEditorViewmodel {
 
             this.viewmodel.getQuestionTypeProperty().set(expectedQuestionType);
             this.viewmodel.getQuestionProperty().set(expectedQuestion);
-            this.viewmodel.getChoicesObservableList().setAll(expectedChoices);
-            this.viewmodel.getAnswersObservableList().setAll(expectedAnswers);
+            var choices = List.of(new AnswerChoice("True", true), new AnswerChoice("False", false));
+            this.viewmodel.getMultChoiceOptionsObservableList().setAll(choices);
 
             this.viewmodel.applyQuestionChanges();
 
@@ -179,7 +240,7 @@ public class TestQuestionEditorViewmodel {
                     () -> assertEquals(expectedChoices, actualChoices),
                     () -> assertEquals(expectedAnswers, actualAnswers));
         }
-        
+
         @Test
         public void throwsWhenQuestionObjectIsNull() {
             this.viewmodel.getQuestionObjectProperty().set(null);
@@ -199,7 +260,7 @@ public class TestQuestionEditorViewmodel {
         }
 
         @ParameterizedTest
-        @ValueSource(strings = { "", " ", "  " })
+        @ValueSource(strings = { "", " ", " " })
         public void throwsWhenQuestionIsBlank(String question) {
             this.viewmodel.getQuestionTypeProperty().set(QuestionType.FREE_RESPONSE);
             this.viewmodel.getQuestionProperty().set(question);
@@ -224,8 +285,7 @@ public class TestQuestionEditorViewmodel {
         public void throwsWhenMultipleChoiceChoicesIsEmpty() {
             this.viewmodel.getQuestionTypeProperty().set(QuestionType.MULTIPLE_CHOICE);
             this.viewmodel.getQuestionProperty().set("This is a valid question");
-            this.viewmodel.getChoicesObservableList().clear();
-            this.viewmodel.getAnswersObservableList().setAll("First answer");
+            this.viewmodel.getMultChoiceOptionsObservableList().clear();
 
             assertThrows(IllegalArgumentException.class, () -> {
                 this.viewmodel.applyQuestionChanges();
@@ -236,8 +296,8 @@ public class TestQuestionEditorViewmodel {
         public void throwsWhenMultipleChoiceAnswersIsEmpty() {
             this.viewmodel.getQuestionTypeProperty().set(QuestionType.MULTIPLE_CHOICE);
             this.viewmodel.getQuestionProperty().set("This is a valid question");
-            this.viewmodel.getAnswersObservableList().clear();
-            this.viewmodel.getChoicesObservableList().setAll("First answer");
+            var choices = new AnswerChoice[] { new AnswerChoice("valid", false) };
+            this.viewmodel.getMultChoiceOptionsObservableList().setAll(choices);
 
             assertThrows(IllegalArgumentException.class, () -> {
                 this.viewmodel.applyQuestionChanges();

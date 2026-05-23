@@ -25,6 +25,8 @@ public class TestStudyGuide {
             var actualDownloaded = parameterlessStudyGuide.getIsDownloaded();
             var expectedFavorited = false;
             var actualFavorited = parameterlessStudyGuide.getIsFavorited();
+            var expectedUploaded = false;
+            var actualUploaded = parameterlessStudyGuide.getIsUploaded();
             var expectedTitle = "";
             var actualTitle = parameterlessStudyGuide.getTitle();
             var expectedDescription = "";
@@ -35,9 +37,76 @@ public class TestStudyGuide {
             assertAll("Members",
                     () -> assertEquals(expectedDownloaded, actualDownloaded),
                     () -> assertEquals(expectedFavorited, actualFavorited),
+                    () -> assertEquals(expectedUploaded, actualUploaded),
                     () -> assertEquals(expectedTitle, actualTitle),
                     () -> assertEquals(expectedDescription, actualDescription),
                     () -> assertEquals(expectedQuestions, actualQuestions));
+        }
+    }
+
+    @Nested
+    public class TestSetIsDownloaded {
+
+        StudyGuide studyGuide;
+
+        @BeforeEach
+        public void setup() {
+            this.studyGuide = new StudyGuide();
+        }
+
+        @Test
+        public void testWhenSuccessful() {
+            var downloaded = true;
+            this.studyGuide.setIsDownloaded(downloaded);
+
+            var expected = downloaded;
+            var actual = this.studyGuide.getIsDownloaded();
+
+            assertEquals(expected, actual);
+        }
+    }
+
+    @Nested
+    public class TestSetIsFavorited {
+
+        StudyGuide studyGuide;
+
+        @BeforeEach
+        public void setup() {
+            this.studyGuide = new StudyGuide();
+        }
+
+        @Test
+        public void testWhenSuccessful() {
+            var favorited = true;
+            this.studyGuide.setIsFavorited(favorited);
+
+            var expected = favorited;
+            var actual = this.studyGuide.getIsFavorited();
+
+            assertEquals(expected, actual);
+        }
+    }
+
+    @Nested
+    public class TestSetIsUploaded {
+
+        StudyGuide studyGuide;
+
+        @BeforeEach
+        public void setup() {
+            this.studyGuide = new StudyGuide();
+        }
+
+        @Test
+        public void testWhenSuccessful() {
+            var favorited = true;
+            this.studyGuide.setIsUploaded(favorited);
+
+            var expected = favorited;
+            var actual = this.studyGuide.getIsUploaded();
+
+            assertEquals(expected, actual);
         }
     }
 
@@ -167,49 +236,4 @@ public class TestStudyGuide {
             });
         }
     }
-
-    @Nested
-    public class TestSetIsDownloaded {
-
-        StudyGuide studyGuide;
-
-        @BeforeEach
-        public void setup() {
-            this.studyGuide = new StudyGuide();
-        }
-
-        @Test
-        public void testWhenSuccessful() {
-            var downloaded = true;
-            this.studyGuide.setIsDownloaded(downloaded);
-
-            var expected = downloaded;
-            var actual = this.studyGuide.getIsDownloaded();
-
-            assertEquals(expected, actual);
-        }
-    }
-
-    @Nested
-    public class TestSetIsFavorited {
-
-        StudyGuide studyGuide;
-
-        @BeforeEach
-        public void setup() {
-            this.studyGuide = new StudyGuide();
-        }
-
-        @Test
-        public void testWhenSuccessful() {
-            var favorited = true;
-            this.studyGuide.setIsFavorited(favorited);
-
-            var expected = favorited;
-            var actual = this.studyGuide.getIsFavorited();
-
-            assertEquals(expected, actual);
-        }
-    }
-
 }

@@ -1,6 +1,7 @@
 package kirya.viewmodel;
 
 import java.util.ArrayList;
+import java.util.function.Consumer;
 
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
@@ -14,15 +15,17 @@ import kirya.utils.DisplayableStudyGuide;
  */
 public class RootDisplayViewmodel {
 
-    private final ListProperty<DisplayableStudyGuide> favoritedStudyGuidesProperty;
     private final ListProperty<DisplayableStudyGuide> downloadedStudyGuidesProperty;
+    private final ListProperty<DisplayableStudyGuide> favoritedStudyGuidesProperty;
+    private final ListProperty<DisplayableStudyGuide> uploadedStudyGuidesProperty;
 
     /**
      * Initializes a new RootDisplayViewmodel.
      */
     public RootDisplayViewmodel() {
-        this.favoritedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.downloadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
+        this.favoritedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
+        this.uploadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
     }
 
     /**
@@ -64,68 +67,98 @@ public class RootDisplayViewmodel {
     }
 
     /**
-     * Add the given study guide to the downloaded collection if its not already
+     * Downloads {@code studyguide} if it is not already saved in some other format
+     * 
+     * @param studyGuide the studyguide to save changes for
+     */
+    public void saveChangesToStudyGuide(DisplayableStudyGuide studyGuide) {
+        var concreteGuide = studyGuide instanceof StudyGuide cGuide ? cGuide : null;
+        if (concreteGuide == null) {
+            return;
+        }
+
+        var alreadyFavorited = this.favoritedStudyGuidesProperty.get().contains(concreteGuide);
+        var alreadyDownloaded = this.downloadedStudyGuidesProperty.get().contains(concreteGuide);
+        if (!alreadyDownloaded && !alreadyFavorited) {
+            this.toggleDownloadStudyGuide(studyGuide, true);
+        }
+    }
+
+    /**
+     * Sets the downloaded state of {@code studyGuide} to {@code download} and
+     * update
+     * {@code studyGuide}'s presence in the downloaded collection accordingly
      * in it.
      *
      * @param studyGuide The non-null study guide to download
-     * @throws IllegalArgumentException If studyGuide == null
-     */
-    public void downloadStudyGuide(DisplayableStudyGuide studyGuide) {
-        if (studyGuide == null) {
-            throw new IllegalArgumentException("studyGuide can't be null");
-        }
-        var concreteGuide = this.getConcreteGuide(studyGuide);
-        if (concreteGuide == null) {
-            return;
-        }
-
-        if (!this.downloadedStudyGuidesProperty.contains(concreteGuide)) {
-            this.downloadedStudyGuidesProperty.add(concreteGuide);
-        }
-        concreteGuide.setIsDownloaded(true);
-    }
-
-    /**
-     * Toggles the favorited state of {@code studyGuide} if toggled to true it's
-     * added to the favorited study guides collection, otherwise removed.
-     * 
-     * @param studyGuide The study guide to toggle favorite for
+     * @param download   The new download state to set to
      * @throws IllegalArgumentException If {@code studyGuide} == null
      */
-    public void toggleFavoriteStudyGuide(DisplayableStudyGuide studyGuide) {
-        if (studyGuide == null) {
-            throw new IllegalArgumentException("studyGuide can't be null");
-        }
+    public void toggleDownloadStudyGuide(DisplayableStudyGuide studyGuide, boolean download) {
         var concreteGuide = this.getConcreteGuide(studyGuide);
         if (concreteGuide == null) {
-            return;
+            throw new IllegalArgumentException("studyGuide can't be null");
         }
 
-        concreteGuide.setIsFavorited(!concreteGuide.getIsFavorited());
-        if (concreteGuide.getIsFavorited()) {
-            if (!this.favoritedStudyGuidesProperty.contains(concreteGuide)) {
-                this.favoritedStudyGuidesProperty.add(concreteGuide);
-            }
-        } else {
-            if (this.favoritedStudyGuidesProperty.contains(concreteGuide)) {
-                this.favoritedStudyGuidesProperty.remove(concreteGuide);
-            }
-        }
+        Consumer<Boolean> setMethod = b -> concreteGuide.setIsDownloaded(b);
+        var collection = this.downloadedStudyGuidesProperty;
+        this.toggleStudyGuideMember(concreteGuide, setMethod, download, collection);
     }
 
     /**
-     * Removes {@code studyGuide} from the downloaded study guides list
-     * property
+     * Sets the favorited state of {@code studyGuide} to {@code favorite} and update
+     * {@code studyGuide}'s presence in the favorited collection accordingly
+     * in it.
      *
-     * @param studyGuide The study guide to delete
+     * @param studyGuide The non-null study guide to favorite
+     * @param favorite   The new favorite state to set to
+     * @throws IllegalArgumentException If {@code studyGuide} == null
      */
-    public void deleteStudyGuide(DisplayableStudyGuide studyGuide) {
-        if (studyGuide == null) {
+    public void toggleFavoriteStudyGuide(DisplayableStudyGuide studyGuide, boolean favorite) {
+        var concreteGuide = this.getConcreteGuide(studyGuide);
+        if (concreteGuide == null) {
             throw new IllegalArgumentException("studyGuide can't be null");
         }
 
-        if (this.downloadedStudyGuidesProperty.contains(studyGuide)) {
-            this.downloadedStudyGuidesProperty.remove(studyGuide);
+        Consumer<Boolean> setMethod = b -> concreteGuide.setIsFavorited(b);
+        var collection = this.favoritedStudyGuidesProperty;
+        this.toggleStudyGuideMember(concreteGuide, setMethod, favorite, collection);
+    }
+
+    /**
+     * Sets the uploaded state of {@code studyGuide} to {@code upload} and update
+     * {@code studyGuide}'s presence in the uploaded collection accordingly
+     * in it.
+     *
+     * @param studyGuide The non-null study guide to upload
+     * @param upload     The new upload state to set to
+     * @throws IllegalArgumentException If {@code studyGuide} == null
+     */
+    public void toggleUploadStudyGuide(DisplayableStudyGuide studyGuide, boolean upload) {
+        var concreteGuide = this.getConcreteGuide(studyGuide);
+        if (concreteGuide == null) {
+            throw new IllegalArgumentException("studyGuide can't be null");
+        }
+
+        // TODO implement actual uploading (when DB is implemented)
+
+        Consumer<Boolean> setMethod = b -> concreteGuide.setIsUploaded(b);
+        var collection = this.uploadedStudyGuidesProperty;
+        this.toggleStudyGuideMember(concreteGuide, setMethod, upload, collection);
+    }
+
+    private void toggleStudyGuideMember(StudyGuide studyGuide, Consumer<Boolean> setMethod, boolean toggle,
+            ListProperty<DisplayableStudyGuide> associatedCollection) {
+
+        setMethod.accept(toggle);
+        if (toggle) {
+            if (!associatedCollection.contains(studyGuide)) {
+                associatedCollection.add(studyGuide);
+            }
+        } else {
+            if (associatedCollection.contains(studyGuide)) {
+                associatedCollection.remove(studyGuide);
+            }
         }
     }
 
@@ -145,5 +178,12 @@ public class RootDisplayViewmodel {
      */
     public ListProperty<DisplayableStudyGuide> getDownloadedStudyGuidesProperty() {
         return this.downloadedStudyGuidesProperty;
+    }
+
+    /**
+     * {@return The uploaded studyguides property}
+     */
+    public ListProperty<DisplayableStudyGuide> getUploadedStudyGuidesProperty() {
+        return this.uploadedStudyGuidesProperty;
     }
 }

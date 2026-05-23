@@ -2,7 +2,6 @@ package kirya.viewmodel;
 
 import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 import javafx.beans.property.ObjectProperty;
 import javafx.beans.property.SimpleObjectProperty;
@@ -42,7 +41,7 @@ public class StudyGuideEditorViewmodel {
             this.syncPropertiesToStudyGuideState();
         });
     }
-    
+
     public void syncPropertiesToStudyGuideState() {
         var studyGuide = this.studyGuideProperty.get();
 
@@ -64,8 +63,6 @@ public class StudyGuideEditorViewmodel {
         var question = new Question();
         var questionCount = this.questionsObservableList.size() + 1;
         question.setQuestion("Question " + questionCount);
-        question.setChoices(List.of("Answer choice 1"));
-        question.setAnswers(List.of("Answer choice 1"));
         this.questionsObservableList.add(question);
     }
 
@@ -73,9 +70,10 @@ public class StudyGuideEditorViewmodel {
      * Applies the changes made to the study guide in the editor to the associated
      * object.
      *
-     * @throws NullPointerException If studyguide == null
+     * @throws NullPointerException     If studyguide == null
      * @throws IllegalArgumentException If studyguide title is blank
-     * @throws IllegalArgumentException If studyguide questions is null or {@link Collection#isEmpty()}
+     * @throws IllegalArgumentException If studyguide questions is null or
+     *                                  {@link Collection#isEmpty()}
      */
     public void applyStudyGuideChanges() {
         var studyGuide = this.getStudyGuide();

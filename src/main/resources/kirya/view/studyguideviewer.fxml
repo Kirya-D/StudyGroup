@@ -20,7 +20,7 @@
     <RowConstraints maxHeight="1.7976931348623157E308" vgrow="ALWAYS" />
   </rowConstraints>
    <children>
-      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" GridPane.rowSpan="2147483647">
+      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="5.0" GridPane.rowSpan="2147483647">
          <children>
             <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" text="Questions" />
             <TilePane fx:id="jumpToQuestionsTilePane" hgap="5.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" vgap="5.0" />

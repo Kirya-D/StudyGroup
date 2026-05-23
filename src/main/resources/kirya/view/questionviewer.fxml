@@ -3,11 +3,13 @@
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Button?>
 <?import javafx.scene.control.Label?>
-<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TableColumn?>
+<?import javafx.scene.control.TableView?>
 <?import javafx.scene.control.TextArea?>
 <?import javafx.scene.layout.ColumnConstraints?>
 <?import javafx.scene.layout.GridPane?>
 <?import javafx.scene.layout.RowConstraints?>
+<?import javafx.scene.layout.VBox?>
 
 <fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" type="GridPane" vgap="5.0" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
   <columnConstraints>
@@ -20,21 +22,35 @@
   </rowConstraints>
    <children>
       <Label fx:id="questionLabel" alignment="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="Question ?" wrapText="true" />
-      <GridPane fx:id="freeResponseAnswerGridPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" GridPane.rowIndex="1">
-         <columnConstraints>
-            <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="1.0" percentWidth="50.0" />
-            <ColumnConstraints hgrow="ALWAYS" maxWidth="1.7976931348623157E308" minWidth="1.0" percentWidth="50.0" />
-         </columnConstraints>
-         <rowConstraints>
-            <RowConstraints minHeight="10.0" vgrow="SOMETIMES" />
-         </rowConstraints>
+      <VBox fx:id="freeResponseQuestionVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" GridPane.rowIndex="1">
          <children>
-            <TextArea maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" promptText="Answer" wrapText="true" />
-            <Label fx:id="answerLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="Label" visible="false" wrapText="true" GridPane.columnIndex="1" />
+            <TextArea fx:id="freeResponseAnswerTextArea" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" promptText="Answer" wrapText="true" />
+            <Label fx:id="freeResponseAnswerLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="Answer" wrapText="true" />
          </children>
-      </GridPane>
-      <ListView fx:id="multipleChoiceAnswerListView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="false" GridPane.rowIndex="1" />
-      <Button maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#onRevealAnswerButtonClick" text="Reveal/Hide Answer" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
+      </VBox>
+      <VBox fx:id="multipleChoiceQuestionVBox" visible="false" GridPane.rowIndex="1">
+         <children>
+            <TableView fx:id="userMCTableView" editable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" prefHeight="200.0">
+              <columns>
+                <TableColumn fx:id="userCorrectnessTableColumn" prefWidth="50.0" sortable="false" />
+                <TableColumn fx:id="userChoiceTableColumn" editable="false" prefWidth="400.0" sortable="false" />
+              </columns>
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
+            </TableView>
+            <TableView fx:id="answerMCTableView" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" prefHeight="200.0">
+               <columns>
+                  <TableColumn fx:id="answerCorrectnessTableColumn" editable="false" prefWidth="50.0" sortable="false" />
+                  <TableColumn fx:id="answerChoiceTableColumn" editable="false" prefWidth="400.0" sortable="false" />
+               </columns>
+               <columnResizePolicy>
+                  <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
+               </columnResizePolicy>
+            </TableView>
+         </children>
+      </VBox>
+      <Button fx:id="toggleAnswerButton" maxHeight="1.7976931348623157E308" mnemonicParsing="false" onAction="#onRevealAnswerButtonClick" text="Reveal/Hide Answer" GridPane.halignment="CENTER" GridPane.rowIndex="2" />
    </children>
    <padding>
       <Insets bottom="5.0" top="5.0" />
