@@ -70,6 +70,7 @@ public class StudyGuideViewer extends GridPane {
     }
 
     private void refreshDisplay() {
+        this.questionsListView.getItems().clear();
         this.questionsListView.getItems().setAll(this.studyGuide.getQuestions());
         this.refreshJumpTilePane();
     }
