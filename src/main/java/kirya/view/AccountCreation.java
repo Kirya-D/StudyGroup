@@ -1,11 +1,14 @@
 package kirya.view;
 
 import java.io.IOException;
+import java.sql.SQLException;
 
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
@@ -31,7 +34,7 @@ public class AccountCreation extends GridPane {
     @FXML
     private Button createAccountButton;
 
-    private AccountCreationViewmodel viewmodel = new AccountCreationViewmodel();
+    private AccountCreationViewmodel viewmodel;
 
     /**
      * Initializes a new AccountCreation component.
@@ -42,11 +45,20 @@ public class AccountCreation extends GridPane {
         loader.setRoot(this);
         try {
             loader.load();
-            this.bindToViewmodel();
-            this.setupWarningLabels();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    /**
+     * Sets the viewmodel of this component.
+     * 
+     * @param viewmodel the new viewmodel
+     */
+    public void setViewmodel(AccountCreationViewmodel viewmodel) {
+        this.viewmodel = viewmodel;
+        this.bindToViewmodel();
+        this.setupWarningLabels();
     }
 
     private void bindToViewmodel() {
@@ -92,6 +104,15 @@ public class AccountCreation extends GridPane {
 
     @FXML
     private void onCreateAccountClick() {
-        this.viewmodel.createAccount();
+        try {
+            this.viewmodel.createAccount();
+            this.usernameTextField.setText("");
+            this.passwordField.setText("");
+        } catch (SQLException err) {
+            var alert = new Alert(AlertType.ERROR);
+            alert.setHeaderText("Database error");
+            alert.setContentText(err.getMessage());
+            alert.showAndWait();
+        }
     }
 }

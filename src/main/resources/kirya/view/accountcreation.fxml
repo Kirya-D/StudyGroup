@@ -53,7 +53,7 @@
                   <PasswordField fx:id="passwordField" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" />
                </children>
             </VBox>
-            <Button fx:id="createAccountButton" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" mnemonicParsing="false" text="Create Account" />
+            <Button fx:id="createAccountButton" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" mnemonicParsing="false" onAction="#onCreateAccountClick" text="Create Account" />
          </children>
          <padding>
             <Insets bottom="10.0" left="20.0" right="20.0" top="10.0" />

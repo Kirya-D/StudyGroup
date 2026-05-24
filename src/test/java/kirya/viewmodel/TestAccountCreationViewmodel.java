@@ -4,31 +4,37 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.sql.SQLException;
+import java.util.Collections;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
+import kirya.model.LocalDatabase;
+
 public class TestAccountCreationViewmodel {
+
+    private AccountCreationViewmodel viewmodel;
+
+    @BeforeEach
+    public void setup() throws SQLException {
+        var localDb = new LocalDatabase();
+        this.viewmodel = new AccountCreationViewmodel(localDb);
+    }
 
     @Nested
     public class TestConstructor {
-
-        private AccountCreationViewmodel viewmodel;
-
-        @BeforeEach
-        public void setup() {
-            this.viewmodel = new AccountCreationViewmodel();
-        }
 
         @Test
         public void testMembers() {
             var expectedUsernameIssue = AccountCreationViewmodel.REQUIRED_FIELD;
             var expectedPasswordIssue = AccountCreationViewmodel.REQUIRED_FIELD;
 
-            var actualUsername = this.viewmodel.getUsernameProperty().get();
-            var actualPassword = this.viewmodel.getPasswordProperty().get();
-            var actualUsernameIssue = this.viewmodel.getUsernameIssueProperty().get();
-            var actualPasswordIssue = this.viewmodel.getPasswordIssueProperty().get();
+            var actualUsername = viewmodel.getUsernameProperty().get();
+            var actualPassword = viewmodel.getPasswordProperty().get();
+            var actualUsernameIssue = viewmodel.getUsernameIssueProperty().get();
+            var actualPasswordIssue = viewmodel.getPasswordIssueProperty().get();
 
             assertAll("member checks",
                     () -> assertNull(actualUsername),
@@ -41,44 +47,57 @@ public class TestAccountCreationViewmodel {
     @Nested
     public class TestUsernameIssues {
 
-        private AccountCreationViewmodel viewmodel;
-
-        @BeforeEach
-        public void setup() {
-            this.viewmodel = new AccountCreationViewmodel();
-        }
-
         @Test
         public void testWhenEmpty() {
-            this.viewmodel.getUsernameProperty().set("not empty");
-            this.viewmodel.getUsernameProperty().set("");
+            viewmodel.getUsernameProperty().set("not empty");
+            viewmodel.getUsernameProperty().set("");
 
             var expectedIssue = AccountCreationViewmodel.REQUIRED_FIELD;
-            var actualIssue = this.viewmodel.getUsernameIssueProperty().get();
+            var actualIssue = viewmodel.getUsernameIssueProperty().get();
 
             assertEquals(expectedIssue, actualIssue);
         }
 
         @Test
         public void testWhenTooShort() {
-            this.viewmodel.getUsernameProperty().set("hi");
+            viewmodel.getUsernameProperty().set("hi");
 
-            var expectedIssue = AccountCreationViewmodel.USERNAME_TOO_SHORT;
-            var actualIssue = this.viewmodel.getUsernameIssueProperty().get();
+            var expectedIssue = AccountCreationViewmodel.INVALID_USERNAME_LENGTH;
+            var actualIssue = viewmodel.getUsernameIssueProperty().get();
 
             assertEquals(expectedIssue, actualIssue);
         }
 
         @Test
-        public void testWhenNotAvailable() {
+        public void testWhenTooLong() {
+            var thirtyThreeCharacters = Collections.nCopies(33, "x");
+            var charString = String.join("", thirtyThreeCharacters);
+            viewmodel.getUsernameProperty().set(charString);
+
+            var expectedIssue = AccountCreationViewmodel.INVALID_USERNAME_LENGTH;
+            var actualIssue = viewmodel.getUsernameIssueProperty().get();
+
+            assertEquals(expectedIssue, actualIssue);
+        }
+
+        @Test
+        public void testWhenNotAvailable() throws SQLException {
+            viewmodel.getUsernameProperty().set("takenUsername");
+            viewmodel.getPasswordProperty().set("password123");
+            viewmodel.createAccount();
+
+            var expectedIssue = AccountCreationViewmodel.USERNAME_UNAVAILABLE;
+            var actualIssue = viewmodel.getUsernameIssueProperty().get();
+
+            assertEquals(expectedIssue, actualIssue);
         }
 
         @Test
         public void testWhenNoIssues() {
-            this.viewmodel.getUsernameProperty().set("ValidUsername");
+            viewmodel.getUsernameProperty().set("ValidUsername");
 
             var expectedIssue = AccountCreationViewmodel.VALID_FIELD;
-            var actualIssue = this.viewmodel.getUsernameIssueProperty().get();
+            var actualIssue = viewmodel.getUsernameIssueProperty().get();
 
             assertEquals(expectedIssue, actualIssue);
         }
@@ -87,40 +106,45 @@ public class TestAccountCreationViewmodel {
     @Nested
     public class TestPasswordIssues {
 
-        private AccountCreationViewmodel viewmodel;
-
-        @BeforeEach
-        public void setup() {
-            this.viewmodel = new AccountCreationViewmodel();
-        }
-
         @Test
         public void testWhenEmpty() {
-            this.viewmodel.getPasswordProperty().set("not empty");
-            this.viewmodel.getPasswordProperty().set("");
+            viewmodel.getPasswordProperty().set("not empty");
+            viewmodel.getPasswordProperty().set("");
 
             var expectedIssue = AccountCreationViewmodel.REQUIRED_FIELD;
-            var actualIssue = this.viewmodel.getPasswordIssueProperty().get();
+            var actualIssue = viewmodel.getPasswordIssueProperty().get();
 
             assertEquals(expectedIssue, actualIssue);
         }
 
         @Test
         public void testWhenTooShort() {
-            this.viewmodel.getPasswordProperty().set("hi");
+            viewmodel.getPasswordProperty().set("hi");
 
-            var expectedIssue = AccountCreationViewmodel.PASSWORD_TOO_SHORT;
-            var actualIssue = this.viewmodel.getPasswordIssueProperty().get();
+            var expectedIssue = AccountCreationViewmodel.INVALID_PASSWORD_LENGTH;
+            var actualIssue = viewmodel.getPasswordIssueProperty().get();
+
+            assertEquals(expectedIssue, actualIssue);
+        }
+
+        @Test
+        public void testWhenTooLong() {
+            var thirtyThreeCharacters = Collections.nCopies(33, "x");
+            var charString = String.join("", thirtyThreeCharacters);
+            viewmodel.getPasswordProperty().set(charString);
+
+            var expectedIssue = AccountCreationViewmodel.INVALID_PASSWORD_LENGTH;
+            var actualIssue = viewmodel.getPasswordIssueProperty().get();
 
             assertEquals(expectedIssue, actualIssue);
         }
 
         @Test
         public void testWhenNoIssues() {
-            this.viewmodel.getPasswordProperty().set("ValidUsername");
+            viewmodel.getPasswordProperty().set("ValidUsername");
 
             var expectedIssue = AccountCreationViewmodel.VALID_FIELD;
-            var actualIssue = this.viewmodel.getPasswordIssueProperty().get();
+            var actualIssue = viewmodel.getPasswordIssueProperty().get();
 
             assertEquals(expectedIssue, actualIssue);
         }

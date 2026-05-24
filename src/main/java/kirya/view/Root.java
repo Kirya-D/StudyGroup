@@ -13,7 +13,7 @@ import javafx.scene.layout.StackPane;
 public class Root extends StackPane {
 
     @FXML
-    private AccountCreation accountCreation;
+    public AccountCreation accountCreation;
     @FXML
     private Home home;
 
