@@ -1,12 +1,12 @@
 package kirya.view;
 
-import static javafx.scene.layout.Region.USE_COMPUTED_SIZE;
-
+import java.io.IOException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
 
 import javafx.fxml.FXML;
+import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
@@ -17,15 +17,13 @@ import javafx.scene.layout.VBox;
 import javafx.stage.WindowEvent;
 import kirya.utils.DisplayText;
 import kirya.utils.DisplayableStudyGuide;
-import kirya.viewmodel.RootDisplayViewmodel;
+import kirya.viewmodel.HomeViewmodel;
 
 /**
- * Code-behind for rootdisplay.fxml
+ * Code-behind for home.fxml
  */
-public class RootDisplay {
+public class Home extends ScrollPane {
 
-    @FXML
-    private ScrollPane rootPane;
     @FXML
     private VBox homeVBox;
     @FXML
@@ -46,15 +44,23 @@ public class RootDisplay {
     private final String cancelEditHeader = "You're about to discard your changes";
     private final String cancelEditContent = "You have unsaved changes that you will lose if you continue!";
     private final NodeGroup nodeGroup = new NodeGroup();
-    private final RootDisplayViewmodel viewmodel = new RootDisplayViewmodel();
+    private final HomeViewmodel viewmodel = new HomeViewmodel();
 
     /**
-     * Initializes a new RootDisplay component.
+     * Initializes a new Home component.
      */
-    public RootDisplay() {
+    public Home() {
+        var loader = new FXMLLoader(this.getClass().getResource("home.fxml"));
+        loader.setController(this);
+        loader.setRoot(this);
+        try {
+            loader.load();
+            this.initialize();
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
     }
 
-    @FXML
     private void initialize() {
         this.nodeGroup.addNodes(List.of(this.homeVBox, this.studyGuideEditor, this.studyGuideViewer));
         this.bindToViewmodel();
@@ -63,19 +69,19 @@ public class RootDisplay {
     }
 
     private void addEventListeners() {
-        this.rootPane.addEventHandler(StudyGuideEvent.VIEW, handler -> this.viewStudyGuideHandler(handler));
-        this.rootPane.addEventHandler(StudyGuideEvent.CLOSE, handler -> this.homeVBox.setVisible(true));
-        this.rootPane.addEventHandler(StudyGuideEvent.DOWNLOAD, handler -> this.downloadStudyGuideHandler(handler));
-        this.rootPane.addEventHandler(StudyGuideEvent.FAVORITE, handler -> this.favoriteStudyGuideHandler(handler));
-        this.rootPane.addEventHandler(StudyGuideEvent.UPLOAD, handler -> {
+        this.addEventHandler(StudyGuideEvent.VIEW, handler -> this.viewStudyGuideHandler(handler));
+        this.addEventHandler(StudyGuideEvent.CLOSE, handler -> this.homeVBox.setVisible(true));
+        this.addEventHandler(StudyGuideEvent.DOWNLOAD, handler -> this.downloadStudyGuideHandler(handler));
+        this.addEventHandler(StudyGuideEvent.FAVORITE, handler -> this.favoriteStudyGuideHandler(handler));
+        this.addEventHandler(StudyGuideEvent.UPLOAD, handler -> {
             var studyGuide = handler.getStudyGuide();
             this.viewmodel.toggleUploadStudyGuide(studyGuide, true);
         });
-        this.rootPane.addEventHandler(StudyGuideEvent.START_EDIT, handler -> {
+        this.addEventHandler(StudyGuideEvent.START_EDIT, handler -> {
             var studyGuide = handler.getStudyGuide();
             this.startEditingStudyGuide(studyGuide);
         });
-        this.rootPane.addEventHandler(StudyGuideEvent.FINISH_EDIT, handler -> {
+        this.addEventHandler(StudyGuideEvent.FINISH_EDIT, handler -> {
             this.finishEditStudyGuideHandler(handler);
         });
 
@@ -223,7 +229,7 @@ public class RootDisplay {
 
     private void bindOnApplicationExit(javafx.stage.Window window) {
         window.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, handler -> {
-            this.viewmodel.save();
+            this.viewmodel.save(); // TODO Move this behaviour App.stop()
         });
     }
 

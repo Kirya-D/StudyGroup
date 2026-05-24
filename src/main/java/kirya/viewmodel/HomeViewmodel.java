@@ -11,18 +11,18 @@ import kirya.model.StudyGuide;
 import kirya.utils.DisplayableStudyGuide;
 
 /**
- * Viewmodel of the RootDiplay view class
+ * Viewmodel of the Home view class
  */
-public class RootDisplayViewmodel {
+public class HomeViewmodel {
 
     private final ListProperty<DisplayableStudyGuide> downloadedStudyGuidesProperty;
     private final ListProperty<DisplayableStudyGuide> favoritedStudyGuidesProperty;
     private final ListProperty<DisplayableStudyGuide> uploadedStudyGuidesProperty;
 
     /**
-     * Initializes a new RootDisplayViewmodel.
+     * Initializes a new HomeViewmodel.
      */
-    public RootDisplayViewmodel() {
+    public HomeViewmodel() {
         this.downloadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.favoritedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.uploadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
