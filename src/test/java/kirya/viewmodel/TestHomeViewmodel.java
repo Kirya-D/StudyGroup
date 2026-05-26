@@ -14,14 +14,14 @@ import javafx.beans.property.ListProperty;
 import kirya.model.StudyGuide;
 import kirya.utils.DisplayableStudyGuide;
 
-public class TestRootDisplayViewmodel {
+public class TestHomeViewmodel {
 
     @Nested
     public class TestConstructor {
 
         @Test
         public void testParameterlessDefaultMemberValues() {
-            var viewmodel = new RootDisplayViewmodel();
+            var viewmodel = new HomeViewmodel();
 
             var expectedFavoritedType = ListProperty.class;
             var actualFavoritedType = viewmodel.getFavoritedStudyGuidesProperty();
@@ -42,7 +42,7 @@ public class TestRootDisplayViewmodel {
 
         @Test
         public void testWhenSuccessful() {
-            var viewmodel = new RootDisplayViewmodel();
+            var viewmodel = new HomeViewmodel();
 
             var expectedType = DisplayableStudyGuide.class;
             var actual = viewmodel.createNewStudyGuide();
@@ -54,12 +54,12 @@ public class TestRootDisplayViewmodel {
     @Nested
     public class TestToggleDownloadStudyGuide {
 
-        RootDisplayViewmodel viewmodel;
+        HomeViewmodel viewmodel;
         StudyGuide studyGuide;
 
         @BeforeEach
         public void setup() {
-            this.viewmodel = new RootDisplayViewmodel();
+            this.viewmodel = new HomeViewmodel();
             this.studyGuide = new StudyGuide();
         }
 
@@ -147,12 +147,12 @@ public class TestRootDisplayViewmodel {
     @Nested
     public class TestToggleFavoriteStudyGuide {
 
-        RootDisplayViewmodel viewmodel;
+        HomeViewmodel viewmodel;
         StudyGuide studyGuide;
 
         @BeforeEach
         public void setup() {
-            this.viewmodel = new RootDisplayViewmodel();
+            this.viewmodel = new HomeViewmodel();
             this.studyGuide = new StudyGuide();
         }
 
@@ -230,12 +230,12 @@ public class TestRootDisplayViewmodel {
     @Nested
     public class TestToggleUploadStudyGuide {
 
-        RootDisplayViewmodel viewmodel;
+        HomeViewmodel viewmodel;
         StudyGuide studyGuide;
 
         @BeforeEach
         public void setup() {
-            this.viewmodel = new RootDisplayViewmodel();
+            this.viewmodel = new HomeViewmodel();
             this.studyGuide = new StudyGuide();
         }
 

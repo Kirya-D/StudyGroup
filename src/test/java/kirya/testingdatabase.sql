@@ -1,0 +1,5 @@
+CREATE TABLE Account (
+    id INT PRIMARY KEY,
+    username NVARCHAR(32) UNIQUE NOT NULL,
+    password NVARCHAR(32) NOT NULL
+);
