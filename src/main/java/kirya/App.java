@@ -7,7 +7,7 @@ import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import kirya.model.Database;
-import kirya.model.LocalDatabase;
+import kirya.model.RemoteDatabase;
 import kirya.view.Root;
 import kirya.viewmodel.AccountCreationViewmodel;
 
@@ -16,21 +16,28 @@ import kirya.viewmodel.AccountCreationViewmodel;
  */
 public class App extends Application {
 
+    private Database local = null;
+    private Database remote = null;
+
     @Override
     public void start(Stage stage) throws IOException {
-        Root root = new Root();
-        Scene scene = new Scene(root);
+        this.connectToDatabases();
+        this.showGui(stage);
+    }
 
-        Database localDb = null;
-        Database remoteDb = null;
-
+    private void connectToDatabases() {
         try {
-            localDb = new LocalDatabase();
+            this.remote = new RemoteDatabase();
         } catch (SQLException err) {
             err.printStackTrace();
         }
+    }
 
-        var accountCreationViewmodel = new AccountCreationViewmodel(localDb);
+    private void showGui(Stage stage) {
+        Root root = new Root();
+        Scene scene = new Scene(root);
+
+        var accountCreationViewmodel = new AccountCreationViewmodel(this.remote);
         root.accountCreation.setViewmodel(accountCreationViewmodel);
 
         stage.setTitle("StudyGroup");

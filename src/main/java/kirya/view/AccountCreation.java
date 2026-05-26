@@ -62,6 +62,7 @@ public class AccountCreation extends GridPane {
     }
 
     private void bindToViewmodel() {
+        this.viewmodel.getUsernameFinalizedProperty().bind(this.usernameTextField.focusedProperty().not());
         this.usernameTextField.textProperty().bindBidirectional(this.viewmodel.getUsernameProperty());
         this.passwordField.textProperty().bindBidirectional(this.viewmodel.getPasswordProperty());
 

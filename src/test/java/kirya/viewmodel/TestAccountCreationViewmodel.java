@@ -2,6 +2,7 @@ package kirya.viewmodel;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
 import java.sql.SQLException;
@@ -11,7 +12,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import kirya.model.LocalDatabase;
+import kirya.TestingDatabase;
 
 public class TestAccountCreationViewmodel {
 
@@ -19,7 +20,7 @@ public class TestAccountCreationViewmodel {
 
     @BeforeEach
     public void setup() throws SQLException {
-        var localDb = new LocalDatabase();
+        var localDb = new TestingDatabase();
         this.viewmodel = new AccountCreationViewmodel(localDb);
     }
 
@@ -31,12 +32,14 @@ public class TestAccountCreationViewmodel {
             var expectedUsernameIssue = AccountCreationViewmodel.REQUIRED_FIELD;
             var expectedPasswordIssue = AccountCreationViewmodel.REQUIRED_FIELD;
 
+            var actualUsernameIsFinalized = viewmodel.getUsernameFinalizedProperty().get();
             var actualUsername = viewmodel.getUsernameProperty().get();
             var actualPassword = viewmodel.getPasswordProperty().get();
             var actualUsernameIssue = viewmodel.getUsernameIssueProperty().get();
             var actualPasswordIssue = viewmodel.getPasswordIssueProperty().get();
 
             assertAll("member checks",
+                    () -> assertFalse(actualUsernameIsFinalized),
                     () -> assertNull(actualUsername),
                     () -> assertNull(actualPassword),
                     () -> assertEquals(expectedUsernameIssue, actualUsernameIssue),
@@ -82,9 +85,12 @@ public class TestAccountCreationViewmodel {
 
         @Test
         public void testWhenNotAvailable() throws SQLException {
-            viewmodel.getUsernameProperty().set("takenUsername");
+            var takenUsername = "takenUsername";
+            viewmodel.getUsernameProperty().set(takenUsername);
             viewmodel.getPasswordProperty().set("password123");
             viewmodel.createAccount();
+            viewmodel.getUsernameProperty().set(takenUsername);
+            viewmodel.getUsernameFinalizedProperty().set(true);
 
             var expectedIssue = AccountCreationViewmodel.USERNAME_UNAVAILABLE;
             var actualIssue = viewmodel.getUsernameIssueProperty().get();

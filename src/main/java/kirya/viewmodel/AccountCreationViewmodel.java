@@ -2,6 +2,8 @@ package kirya.viewmodel;
 
 import java.sql.SQLException;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import kirya.model.Database;
@@ -22,6 +24,7 @@ public class AccountCreationViewmodel {
     public static final String INVALID_PASSWORD_LENGTH = "Must be " + MIN_PASSWORD_LENGTH + "-" + MAX_FIELD_LENGTH
             + " characters long";
     private Database database;
+    private BooleanProperty usernameFinalizedProperty;
     private StringProperty usernameProperty;
     private StringProperty passwordProperty;
     private StringProperty usernameIssueProperty;
@@ -32,6 +35,7 @@ public class AccountCreationViewmodel {
      */
     public AccountCreationViewmodel(Database database) {
         this.database = database;
+        this.usernameFinalizedProperty = new SimpleBooleanProperty();
         this.usernameProperty = new SimpleStringProperty();
         this.passwordProperty = new SimpleStringProperty();
         this.usernameIssueProperty = new SimpleStringProperty(REQUIRED_FIELD);
@@ -41,21 +45,30 @@ public class AccountCreationViewmodel {
     }
 
     private void addPropertyListeners() {
-        this.usernameProperty.addListener((_, oldText, newText) -> {
-            var empty = this.fieldIsEmpty(oldText, newText);
-            var tooShort = this.textIsInvalidLength(newText, MIN_USERNAME_LENGTH);
+        this.usernameFinalizedProperty.addListener((_, _, finalized) -> {
+            if (!finalized) {
+                return;
+            }
+            var currentText = this.usernameProperty.get();
             var usernameIsTaken = false;
             try {
-                usernameIsTaken = this.database.hasAccountWithUsername(newText);
+                usernameIsTaken = this.database.hasAccountWithUsername(currentText);
             } catch (SQLException err) {
                 usernameIsTaken = true;
             }
+
+            var currentIssue = this.usernameIssueProperty.get();
+            if (usernameIsTaken && currentIssue.isEmpty()) {
+                this.usernameIssueProperty.set(USERNAME_UNAVAILABLE);
+            }
+        });
+        this.usernameProperty.addListener((_, oldText, newText) -> {
+            var empty = this.fieldIsEmpty(oldText, newText);
+            var tooShort = this.textIsInvalidLength(newText, MIN_USERNAME_LENGTH);
             if (empty) {
                 this.usernameIssueProperty.set(REQUIRED_FIELD);
             } else if (tooShort) {
                 this.usernameIssueProperty.set(INVALID_USERNAME_LENGTH);
-            } else if (usernameIsTaken) {
-                this.usernameIssueProperty.set(USERNAME_UNAVAILABLE);
             } else {
                 this.usernameIssueProperty.set(VALID_FIELD);
             }
@@ -112,6 +125,13 @@ public class AccountCreationViewmodel {
 
         this.usernameProperty.set("");
         this.usernameProperty.set(accountUsername);
+    }
+
+    /**
+     * {@return the username finalized {@link BooleanProperty}}
+     */
+    public BooleanProperty getUsernameFinalizedProperty() {
+        return this.usernameFinalizedProperty;
     }
 
     /**
