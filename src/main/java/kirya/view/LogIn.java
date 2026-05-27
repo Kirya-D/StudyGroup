@@ -3,13 +3,14 @@ package kirya.view;
 import java.io.IOException;
 import java.sql.SQLException;
 
+import javafx.beans.property.BooleanProperty;
+import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.Button;
 import javafx.scene.control.Label;
 import javafx.scene.control.PasswordField;
 import javafx.scene.control.TextField;
@@ -22,27 +23,26 @@ import javafx.scene.shape.Circle;
 import javafx.scene.text.Text;
 import kirya.view.enums.Page;
 import kirya.view.events.PageRequestEvent;
-import kirya.viewmodel.AccountCreationViewmodel;
+import kirya.viewmodel.LogInViewmodel;
 
 /**
- * Code-behind for accountcreation.fxml
+ * Code-behind for login.fxml
  */
-public class AccountCreation extends GridPane {
+public class LogIn extends GridPane {
 
     @FXML
     private TextField usernameTextField;
     @FXML
     private PasswordField passwordField;
-    @FXML
-    private Button createAccountButton;
 
-    private AccountCreationViewmodel viewmodel;
+    private BooleanProperty loggedInProperty = new SimpleBooleanProperty(false);
+    private LogInViewmodel viewmodel;
 
     /**
-     * Initializes a new AccountCreation component.
+     * Initializes a new LogIn component.
      */
-    public AccountCreation() {
-        var loader = new FXMLLoader(this.getClass().getResource("accountcreation.fxml"));
+    public LogIn() {
+        var loader = new FXMLLoader(this.getClass().getResource("login.fxml"));
         loader.setController(this);
         loader.setRoot(this);
         try {
@@ -53,29 +53,31 @@ public class AccountCreation extends GridPane {
     }
 
     /**
+     * {@return the logged in {@link BooleanProperty}}
+     */
+    public BooleanProperty LoggedInProperty() {
+        return this.loggedInProperty;
+    }
+
+    /**
      * Sets the viewmodel of this component.
      * 
      * @param viewmodel the new viewmodel
      */
-    public void setViewmodel(AccountCreationViewmodel viewmodel) {
+    public void setViewmodel(LogInViewmodel viewmodel) {
         this.viewmodel = viewmodel;
         this.bindToViewmodel();
         this.setupWarningLabels();
     }
 
     private void bindToViewmodel() {
-        this.viewmodel.getUsernameFinalizedProperty().bind(this.usernameTextField.focusedProperty().not());
         this.usernameTextField.textProperty().bindBidirectional(this.viewmodel.getUsernameProperty());
         this.passwordField.textProperty().bindBidirectional(this.viewmodel.getPasswordProperty());
-
-        this.createAccountButton.disableProperty()
-                .bind(this.viewmodel.getUsernameIssueProperty().isNotEmpty()
-                        .or(this.viewmodel.getPasswordIssueProperty().isNotEmpty()));
     }
 
     private void setupWarningLabels() {
-        this.addWarningLabel(this.usernameTextField, this.viewmodel.getUsernameIssueProperty());
-        this.addWarningLabel(this.passwordField, this.viewmodel.getPasswordIssueProperty());
+        this.addWarningLabel(this.usernameTextField, this.viewmodel.getIncorrectFieldProperty());
+        this.addWarningLabel(this.passwordField, this.viewmodel.getIncorrectFieldProperty());
     }
 
     private void addWarningLabel(TextField associatedField, StringProperty textProperty) {
@@ -106,23 +108,27 @@ public class AccountCreation extends GridPane {
     }
 
     @FXML
-    private void onCreateAccountClick() {
+    private void onLogInButtonClick() {
+        var success = false;
+
         try {
-            this.viewmodel.attemptCreateAccount();
-            this.usernameTextField.setText("");
-            this.passwordField.setText("");
-            this.onLoginHyperlinkClick();
+            success = this.viewmodel.attemptLogIn();
         } catch (SQLException err) {
             var alert = new Alert(AlertType.ERROR);
             alert.setHeaderText("Database error");
             alert.setContentText(err.getMessage());
             alert.showAndWait();
         }
+
+        if (success) {
+            var pageRequestEvent = new PageRequestEvent(Page.HOME);
+            this.fireEvent(pageRequestEvent);
+        }
     }
 
     @FXML
-    private void onLoginHyperlinkClick() {
-        var pageRequestEvent = new PageRequestEvent(Page.LOGIN);
+    private void onRegisterHyperlinkClick() {
+        var pageRequestEvent = new PageRequestEvent(Page.ACCOUNT_CREATION);
         this.fireEvent(pageRequestEvent);
     }
 }

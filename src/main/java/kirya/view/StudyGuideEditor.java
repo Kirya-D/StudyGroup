@@ -14,6 +14,7 @@ import javafx.scene.layout.GridPane;
 import kirya.utils.DisplayableQuestion;
 import kirya.utils.DisplayableStudyGuide;
 import kirya.utils.Utils;
+import kirya.view.events.StudyGuideEvent;
 import kirya.viewmodel.StudyGuideEditorViewmodel;
 
 /**

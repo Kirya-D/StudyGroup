@@ -13,6 +13,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.layout.TilePane;
 import kirya.utils.DisplayableQuestion;
 import kirya.utils.DisplayableStudyGuide;
+import kirya.view.events.StudyGuideEvent;
 
 /**
  * Code-behind for studyguideviewer.fxml
