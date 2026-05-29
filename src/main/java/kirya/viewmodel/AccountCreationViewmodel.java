@@ -6,7 +6,7 @@ import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import kirya.model.Database;
+import kirya.model.AuthDatabase;
 
 /**
  * Viewmodel of the AccountCreation view class
@@ -23,7 +23,7 @@ public class AccountCreationViewmodel {
             + " characters long";
     public static final String INVALID_PASSWORD_LENGTH = "Must be " + MIN_PASSWORD_LENGTH + "-" + MAX_FIELD_LENGTH
             + " characters long";
-    private Database database;
+    private AuthDatabase database;
     private BooleanProperty usernameFinalizedProperty;
     private StringProperty usernameProperty;
     private StringProperty passwordProperty;
@@ -33,7 +33,7 @@ public class AccountCreationViewmodel {
     /**
      * Initializes a new AccountCreationViewmodel.
      */
-    public AccountCreationViewmodel(Database database) {
+    public AccountCreationViewmodel(AuthDatabase database) {
         this.database = database;
         this.usernameFinalizedProperty = new SimpleBooleanProperty();
         this.usernameProperty = new SimpleStringProperty();
@@ -118,10 +118,10 @@ public class AccountCreationViewmodel {
      * 
      * @throws SQLException
      */
-    public void createAccount() throws SQLException {
+    public void attemptCreateAccount() throws SQLException {
         var accountUsername = this.usernameProperty.get();
         var accountPassword = this.passwordProperty.get();
-        this.database.addAccount(accountUsername, accountPassword);
+        this.database.attemptCreateAccount(accountUsername, accountPassword);
 
         this.usernameProperty.set("");
         this.usernameProperty.set(accountUsername);

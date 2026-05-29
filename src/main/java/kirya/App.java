@@ -6,18 +6,19 @@ import java.sql.SQLException;
 import javafx.application.Application;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import kirya.model.Database;
+import kirya.model.AuthDatabase;
 import kirya.model.RemoteDatabase;
 import kirya.view.Root;
 import kirya.viewmodel.AccountCreationViewmodel;
+import kirya.viewmodel.LogInViewmodel;
 
 /**
  * JavaFX kirya.javaproject.App
  */
 public class App extends Application {
 
-    private Database local = null;
-    private Database remote = null;
+    private AuthDatabase local = null;
+    private AuthDatabase remote = null;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -38,7 +39,9 @@ public class App extends Application {
         Scene scene = new Scene(root);
 
         var accountCreationViewmodel = new AccountCreationViewmodel(this.remote);
+        var logInViewmodel = new LogInViewmodel(this.remote);
         root.accountCreation.setViewmodel(accountCreationViewmodel);
+        root.logIn.setViewmodel(logInViewmodel);
 
         stage.setTitle("StudyGroup");
         stage.setScene(scene);

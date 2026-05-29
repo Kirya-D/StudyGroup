@@ -1,4 +1,4 @@
-package kirya.view;
+package kirya.view.events;
 
 import javafx.event.Event;
 import javafx.event.EventType;

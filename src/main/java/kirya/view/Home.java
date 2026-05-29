@@ -17,6 +17,7 @@ import javafx.scene.layout.VBox;
 import javafx.stage.WindowEvent;
 import kirya.utils.DisplayText;
 import kirya.utils.DisplayableStudyGuide;
+import kirya.view.events.StudyGuideEvent;
 import kirya.viewmodel.HomeViewmodel;
 
 /**

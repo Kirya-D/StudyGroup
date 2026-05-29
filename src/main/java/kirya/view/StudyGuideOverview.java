@@ -1,9 +1,9 @@
 package kirya.view;
 
-import static kirya.view.StudyGuideEvent.DOWNLOAD;
-import static kirya.view.StudyGuideEvent.FAVORITE;
-import static kirya.view.StudyGuideEvent.START_EDIT;
-import static kirya.view.StudyGuideEvent.UPLOAD;
+import static kirya.view.events.StudyGuideEvent.DOWNLOAD;
+import static kirya.view.events.StudyGuideEvent.FAVORITE;
+import static kirya.view.events.StudyGuideEvent.START_EDIT;
+import static kirya.view.events.StudyGuideEvent.UPLOAD;
 
 import java.io.IOException;
 
@@ -19,6 +19,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import kirya.utils.DisplayableStudyGuide;
+import kirya.view.events.StudyGuideEvent;
 
 /**
  * Code-behind for studyguideoverview.fxml

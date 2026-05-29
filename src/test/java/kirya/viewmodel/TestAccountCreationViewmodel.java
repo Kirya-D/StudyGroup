@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.sql.SQLException;
 import java.util.Collections;
@@ -48,6 +49,23 @@ public class TestAccountCreationViewmodel {
     }
 
     @Nested
+    public class TestAttemptCreateAccount {
+
+        @Test
+        public void throwsWhenUsernameNotAvailable() throws SQLException {
+            var takenUsername = "TakenUsername";
+            viewmodel.getUsernameProperty().set(takenUsername);
+            viewmodel.getPasswordProperty().set("password32");
+
+            viewmodel.attemptCreateAccount();
+
+            assertThrows(SQLException.class, () -> {
+                viewmodel.attemptCreateAccount();
+            });
+        }
+    }
+
+    @Nested
     public class TestUsernameIssues {
 
         @Test
@@ -88,7 +106,7 @@ public class TestAccountCreationViewmodel {
             var takenUsername = "takenUsername";
             viewmodel.getUsernameProperty().set(takenUsername);
             viewmodel.getPasswordProperty().set("password123");
-            viewmodel.createAccount();
+            viewmodel.attemptCreateAccount();
             viewmodel.getUsernameProperty().set(takenUsername);
             viewmodel.getUsernameFinalizedProperty().set(true);
 
