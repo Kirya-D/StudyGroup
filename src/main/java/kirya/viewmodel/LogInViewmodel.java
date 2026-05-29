@@ -37,6 +37,9 @@ public class LogInViewmodel {
         var accountPassword = this.passwordProperty.get();
 
         var success = this.database.hasAccountWithCredentials(accountUsername, accountPassword);
+        if (success) {
+            LoggedInAccount.LogInAs(accountUsername);
+        }
         var propertyText = success ? "" : INCORRECT_CREDENTIALS;
         this.incorrectFieldProperty.set(propertyText);
         return success;
