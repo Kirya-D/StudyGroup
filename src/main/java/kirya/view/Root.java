@@ -15,11 +15,13 @@ import kirya.view.events.PageRequestEvent;
 public class Root extends StackPane {
 
     @FXML
+    private Loading loading;
+    @FXML
     public LogIn logIn;
     @FXML
     public AccountCreation accountCreation;
     @FXML
-    private Home home;
+    public Home home;
 
     private NodeGroup primaryNodes = new NodeGroup();
 
@@ -53,6 +55,10 @@ public class Root extends StackPane {
     }
 
     private void bindToSelf() {
-        this.primaryNodes.addNodes(List.of(this.logIn, this.accountCreation, this.home));
+        this.primaryNodes.addNodes(List.of(this.loading, this.logIn, this.accountCreation, this.home));
+    }
+
+    public void finishedLoading() {
+        this.switchToPage(Page.LOGIN);
     }
 }

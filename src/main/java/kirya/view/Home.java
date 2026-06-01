@@ -1,6 +1,7 @@
 package kirya.view;
 
 import java.io.IOException;
+import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.List;
@@ -45,7 +46,7 @@ public class Home extends ScrollPane {
     private final String cancelEditHeader = "You're about to discard your changes";
     private final String cancelEditContent = "You have unsaved changes that you will lose if you continue!";
     private final NodeGroup nodeGroup = new NodeGroup();
-    private final HomeViewmodel viewmodel = new HomeViewmodel();
+    private HomeViewmodel viewmodel;
 
     /**
      * Initializes a new Home component.
@@ -64,6 +65,10 @@ public class Home extends ScrollPane {
 
     private void initialize() {
         this.nodeGroup.addNodes(List.of(this.homeVBox, this.studyGuideEditor, this.studyGuideViewer));
+    }
+
+    public void setViewmodel(HomeViewmodel viewmodel) {
+        this.viewmodel = viewmodel;
         this.bindToViewmodel();
         this.addEventListeners();
         this.viewmodel.load();
