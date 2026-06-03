@@ -143,8 +143,8 @@ public class StudyGuideOverview extends GridPane {
         this.uploadButton.setTextFill(uploadButtonTextFill);
 
         this.downloadButton.getTooltip().setText(downloaded ? this.deleteTooltipText : this.downloadTooltipText);
-        this.favoriteButton.getTooltip().setText(downloaded ? this.unfavoriteTooltipText : this.favoriteTooltipText);
-        this.uploadButton.getTooltip().setText(downloaded ? this.unuploadTooltipText : this.uploadTooltipText);
+        this.favoriteButton.getTooltip().setText(favorited ? this.unfavoriteTooltipText : this.favoriteTooltipText);
+        this.uploadButton.getTooltip().setText(uploaded ? this.unuploadTooltipText : this.uploadTooltipText);
     }
 
     @FXML

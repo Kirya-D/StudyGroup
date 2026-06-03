@@ -1,7 +1,9 @@
 package kirya.model;
 
+import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.Properties;
 
 import io.github.cdimascio.dotenv.Dotenv;
 
@@ -13,7 +15,11 @@ public class RemoteDatabase extends AuthDatabase {
     /**
      * Initializes a new remote database
      */
-    public RemoteDatabase() throws SQLException {
+    public RemoteDatabase() throws SQLException, IOException {
+        var properties = new Properties();
+        var propertyResource = RemoteDatabase.class.getResourceAsStream("authqueries.properties");
+        properties.load(propertyResource);
+        super(properties);
     }
 
     @Override

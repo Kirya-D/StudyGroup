@@ -6,6 +6,7 @@ import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.Collections;
 
@@ -20,7 +21,7 @@ public class TestAccountCreationViewmodel {
     private AccountCreationViewmodel viewmodel;
 
     @BeforeEach
-    public void setup() throws SQLException {
+    public void setup() throws SQLException, IOException {
         var localDb = new TestingDatabase();
         this.viewmodel = new AccountCreationViewmodel(localDb);
     }
@@ -104,6 +105,7 @@ public class TestAccountCreationViewmodel {
         @Test
         public void testWhenNotAvailable() throws SQLException {
             var takenUsername = "takenUsername";
+            viewmodel.getUsernameFinalizedProperty().set(false);
             viewmodel.getUsernameProperty().set(takenUsername);
             viewmodel.getPasswordProperty().set("password123");
             viewmodel.attemptCreateAccount();

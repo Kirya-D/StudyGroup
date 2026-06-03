@@ -2,6 +2,7 @@ package kirya.model;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.util.Collections;
@@ -14,27 +15,33 @@ import org.junit.jupiter.api.Test;
 
 public class TestStudyGuide {
 
+    StudyGuide studyguide;
+
+    @BeforeEach
+    public void setup() {
+        this.studyguide = new StudyGuide();
+    }
+
     @Nested
     public class TestConstructor {
 
-        @Test
-        public void testParameterlessDefaultMemberValues() {
-            var parameterlessStudyGuide = new StudyGuide();
-
+        private void expectedDefaultParameters(StudyGuide studyguide, Integer expectedId) {
+            var actualId = studyguide.getId();
             var expectedDownloaded = false;
-            var actualDownloaded = parameterlessStudyGuide.getIsDownloaded();
+            var actualDownloaded = studyguide.getIsDownloaded();
             var expectedFavorited = false;
-            var actualFavorited = parameterlessStudyGuide.getIsFavorited();
+            var actualFavorited = studyguide.getIsFavorited();
             var expectedUploaded = false;
-            var actualUploaded = parameterlessStudyGuide.getIsUploaded();
+            var actualUploaded = studyguide.getIsUploaded();
             var expectedTitle = "";
-            var actualTitle = parameterlessStudyGuide.getTitle();
+            var actualTitle = studyguide.getTitle();
             var expectedDescription = "";
-            var actualDescription = parameterlessStudyGuide.getDescription();
+            var actualDescription = studyguide.getDescription();
             var expectedQuestions = List.of();
-            var actualQuestions = parameterlessStudyGuide.getQuestions();
+            var actualQuestions = studyguide.getQuestions();
 
             assertAll("Members",
+                    () -> assertEquals(expectedId, actualId),
                     () -> assertEquals(expectedDownloaded, actualDownloaded),
                     () -> assertEquals(expectedFavorited, actualFavorited),
                     () -> assertEquals(expectedUploaded, actualUploaded),
@@ -42,25 +49,53 @@ public class TestStudyGuide {
                     () -> assertEquals(expectedDescription, actualDescription),
                     () -> assertEquals(expectedQuestions, actualQuestions));
         }
+
+        @Test
+        public void testParameterlessDefaultMemberValues() {
+            var parameterlessStudyGuide = new StudyGuide();
+            this.expectedDefaultParameters(parameterlessStudyGuide, null);
+        }
+
+        @Test
+        public void testOneParameterValues() {
+            var expectedId = 24;
+            var paremeterStudyguide = new StudyGuide(expectedId);
+            this.expectedDefaultParameters(paremeterStudyguide, expectedId);
+        }
+    }
+
+    @Nested
+    public class TestSetId {
+        @Test
+        public void testWhenNotNull() {
+            var expected = 25;
+            studyguide.setId(expected);
+
+            var actual = studyguide.getId();
+
+            assertEquals(expected, actual);
+        }
+
+        @Test
+        public void testWhenNull() {
+            studyguide.setId(null);
+
+            var actual = studyguide.getId();
+
+            assertNull(actual);
+        }
     }
 
     @Nested
     public class TestSetIsDownloaded {
 
-        StudyGuide studyGuide;
-
-        @BeforeEach
-        public void setup() {
-            this.studyGuide = new StudyGuide();
-        }
-
         @Test
         public void testWhenSuccessful() {
             var downloaded = true;
-            this.studyGuide.setIsDownloaded(downloaded);
+            studyguide.setIsDownloaded(downloaded);
 
             var expected = downloaded;
-            var actual = this.studyGuide.getIsDownloaded();
+            var actual = studyguide.getIsDownloaded();
 
             assertEquals(expected, actual);
         }
@@ -69,20 +104,13 @@ public class TestStudyGuide {
     @Nested
     public class TestSetIsFavorited {
 
-        StudyGuide studyGuide;
-
-        @BeforeEach
-        public void setup() {
-            this.studyGuide = new StudyGuide();
-        }
-
         @Test
         public void testWhenSuccessful() {
             var favorited = true;
-            this.studyGuide.setIsFavorited(favorited);
+            studyguide.setIsFavorited(favorited);
 
             var expected = favorited;
-            var actual = this.studyGuide.getIsFavorited();
+            var actual = studyguide.getIsFavorited();
 
             assertEquals(expected, actual);
         }
@@ -91,20 +119,13 @@ public class TestStudyGuide {
     @Nested
     public class TestSetIsUploaded {
 
-        StudyGuide studyGuide;
-
-        @BeforeEach
-        public void setup() {
-            this.studyGuide = new StudyGuide();
-        }
-
         @Test
         public void testWhenSuccessful() {
             var favorited = true;
-            this.studyGuide.setIsUploaded(favorited);
+            studyguide.setIsUploaded(favorited);
 
             var expected = favorited;
-            var actual = this.studyGuide.getIsUploaded();
+            var actual = studyguide.getIsUploaded();
 
             assertEquals(expected, actual);
         }
@@ -113,20 +134,13 @@ public class TestStudyGuide {
     @Nested
     public class TestSetTitle {
 
-        StudyGuide studyGuide;
-
-        @BeforeEach
-        public void setup() {
-            this.studyGuide = new StudyGuide();
-        }
-
         @Test
         public void testWhenSuccessful() {
             var validTitle = "Valid Title";
-            this.studyGuide.setTitle(validTitle);
+            studyguide.setTitle(validTitle);
 
             var expected = validTitle;
-            var actual = this.studyGuide.getTitle();
+            var actual = studyguide.getTitle();
 
             assertEquals(expected, actual);
         }
@@ -134,7 +148,7 @@ public class TestStudyGuide {
         @Test
         public void throwsWhenNull() {
             assertThrows(IllegalArgumentException.class, () -> {
-                this.studyGuide.setTitle(null);
+                studyguide.setTitle(null);
             });
         }
 
@@ -142,13 +156,13 @@ public class TestStudyGuide {
         public void throwsWhenBlank() {
             assertAll("Blank Strings",
                     () -> assertThrows(IllegalArgumentException.class, () -> {
-                        this.studyGuide.setTitle("");
+                        studyguide.setTitle("");
                     }),
                     () -> assertThrows(IllegalArgumentException.class, () -> {
-                        this.studyGuide.setTitle(" ");
+                        studyguide.setTitle(" ");
                     }),
                     () -> assertThrows(IllegalArgumentException.class, () -> {
-                        this.studyGuide.setTitle("     ");
+                        studyguide.setTitle("     ");
                     }));
         }
     }
@@ -156,20 +170,13 @@ public class TestStudyGuide {
     @Nested
     public class TestSetDescription {
 
-        StudyGuide studyGuide;
-
-        @BeforeEach
-        public void setup() {
-            this.studyGuide = new StudyGuide();
-        }
-
         @Test
         public void testSuccessfulWhenBlank() {
             var validDescription = "";
-            this.studyGuide.setDescription(validDescription);
+            studyguide.setDescription(validDescription);
 
             var expected = validDescription;
-            var actual = this.studyGuide.getDescription();
+            var actual = studyguide.getDescription();
 
             assertEquals(expected, actual);
         }
@@ -177,10 +184,10 @@ public class TestStudyGuide {
         @Test
         public void testSuccessfulWhenNotBlank() {
             var validDescription = "Valid Description";
-            this.studyGuide.setDescription(validDescription);
+            studyguide.setDescription(validDescription);
 
             var expected = validDescription;
-            var actual = this.studyGuide.getDescription();
+            var actual = studyguide.getDescription();
 
             assertEquals(expected, actual);
         }
@@ -188,20 +195,13 @@ public class TestStudyGuide {
         @Test
         public void throwsWhenNull() {
             assertThrows(IllegalArgumentException.class, () -> {
-                this.studyGuide.setDescription(null);
+                studyguide.setDescription(null);
             });
         }
     }
 
     @Nested
     public class TestSetQuestions {
-
-        StudyGuide studyGuide;
-
-        @BeforeEach
-        public void setup() {
-            this.studyGuide = new StudyGuide();
-        }
 
         @Test
         public void testWhenSuccessful() {
@@ -210,12 +210,12 @@ public class TestStudyGuide {
 
             var studyGuide2 = new StudyGuide();
 
-            this.studyGuide.setQuestions(oneQuestion);
+            studyguide.setQuestions(oneQuestion);
             studyGuide2.setQuestions(someQuestions);
 
             assertAll("Varying collection lengths",
                     () -> {
-                        assertEquals(oneQuestion, this.studyGuide.getQuestions());
+                        assertEquals(oneQuestion, studyguide.getQuestions());
                     },
                     () -> {
                         assertEquals(someQuestions, studyGuide2.getQuestions());
@@ -225,14 +225,14 @@ public class TestStudyGuide {
         @Test
         public void throwsWhenNull() {
             assertThrows(IllegalArgumentException.class, () -> {
-                this.studyGuide.setQuestions(null);
+                studyguide.setQuestions(null);
             });
         }
 
         @Test
         public void throwsWhenEmpty() {
             assertThrows(IllegalArgumentException.class, () -> {
-                this.studyGuide.setQuestions(Collections.emptyList());
+                studyguide.setQuestions(Collections.emptyList());
             });
         }
     }

@@ -1,10 +1,12 @@
 package kirya;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
 import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Path;
 import java.sql.DriverManager;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Properties;
 
 import kirya.model.AuthDatabase;
 
@@ -13,7 +15,11 @@ public class TestingDatabase extends AuthDatabase {
     private static final String SETUP_FILEPATH = TestingDatabase.class.getResource("testingdatabase.sql").getPath()
             .replaceFirst("/", "");
 
-    public TestingDatabase() throws SQLException {
+    public TestingDatabase() throws SQLException, IOException {
+        var properties = new Properties();
+        var propertyResource = TestingDatabase.class.getResourceAsStream("testingauthqueries.properties");
+        properties.load(propertyResource);
+        super(properties);
     }
 
     /**
@@ -21,13 +27,25 @@ public class TestingDatabase extends AuthDatabase {
      */
     protected void setupDatabase() throws SQLException {
         this.dbConnection = DriverManager.getConnection("jdbc:sqlite:");
-        try {
-            var dbSetupPath = Path.of(SETUP_FILEPATH);
-            var setupCommands = Files.readString(dbSetupPath);
-            var statement = this.dbConnection.createStatement();
-            statement.execute(setupCommands);
+        var commands = new ArrayList<String>();
+        try (var reader = new BufferedReader(new FileReader(SETUP_FILEPATH))) {
+            var queryBuilder = new StringBuilder();
+            String line;
+            while ((line = reader.readLine()) != null) {
+                queryBuilder.append(line);
+                if (line.endsWith(";")) {
+                    var cmd = queryBuilder.toString();
+                    commands.add(cmd);
+                    queryBuilder.setLength(0);
+                }
+            }
         } catch (IOException err) {
-            throw new SQLException(err.getMessage());
         }
+
+        var statement = this.dbConnection.createStatement();
+        for (var cmd : commands) {
+            statement.addBatch(cmd);
+        }
+        statement.executeBatch();
     }
 }

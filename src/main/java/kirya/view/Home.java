@@ -79,10 +79,7 @@ public class Home extends ScrollPane {
         this.addEventHandler(StudyGuideEvent.CLOSE, handler -> this.homeVBox.setVisible(true));
         this.addEventHandler(StudyGuideEvent.DOWNLOAD, handler -> this.downloadStudyGuideHandler(handler));
         this.addEventHandler(StudyGuideEvent.FAVORITE, handler -> this.favoriteStudyGuideHandler(handler));
-        this.addEventHandler(StudyGuideEvent.UPLOAD, handler -> {
-            var studyGuide = handler.getStudyGuide();
-            this.viewmodel.toggleUploadStudyGuide(studyGuide, true);
-        });
+        this.addEventHandler(StudyGuideEvent.UPLOAD, handler -> this.uploadStudyGuideHandler(handler));
         this.addEventHandler(StudyGuideEvent.START_EDIT, handler -> {
             var studyGuide = handler.getStudyGuide();
             this.startEditingStudyGuide(studyGuide);
@@ -132,6 +129,17 @@ public class Home extends ScrollPane {
         this.viewmodel.toggleFavoriteStudyGuide(guide, oppositeIsFavorited);
     }
 
+    private void uploadStudyGuideHandler(StudyGuideEvent handler) {
+        var studyGuide = handler.getStudyGuide();
+        var newUploadState = !studyGuide.getIsUploaded();
+        try {
+            this.viewmodel.toggleUploadStudyGuide(studyGuide, newUploadState);
+        } catch (SQLException err) {
+            this.alertUserOfError(err);
+            System.out.println(err);
+        }
+    }
+
     private void finishEditStudyGuideHandler(StudyGuideEvent handler) {
         var studyGuide = handler.getStudyGuide();
         if (handler.getSavedChanges() && studyGuide != null) {
@@ -142,6 +150,14 @@ public class Home extends ScrollPane {
             var confirmed = this.confirmUserOfAction(studyGuide, this.cancelEditHeader, this.cancelEditContent);
             this.homeVBox.setVisible(confirmed);
         }
+    }
+
+    private void alertUserOfError(Exception err) {
+        var alert = new Alert(AlertType.ERROR);
+        alert.setTitle(err.getClass().getName());
+        alert.setContentText(err.getMessage());
+
+        alert.showAndWait();
     }
 
     private boolean confirmUserOfAction(DisplayableStudyGuide studyGuide, String header, String content) {
@@ -165,6 +181,9 @@ public class Home extends ScrollPane {
             this.refreshBothStudyGuidePanes();
         });
         this.viewmodel.getDownloadedStudyGuidesProperty().addListener((_, _, newList) -> {
+            this.refreshBothStudyGuidePanes();
+        });
+        this.viewmodel.getUploadedStudyGuidesProperty().addListener((_, _, newList) -> {
             this.refreshBothStudyGuidePanes();
         });
     }

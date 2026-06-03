@@ -2,8 +2,11 @@ package kirya.model;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
+import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.SequencedCollection;
@@ -16,11 +19,18 @@ import kirya.utils.QuestionType;
 
 public class TestQuestion {
 
+    Question question;
+
+    @BeforeEach
+    public void setup() {
+        this.question = new Question();
+    }
+
     @Nested
     public class TestConstructor {
 
         @Test
-        public void testParameterlessDefaultMemberValues() {
+        public void testParameterless() {
             var parameterlessQuestion = new Question();
 
             var expectedType = QuestionType.FREE_RESPONSE;
@@ -36,28 +46,50 @@ public class TestQuestion {
                     () -> assertEquals(expectedType, actualType),
                     () -> assertEquals(expectedQuestion, actualQuestion),
                     () -> assertEquals(expectedChoices, actualChoices),
-                    () -> assertEquals(expectedAnswers, actualAnswers)
-            );
+                    () -> assertEquals(expectedAnswers, actualAnswers));
+        }
+
+        @Test
+        public void testValidOneParameter() {
+            var expectedQuestion = "Valid Question";
+            var parameterlessQuestion = new Question(expectedQuestion);
+
+            var expectedType = QuestionType.FREE_RESPONSE;
+            var actualType = parameterlessQuestion.getQuestionType();
+            var actualQuestion = parameterlessQuestion.getQuestion();
+            var expectedChoices = List.of();
+            var actualChoices = parameterlessQuestion.getChoices();
+            var expectedAnswers = List.of();
+            var actualAnswers = parameterlessQuestion.getAnswers();
+
+            assertAll("Members",
+                    () -> assertEquals(expectedType, actualType),
+                    () -> assertEquals(expectedQuestion, actualQuestion),
+                    () -> assertEquals(expectedChoices, actualChoices),
+                    () -> assertEquals(expectedAnswers, actualAnswers));
+        }
+
+        @Test
+        public void throwsWhenNullParameter() {
+            assertThrows(IllegalArgumentException.class, () -> new Question(null));
+        }
+
+        @Test
+        public void throwsWhenBlankParameter() {
+            assertThrows(IllegalArgumentException.class, () -> new Question("   "));
         }
     }
 
     @Nested
     public class TestSetQuestionType {
 
-        Question question;
-
-        @BeforeEach
-        public void setup() {
-            this.question = new Question();
-        }
-
         @Test
         public void testWhenSuccessful() {
             var validQuestionType = QuestionType.MULTIPLE_CHOICE;
-            this.question.setQuestionType(validQuestionType);
+            question.setQuestionType(validQuestionType);
 
             var expected = validQuestionType;
-            var actual = this.question.getQuestionType();
+            var actual = question.getQuestionType();
 
             assertEquals(expected, actual);
         }
@@ -65,7 +97,7 @@ public class TestQuestion {
         @Test
         public void throwsWhenNull() {
             assertThrows(IllegalArgumentException.class, () -> {
-                this.question.setQuestionType(null);
+                question.setQuestionType(null);
             });
         }
     }
@@ -73,20 +105,13 @@ public class TestQuestion {
     @Nested
     public class TestSetQuestion {
 
-        Question question;
-
-        @BeforeEach
-        public void setup() {
-            this.question = new Question();
-        }
-
         @Test
         public void testWhenSuccessful() {
             var validQuestion = "valid Question ?";
-            this.question.setQuestion(validQuestion);
+            question.setQuestion(validQuestion);
 
             var expected = validQuestion;
-            var actual = this.question.getQuestion();
+            var actual = question.getQuestion();
 
             assertEquals(expected, actual);
         }
@@ -94,7 +119,7 @@ public class TestQuestion {
         @Test
         public void throwsWhenNull() {
             assertThrows(IllegalArgumentException.class, () -> {
-                this.question.setQuestion(null);
+                question.setQuestion(null);
             });
         }
 
@@ -102,15 +127,14 @@ public class TestQuestion {
         public void throwsWhenBlank() {
             assertAll("Blank Strings",
                     () -> assertThrows(IllegalArgumentException.class, () -> {
-                        this.question.setQuestion("");
+                        question.setQuestion("");
                     }),
                     () -> assertThrows(IllegalArgumentException.class, () -> {
-                        this.question.setQuestion(" ");
+                        question.setQuestion(" ");
                     }),
                     () -> assertThrows(IllegalArgumentException.class, () -> {
-                        this.question.setQuestion("     ");
-                    })
-            );
+                        question.setQuestion("     ");
+                    }));
         }
     }
 
@@ -121,7 +145,7 @@ public class TestQuestion {
 
         @BeforeEach
         public void setup() {
-            this.question = new Question();
+            question = new Question();
         }
 
         @Test
@@ -131,30 +155,29 @@ public class TestQuestion {
 
             var question2 = new Question();
 
-            this.question.setChoices(oneChoice);
+            question.setChoices(oneChoice);
             question2.setChoices(someChoices);
 
             assertAll("Varying collection lengths",
                     () -> {
-                        assertEquals(oneChoice, this.question.getChoices());
+                        assertEquals(oneChoice, question.getChoices());
                     },
                     () -> {
                         assertEquals(someChoices, question2.getChoices());
-                    }
-            );
+                    });
         }
 
         @Test
         public void throwsWhenNull() {
             assertThrows(IllegalArgumentException.class, () -> {
-                this.question.setChoices(null);
+                question.setChoices(null);
             });
         }
 
         @Test
         public void throwsWhenEmpty() {
             assertThrows(IllegalArgumentException.class, () -> {
-                this.question.setChoices(Collections.emptyList());
+                question.setChoices(Collections.emptyList());
             });
         }
 
@@ -166,31 +189,23 @@ public class TestQuestion {
             var lastBlankChoice = List.of("Valid first choice", "Valid middle choice", "");
 
             assertAll("Blank choice variations",
-                () -> assertThrows(IllegalArgumentException.class, () -> {
-                    this.question.setChoices(onlyBlankChoice);
-                }),
-                () -> assertThrows(IllegalArgumentException.class, () -> {
-                    this.question.setChoices(firstBlankChoice);
-                }),
-                () -> assertThrows(IllegalArgumentException.class, () -> {
-                    this.question.setChoices(middleBlankChoice);
-                }),
-                () -> assertThrows(IllegalArgumentException.class, () -> {
-                    this.question.setChoices(lastBlankChoice);
-                })
-            );
+                    () -> assertThrows(IllegalArgumentException.class, () -> {
+                        question.setChoices(onlyBlankChoice);
+                    }),
+                    () -> assertThrows(IllegalArgumentException.class, () -> {
+                        question.setChoices(firstBlankChoice);
+                    }),
+                    () -> assertThrows(IllegalArgumentException.class, () -> {
+                        question.setChoices(middleBlankChoice);
+                    }),
+                    () -> assertThrows(IllegalArgumentException.class, () -> {
+                        question.setChoices(lastBlankChoice);
+                    }));
         }
     }
 
     @Nested
     public class TestSetAnswers {
-
-        Question question;
-
-        @BeforeEach
-        public void setup() {
-            this.question = new Question();
-        }
 
         @Test
         public void testWhenSuccessful() {
@@ -199,30 +214,29 @@ public class TestQuestion {
 
             var question2 = new Question();
 
-            this.question.setAnswers(oneAnswer);
+            question.setAnswers(oneAnswer);
             question2.setAnswers(someAnswers);
 
             assertAll("Varying collection lengths",
                     () -> {
-                        assertEquals(oneAnswer, this.question.getAnswers());
+                        assertEquals(oneAnswer, question.getAnswers());
                     },
                     () -> {
                         assertEquals(someAnswers, question2.getAnswers());
-                    }
-            );
+                    });
         }
 
         @Test
         public void throwsWhenNull() {
             assertThrows(IllegalArgumentException.class, () -> {
-                this.question.setAnswers(null);
+                question.setAnswers(null);
             });
         }
 
         @Test
         public void throwsWhenEmpty() {
             assertThrows(IllegalArgumentException.class, () -> {
-                this.question.setAnswers(Collections.emptyList());
+                question.setAnswers(Collections.emptyList());
             });
         }
 
@@ -234,19 +248,85 @@ public class TestQuestion {
             var lastBlankChoice = List.of("Valid first choice", "Valid middle choice", "");
 
             assertAll("Blank choice variations",
-                () -> assertThrows(IllegalArgumentException.class, () -> {
-                    this.question.setAnswers(onlyBlankChoice);
-                }),
-                () -> assertThrows(IllegalArgumentException.class, () -> {
-                    this.question.setAnswers(firstBlankChoice);
-                }),
-                () -> assertThrows(IllegalArgumentException.class, () -> {
-                    this.question.setAnswers(middleBlankChoice);
-                }),
-                () -> assertThrows(IllegalArgumentException.class, () -> {
-                    this.question.setAnswers(lastBlankChoice);
-                })
-            );
+                    () -> assertThrows(IllegalArgumentException.class, () -> {
+                        question.setAnswers(onlyBlankChoice);
+                    }),
+                    () -> assertThrows(IllegalArgumentException.class, () -> {
+                        question.setAnswers(firstBlankChoice);
+                    }),
+                    () -> assertThrows(IllegalArgumentException.class, () -> {
+                        question.setAnswers(middleBlankChoice);
+                    }),
+                    () -> assertThrows(IllegalArgumentException.class, () -> {
+                        question.setAnswers(lastBlankChoice);
+                    }));
+        }
+    }
+
+    @Nested
+    public class TestEquals {
+
+        @Test
+        public void testWhenEqual() {
+            var otherQuestion = new Question();
+            var actual = question.equals(otherQuestion);
+
+            assertTrue(actual);
+        }
+
+        @Test
+        public void testWhenNull() {
+            var actual = question.equals(null);
+
+            assertFalse(actual);
+        }
+
+        @Test
+        public void testWhenDifferentQuestionType() {
+            var otherQuestion = new Question();
+            var value = question.getQuestionType();
+            if (value == QuestionType.FREE_RESPONSE) {
+                otherQuestion.setQuestionType(QuestionType.MULTIPLE_CHOICE);
+            }
+
+            var actual = question.equals(otherQuestion);
+
+            assertFalse(actual);
+        }
+
+        @Test
+        public void testWhenDifferentQuestionText() {
+            var otherQuestion = new Question();
+            var value = question.getQuestion();
+            otherQuestion.setQuestion(value + " more question?");
+
+            var actual = question.equals(otherQuestion);
+
+            assertFalse(actual);
+        }
+
+        @Test
+        public void testWhenDifferentChoices() {
+            var otherQuestion = new Question();
+            var value = new ArrayList<>(question.getChoices());
+            value.add("More choice");
+            otherQuestion.setChoices(value);
+
+            var actual = question.equals(otherQuestion);
+
+            assertFalse(actual);
+        }
+
+        @Test
+        public void testWhenDifferentAnswers() {
+            var otherQuestion = new Question();
+            var value = new ArrayList<>(question.getAnswers());
+            value.add("More answer");
+            otherQuestion.setAnswers(value);
+
+            var actual = question.equals(otherQuestion);
+
+            assertFalse(actual);
         }
     }
 }

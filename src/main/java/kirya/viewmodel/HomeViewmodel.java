@@ -59,6 +59,9 @@ public class HomeViewmodel {
             if (studyGuide.getIsDownloaded()) {
                 this.downloadedStudyGuidesProperty.add(studyGuide);
             }
+            if (studyGuide.getIsUploaded()) {
+                this.uploadedStudyGuidesProperty.add(studyGuide);
+            }
         }
     }
 
@@ -143,17 +146,32 @@ public class HomeViewmodel {
      * @return {@code true} if successfully uploads studyguide to database, false
      *         otherwise
      */
-    public void toggleUploadStudyGuide(DisplayableStudyGuide studyGuide, boolean upload) {
+    public boolean toggleUploadStudyGuide(DisplayableStudyGuide studyGuide, boolean upload) throws SQLException {
         var concreteGuide = this.getConcreteGuide(studyGuide);
         if (concreteGuide == null) {
             throw new IllegalArgumentException("studyGuide can't be null");
         }
 
-        // TODO implement actual uploading (when DB is implemented)
+        var loggedUsername = LoggedInAccount.Username();
+        var success = false;
+        if (upload) {
+            success = this.database.editStudyguide(loggedUsername, concreteGuide);
+        } else {
+            var guideId = concreteGuide.getId();
+            if (guideId != null) {
+                this.database.deleteStudyguide(guideId);
+                concreteGuide.setId(null);
+                success = true;
+            }
+        }
 
-        Consumer<Boolean> setMethod = b -> concreteGuide.setIsUploaded(b);
-        var collection = this.uploadedStudyGuidesProperty;
-        this.toggleStudyGuideMember(concreteGuide, setMethod, upload, collection);
+        if (success) {
+            Consumer<Boolean> setMethod = b -> concreteGuide.setIsUploaded(b);
+            var collection = this.uploadedStudyGuidesProperty;
+            this.toggleStudyGuideMember(concreteGuide, setMethod, upload, collection);
+        }
+
+        return success;
     }
 
     private void toggleStudyGuideMember(StudyGuide studyGuide, Consumer<Boolean> setMethod, boolean toggle,

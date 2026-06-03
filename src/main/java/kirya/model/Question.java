@@ -18,7 +18,7 @@ public class Question extends DisplayableQuestion {
     private SequencedCollection<String> answers;
 
     /**
-     * Initializes a new Question object with default state.
+     * Initializes a new {@link Question} object with default state.
      *
      * <p>
      * Postcondition: this.getQuestionType() == {@link QuestionType#FREE_RESPONSE}
@@ -34,6 +34,19 @@ public class Question extends DisplayableQuestion {
         this.question = "";
         this.choices = new ArrayList<>();
         this.answers = new ArrayList<>();
+    }
+
+    /**
+     * Initializes a new {@link #Question()} where
+     * {@link Question#getQuestion()}.equals({@code question})
+     * 
+     * @param question the non-null && non-blank initial question text
+     * @throws IllegalArgumentException If {@code question} == null or
+     *                                  {@link String#isBlank()}
+     */
+    public Question(String question) {
+        this();
+        this.setQuestion(question);
     }
 
     /**
@@ -53,7 +66,8 @@ public class Question extends DisplayableQuestion {
      * Sets the question
      *
      * @param question The new question being asked
-     * @throws IllegalArgumentException If {@code question} == {@code null} or {@link String#isBlank()}
+     * @throws IllegalArgumentException If {@code question} == {@code null} or
+     *                                  {@link String#isBlank()}
      */
     public void setQuestion(String question) {
         if (question == null) {
@@ -71,7 +85,8 @@ public class Question extends DisplayableQuestion {
      * @param answerChoices The new answer choices
      * @throws IllegalArgumentException If {@code answerChoices == null}
      * @throws IllegalArgumentException If {@code answerChoices.isEmpty()}
-     * @throws IllegalArgumentException if any answer choice {@link String#isBlank()}
+     * @throws IllegalArgumentException if any answer choice
+     *                                  {@link String#isBlank()}
      */
     public void setChoices(SequencedCollection<String> answerChoices) {
         if (answerChoices == null) {
@@ -129,5 +144,31 @@ public class Question extends DisplayableQuestion {
     @Override
     public SequencedCollection<String> getAnswers() {
         return this.answers;
+    }
+
+    @Override
+    public boolean equals(Object obj) {
+        if (obj instanceof Question other) {
+            var sortedChoices = new ArrayList<>(choices);
+            var otherSortedChoices = new ArrayList<>(other.choices);
+            var sortedAnswers = new ArrayList<>(answers);
+            var otherSortedAnswers = new ArrayList<>(other.answers);
+            Collections.sort(sortedChoices);
+            Collections.sort(otherSortedChoices);
+            Collections.sort(sortedAnswers);
+            Collections.sort(otherSortedAnswers);
+
+            var typesMatch = questionType == other.questionType;
+            var questionMatch = question.equals(other.question);
+            var choiceMatch = sortedChoices.equals(otherSortedChoices);
+            var answerMatch = sortedAnswers.equals(otherSortedAnswers);
+
+            return typesMatch
+                    && questionMatch
+                    && choiceMatch
+                    && answerMatch;
+        }
+
+        return false;
     }
 }
