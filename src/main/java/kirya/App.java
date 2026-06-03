@@ -20,7 +20,10 @@ import kirya.viewmodel.LogInViewmodel;
  */
 public class App extends Application {
 
+    private static final int MAX_AUTO_CONNECT_ATTEMPTS = 2;
+
     private AuthDatabase remote = null;
+    private int connectionAttempts = 0;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -48,22 +51,45 @@ public class App extends Application {
     }
 
     private void connectToDatabases(Root root) {
-        CompletableFuture.supplyAsync(() -> {
+        var completableFuture = CompletableFuture.supplyAsync(() -> {
+            this.connectionAttempts += 1;
             AuthDatabase database = null;
             try {
                 database = new RemoteDatabase();
             } catch (SQLException err) {
                 err.printStackTrace();
+            } catch (IOException err) {
+                err.printStackTrace();
             }
             return database;
-        }).thenAcceptAsync(database -> {
-            this.remote = database;
-            this.bindToDatabases(root);
-            root.finishedLoading();
-        }, Platform::runLater).exceptionally(exception -> {
-            exception.printStackTrace();
-            return null;
         });
+        completableFuture.thenAcceptAsync(database -> {
+            this.remote = database;
+            this.goToLogin(root);
+        }, Platform::runLater);
+        completableFuture.exceptionallyAsync(exception -> {
+            if (connectionAttempts < MAX_AUTO_CONNECT_ATTEMPTS) {
+                this.connectToDatabases(root);
+            } else {
+                this.promptUserToReconnect(root);
+            }
+            return null;
+        }, Platform::runLater);
+    }
+
+    private void promptUserToReconnect(Root root) {
+        var attemptReconnect = root.promptReconnectionAttempt();
+        if (attemptReconnect) {
+            this.connectToDatabases(root);
+        } else {
+            this.goToLogin(root); // TODO add handling of viewmodels/views that rely on database property to not
+                                  // cause errors with null database
+        }
+    }
+
+    private void goToLogin(Root root) {
+        this.bindToDatabases(root);
+        root.goToLogin();
     }
 
     @Override
