@@ -40,9 +40,21 @@ public class Loading extends StackPane {
     private void addAnimation() {
         this.rotateTransition = new RotateTransition();
         this.rotateTransition.setDuration(Duration.seconds(1));
-        this.rotateTransition.setToAngle(359);
+        this.rotateTransition.setToAngle(360);
         this.rotateTransition.setCycleCount(RotateTransition.INDEFINITE);
         this.rotateTransition.setNode(this.circle);
         this.rotateTransition.play();
+
+        this.sceneProperty().addListener((_, _, scene) -> {
+            scene.windowProperty().addListener((_, _, window) -> {
+                window.focusedProperty().addListener((_, _, focused) -> {
+                    if (focused) {
+                        this.rotateTransition.play();
+                    } else {
+                        this.rotateTransition.pause();
+                    }
+                });
+            });
+        });
     }
 }
