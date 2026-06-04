@@ -21,6 +21,13 @@ import kirya.model.StudyGuide;
 
 public class TestStudyGuideEditorViewmodel {
 
+    StudyGuideEditorViewmodel viewmodel;
+
+    @BeforeEach
+    public void setup() {
+        this.viewmodel = new StudyGuideEditorViewmodel();
+    }
+
     @Nested
     public class TestConstructor {
 
@@ -47,7 +54,7 @@ public class TestStudyGuideEditorViewmodel {
 
     @Nested
     public class TestSyncPropertiesToStudyGuideState {
-        
+
         @Test
         public void testWhenStudyGuideIsNotNull() {
             var studyGuide = new StudyGuide();
@@ -67,11 +74,10 @@ public class TestStudyGuideEditorViewmodel {
             var actualDescription = viewmodel.getDescriptionProperty().get();
             var actualQuestions = new ArrayList<>(viewmodel.getQuestionsObservableList());
 
-            assertAll("Member checks", 
-                () -> assertEquals(expectedTitle, actualTitle),
-                () -> assertEquals(expectedDescription, actualDescription),
-                () -> assertEquals(expectedQuestions, actualQuestions)
-            );
+            assertAll("Member checks",
+                    () -> assertEquals(expectedTitle, actualTitle),
+                    () -> assertEquals(expectedDescription, actualDescription),
+                    () -> assertEquals(expectedQuestions, actualQuestions));
         }
 
         @Test
@@ -88,28 +94,20 @@ public class TestStudyGuideEditorViewmodel {
             var actualDescription = viewmodel.getDescriptionProperty().get();
             var actualQuestions = new ArrayList<>(viewmodel.getQuestionsObservableList());
 
-            assertAll("Member checks", 
-                () -> assertEquals(expectedTitle, actualTitle),
-                () -> assertEquals(expectedDescription, actualDescription),
-                () -> assertEquals(expectedQuestions, actualQuestions)
-            );
+            assertAll("Member checks",
+                    () -> assertEquals(expectedTitle, actualTitle),
+                    () -> assertEquals(expectedDescription, actualDescription),
+                    () -> assertEquals(expectedQuestions, actualQuestions));
         }
     }
 
     @Nested
     public class TestAddNewQuestion {
 
-        StudyGuideEditorViewmodel viewmodel;
-
-        @BeforeEach
-        public void setup() {
-            this.viewmodel = new StudyGuideEditorViewmodel();
-        }
-
         @Test
         public void testWhenQuestionsEmpty() {
-            this.viewmodel.addNewQuestion();
-            var questionsList = this.viewmodel.getQuestionsObservableList();
+            viewmodel.addNewQuestion();
+            var questionsList = viewmodel.getQuestionsObservableList();
 
             var expectedSize = 1;
             var actualSize = questionsList.size();
@@ -126,9 +124,9 @@ public class TestStudyGuideEditorViewmodel {
 
         @Test
         public void testWhenOneQuestionAlreadyAdded() {
-            this.viewmodel.addNewQuestion();
-            this.viewmodel.addNewQuestion();
-            var questionsList = this.viewmodel.getQuestionsObservableList();
+            viewmodel.addNewQuestion();
+            viewmodel.addNewQuestion();
+            var questionsList = viewmodel.getQuestionsObservableList();
 
             var expectedSize = 2;
             var actualSize = questionsList.size();
@@ -145,10 +143,10 @@ public class TestStudyGuideEditorViewmodel {
 
         @Test
         public void testWhenSomeQuestionsAlreadyAdded() {
-            this.viewmodel.addNewQuestion();
-            this.viewmodel.addNewQuestion();
-            this.viewmodel.addNewQuestion();
-            var questionsList = this.viewmodel.getQuestionsObservableList();
+            viewmodel.addNewQuestion();
+            viewmodel.addNewQuestion();
+            viewmodel.addNewQuestion();
+            var questionsList = viewmodel.getQuestionsObservableList();
 
             var expectedSize = 3;
             var actualSize = questionsList.size();
@@ -160,20 +158,16 @@ public class TestStudyGuideEditorViewmodel {
             assertAll("Collection check",
                     () -> assertEquals(expectedSize, actualSize),
                     () -> assertEquals(expectedFirstItemQuestion, actualFirstItemQuestion),
-                    () -> assertEquals(expectedLastItemQuestion, actualLastItemQuestion)
-            );
+                    () -> assertEquals(expectedLastItemQuestion, actualLastItemQuestion));
         }
     }
 
     @Nested
     public class TestApplyStudyGuideChanges {
 
-        StudyGuideEditorViewmodel viewmodel;
-
         @BeforeEach
         public void setup() {
-            this.viewmodel = new StudyGuideEditorViewmodel();
-            this.viewmodel.getStudyGuideProperty().set(new StudyGuide());
+            viewmodel.getStudyGuideProperty().set(new StudyGuide());
         }
 
         @Test
@@ -182,48 +176,47 @@ public class TestStudyGuideEditorViewmodel {
             var expectedDescription = "Meh";
             var expectedQuestions = List.of(new Question(), new Question());
 
-            this.viewmodel.getTitleProperty().set(expectedTitle);
-            this.viewmodel.getDescriptionProperty().set(expectedDescription);
-            this.viewmodel.getQuestionsObservableList().setAll(expectedQuestions);
-            this.viewmodel.applyStudyGuideChanges();
+            viewmodel.getTitleProperty().set(expectedTitle);
+            viewmodel.getDescriptionProperty().set(expectedDescription);
+            viewmodel.getQuestionsObservableList().setAll(expectedQuestions);
+            viewmodel.applyStudyGuideChanges();
 
-            var studyGuide = this.viewmodel.getStudyGuideProperty().get();
+            var studyGuide = viewmodel.getStudyGuideProperty().get();
             var actualTitle = studyGuide.getTitle();
             var actualDescription = studyGuide.getDescription();
             var actualQuestions = studyGuide.getQuestions();
 
-            assertAll("Member checks", 
-                () -> assertEquals(expectedTitle, actualTitle),
-                () -> assertEquals(expectedDescription, actualDescription),
-                () -> assertEquals(expectedQuestions, actualQuestions)
-            );
+            assertAll("Member checks",
+                    () -> assertEquals(expectedTitle, actualTitle),
+                    () -> assertEquals(expectedDescription, actualDescription),
+                    () -> assertEquals(expectedQuestions, actualQuestions));
         }
 
         @Test
         public void throwsWhenNullStudyGuide() {
-            this.viewmodel.getStudyGuideProperty().set(null);
+            viewmodel.getStudyGuideProperty().set(null);
 
             assertThrows(NullPointerException.class, () -> {
-                this.viewmodel.applyStudyGuideChanges();
+                viewmodel.applyStudyGuideChanges();
             });
         }
 
         @Test
         public void throwsWhenTitleIsBlank() {
-            this.viewmodel.getTitleProperty().set("");
+            viewmodel.getTitleProperty().set("");
 
             assertThrows(IllegalArgumentException.class, () -> {
-                this.viewmodel.applyStudyGuideChanges();
+                viewmodel.applyStudyGuideChanges();
             });
         }
 
         @Test
         public void throwsWhenQuestionsIsEmpty() {
-            this.viewmodel.getTitleProperty().set("Valid Title");
-            this.viewmodel.getQuestionsObservableList().clear();
+            viewmodel.getTitleProperty().set("Valid Title");
+            viewmodel.getQuestionsObservableList().clear();
 
             assertThrows(IllegalArgumentException.class, () -> {
-                this.viewmodel.applyStudyGuideChanges();
+                viewmodel.applyStudyGuideChanges();
             });
         }
     }

@@ -1,11 +1,13 @@
 package kirya.viewmodel;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.function.Consumer;
 
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
+import kirya.model.AuthDatabase;
 import kirya.model.FileIO;
 import kirya.model.StudyGuide;
 import kirya.utils.DisplayableStudyGuide;
@@ -15,14 +17,18 @@ import kirya.utils.DisplayableStudyGuide;
  */
 public class HomeViewmodel {
 
+    private final AuthDatabase database;
     private final ListProperty<DisplayableStudyGuide> downloadedStudyGuidesProperty;
     private final ListProperty<DisplayableStudyGuide> favoritedStudyGuidesProperty;
     private final ListProperty<DisplayableStudyGuide> uploadedStudyGuidesProperty;
 
     /**
      * Initializes a new HomeViewmodel.
+     * 
+     * @param database the authentication database to rely on
      */
-    public HomeViewmodel() {
+    public HomeViewmodel(AuthDatabase database) {
+        this.database = database;
         this.downloadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.favoritedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.uploadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
@@ -52,6 +58,9 @@ public class HomeViewmodel {
             }
             if (studyGuide.getIsDownloaded()) {
                 this.downloadedStudyGuidesProperty.add(studyGuide);
+            }
+            if (studyGuide.getIsUploaded()) {
+                this.uploadedStudyGuidesProperty.add(studyGuide);
             }
         }
     }
@@ -126,25 +135,43 @@ public class HomeViewmodel {
     }
 
     /**
-     * Sets the uploaded state of {@code studyGuide} to {@code upload} and update
+     * Toggles the uploaded state of {@code studyGuide} to {@code upload} and update
      * {@code studyGuide}'s presence in the uploaded collection accordingly
      * in it.
      *
      * @param studyGuide The non-null study guide to upload
      * @param upload     The new upload state to set to
      * @throws IllegalArgumentException If {@code studyGuide} == null
+     * @throws SQLException             If database error occurs
+     * @return {@code true} if successfully uploads studyguide to database, false
+     *         otherwise
      */
-    public void toggleUploadStudyGuide(DisplayableStudyGuide studyGuide, boolean upload) {
+    public boolean toggleUploadStudyGuide(DisplayableStudyGuide studyGuide, boolean upload) throws SQLException {
         var concreteGuide = this.getConcreteGuide(studyGuide);
         if (concreteGuide == null) {
             throw new IllegalArgumentException("studyGuide can't be null");
         }
 
-        // TODO implement actual uploading (when DB is implemented)
+        var loggedUsername = LoggedInAccount.Username();
+        var success = false;
+        if (upload) {
+            success = this.database.editStudyguide(loggedUsername, concreteGuide);
+        } else {
+            var guideId = concreteGuide.getId();
+            if (guideId != null) {
+                this.database.deleteStudyguide(guideId);
+                concreteGuide.setId(null);
+                success = true;
+            }
+        }
 
-        Consumer<Boolean> setMethod = b -> concreteGuide.setIsUploaded(b);
-        var collection = this.uploadedStudyGuidesProperty;
-        this.toggleStudyGuideMember(concreteGuide, setMethod, upload, collection);
+        if (success) {
+            Consumer<Boolean> setMethod = b -> concreteGuide.setIsUploaded(b);
+            var collection = this.uploadedStudyGuidesProperty;
+            this.toggleStudyGuideMember(concreteGuide, setMethod, upload, collection);
+        }
+
+        return success;
     }
 
     private void toggleStudyGuideMember(StudyGuide studyGuide, Consumer<Boolean> setMethod, boolean toggle,

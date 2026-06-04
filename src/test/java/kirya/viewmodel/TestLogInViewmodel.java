@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNull;
 
+import java.io.IOException;
 import java.sql.SQLException;
 
 import org.junit.jupiter.api.BeforeEach;
@@ -19,7 +20,7 @@ public class TestLogInViewmodel {
     private LogInViewmodel viewmodel;
 
     @BeforeEach
-    public void setup() throws SQLException {
+    public void setup() throws SQLException, IOException {
         this.localDb = new TestingDatabase();
         this.viewmodel = new LogInViewmodel(this.localDb);
     }

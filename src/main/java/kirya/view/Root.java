@@ -5,6 +5,9 @@ import java.util.List;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.control.Alert;
+import javafx.scene.control.Alert.AlertType;
+import javafx.scene.control.ButtonType;
 import javafx.scene.layout.StackPane;
 import kirya.view.enums.Page;
 import kirya.view.events.PageRequestEvent;
@@ -15,11 +18,13 @@ import kirya.view.events.PageRequestEvent;
 public class Root extends StackPane {
 
     @FXML
+    private Loading loading;
+    @FXML
     public LogIn logIn;
     @FXML
     public AccountCreation accountCreation;
     @FXML
-    private Home home;
+    public Home home;
 
     private NodeGroup primaryNodes = new NodeGroup();
 
@@ -53,6 +58,35 @@ public class Root extends StackPane {
     }
 
     private void bindToSelf() {
-        this.primaryNodes.addNodes(List.of(this.logIn, this.accountCreation, this.home));
+        this.primaryNodes.addNodes(List.of(this.loading, this.logIn, this.accountCreation, this.home));
+    }
+
+    /**
+     * Go to login page.
+     */
+    public void goToLogin() {
+        this.switchToPage(Page.LOGIN);
+    }
+
+    /**
+     * Prompts the user if they would like to retry connecting and returns their
+     * response.
+     * 
+     * @return {@code true} if the user wants to retry connecting, {@code false}
+     *         otherwise
+     */
+    public boolean promptReconnectionAttempt() {
+        var response = false;
+        var alert = new Alert(AlertType.CONFIRMATION);
+        alert.setTitle("Failed to Connect");
+        alert.setHeaderText("Failed to Connect to Database");
+        alert.setContentText("Would you like to try connecting again?");
+
+        var option = alert.showAndWait();
+        if (option.isPresent() && option.get() == ButtonType.OK) {
+            response = true;
+        }
+
+        return response;
     }
 }

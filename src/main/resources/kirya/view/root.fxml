@@ -1,13 +1,15 @@
 <?xml version="1.0" encoding="UTF-8"?>
 
 <?import javafx.scene.layout.StackPane?>
+<?import kirya.view.Loading?>
 <?import kirya.view.LogIn?>
 <?import kirya.view.AccountCreation?>
 <?import kirya.view.Home?>
 
 <fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" type="StackPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <LogIn fx:id="logIn"/>
+      <Loading fx:id="loading"/>
+      <LogIn fx:id="logIn" visible="false"/>
       <AccountCreation fx:id="accountCreation" visible="false"/>
       <Home fx:id="home" fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="false" />
    </children>

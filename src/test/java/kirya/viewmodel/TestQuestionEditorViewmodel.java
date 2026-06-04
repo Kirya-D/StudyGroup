@@ -24,13 +24,18 @@ import kirya.utils.QuestionType;
 
 public class TestQuestionEditorViewmodel {
 
+    QuestionEditorViewmodel viewmodel;
+
+    @BeforeEach
+    public void setup() {
+        this.viewmodel = new QuestionEditorViewmodel();
+    }
+
     @Nested
     public class TestConstructor {
 
         @Test
         public void testParameterlessDefaultMemberValues() {
-            var viewmodel = new QuestionEditorViewmodel();
-
             var expectedQuestionObject = ObjectProperty.class;
             var actualQuestionObject = viewmodel.getQuestionObjectProperty();
             var expectedQuestionType = ObjectProperty.class;
@@ -59,7 +64,6 @@ public class TestQuestionEditorViewmodel {
             var questionObj = new Question();
             questionObj.setChoices(List.of("Choice 1", "Choice 2", "Choice 3"));
             questionObj.setAnswers(List.of("Choice 4"));
-            var viewmodel = new QuestionEditorViewmodel();
             viewmodel.getQuestionObjectProperty().set(questionObj);
 
             var expectedQuestionType = questionObj.getQuestionType();
@@ -91,7 +95,6 @@ public class TestQuestionEditorViewmodel {
             var questionObj = new Question();
             questionObj.setChoices(List.of("Choice 1", "Choice 2", "Choice 3"));
             questionObj.setAnswers(List.of("Choice 1"));
-            var viewmodel = new QuestionEditorViewmodel();
             viewmodel.getQuestionObjectProperty().set(questionObj);
 
             var expectedQuestionType = questionObj.getQuestionType();
@@ -120,7 +123,6 @@ public class TestQuestionEditorViewmodel {
         @Test
         public void testWhenQuestionHasNoChoices() {
             var questionObj = new Question();
-            var viewmodel = new QuestionEditorViewmodel();
             viewmodel.getQuestionObjectProperty().set(questionObj);
 
             var expectedQuestionType = questionObj.getQuestionType();
@@ -148,8 +150,6 @@ public class TestQuestionEditorViewmodel {
 
         @Test
         public void testWhenQuestionIsNull() {
-            var viewmodel = new QuestionEditorViewmodel();
-
             var expectedQuestionType = QuestionType.FREE_RESPONSE;
             var expectedQuestion = "";
             var expectedAnswer = "";
@@ -178,12 +178,9 @@ public class TestQuestionEditorViewmodel {
     @Nested
     public class TestApplyQuestionChanges {
 
-        QuestionEditorViewmodel viewmodel;
-
         @BeforeEach
         public void setup() {
-            this.viewmodel = new QuestionEditorViewmodel();
-            this.viewmodel.getQuestionObjectProperty().set(new Question());
+            viewmodel.getQuestionObjectProperty().set(new Question());
         }
 
         @Test
@@ -195,13 +192,13 @@ public class TestQuestionEditorViewmodel {
             var expectedChoices = List.of(freeResponseAnswer);
             var expectedAnswers = List.of(freeResponseAnswer);
 
-            this.viewmodel.getQuestionTypeProperty().set(expectedQuestionType);
-            this.viewmodel.getQuestionProperty().set(expectedQuestion);
-            this.viewmodel.getAnswerProperty().set(freeResponseAnswer);
+            viewmodel.getQuestionTypeProperty().set(expectedQuestionType);
+            viewmodel.getQuestionProperty().set(expectedQuestion);
+            viewmodel.getAnswerProperty().set(freeResponseAnswer);
 
-            this.viewmodel.applyQuestionChanges();
+            viewmodel.applyQuestionChanges();
 
-            var questionObj = this.viewmodel.getQuestionObjectProperty().get();
+            var questionObj = viewmodel.getQuestionObjectProperty().get();
             var actualQuestionType = questionObj.getQuestionType();
             var actualQuestion = questionObj.getQuestion();
             var actualChoices = questionObj.getChoices();
@@ -221,14 +218,14 @@ public class TestQuestionEditorViewmodel {
             var expectedChoices = List.of("True", "False");
             var expectedAnswers = List.of("True");
 
-            this.viewmodel.getQuestionTypeProperty().set(expectedQuestionType);
-            this.viewmodel.getQuestionProperty().set(expectedQuestion);
+            viewmodel.getQuestionTypeProperty().set(expectedQuestionType);
+            viewmodel.getQuestionProperty().set(expectedQuestion);
             var choices = List.of(new AnswerChoice("True", true), new AnswerChoice("False", false));
-            this.viewmodel.getMultChoiceOptionsObservableList().setAll(choices);
+            viewmodel.getMultChoiceOptionsObservableList().setAll(choices);
 
-            this.viewmodel.applyQuestionChanges();
+            viewmodel.applyQuestionChanges();
 
-            var questionObj = this.viewmodel.getQuestionObjectProperty().get();
+            var questionObj = viewmodel.getQuestionObjectProperty().get();
             var actualQuestionType = questionObj.getQuestionType();
             var actualQuestion = questionObj.getQuestion();
             var actualChoices = questionObj.getChoices();
@@ -243,64 +240,64 @@ public class TestQuestionEditorViewmodel {
 
         @Test
         public void throwsWhenQuestionObjectIsNull() {
-            this.viewmodel.getQuestionObjectProperty().set(null);
+            viewmodel.getQuestionObjectProperty().set(null);
 
             assertThrows(NullPointerException.class, () -> {
-                this.viewmodel.applyQuestionChanges();
+                viewmodel.applyQuestionChanges();
             });
         }
 
         @Test
         public void throwsWhenQuestionTypeIsNull() {
-            this.viewmodel.getQuestionTypeProperty().set(null);
+            viewmodel.getQuestionTypeProperty().set(null);
 
             assertThrows(IllegalArgumentException.class, () -> {
-                this.viewmodel.applyQuestionChanges();
+                viewmodel.applyQuestionChanges();
             });
         }
 
         @ParameterizedTest
         @ValueSource(strings = { "", " ", " " })
         public void throwsWhenQuestionIsBlank(String question) {
-            this.viewmodel.getQuestionTypeProperty().set(QuestionType.FREE_RESPONSE);
-            this.viewmodel.getQuestionProperty().set(question);
+            viewmodel.getQuestionTypeProperty().set(QuestionType.FREE_RESPONSE);
+            viewmodel.getQuestionProperty().set(question);
 
             assertThrows(IllegalArgumentException.class, () -> {
-                this.viewmodel.applyQuestionChanges();
+                viewmodel.applyQuestionChanges();
             });
         }
 
         @Test
         public void throwsWhenFreeResponseAnswerIsEmpty() {
-            this.viewmodel.getQuestionTypeProperty().set(QuestionType.FREE_RESPONSE);
-            this.viewmodel.getQuestionProperty().set("This is a valid question");
-            this.viewmodel.getAnswerProperty().set("");
+            viewmodel.getQuestionTypeProperty().set(QuestionType.FREE_RESPONSE);
+            viewmodel.getQuestionProperty().set("This is a valid question");
+            viewmodel.getAnswerProperty().set("");
 
             assertThrows(IllegalArgumentException.class, () -> {
-                this.viewmodel.applyQuestionChanges();
+                viewmodel.applyQuestionChanges();
             });
         }
 
         @Test
         public void throwsWhenMultipleChoiceChoicesIsEmpty() {
-            this.viewmodel.getQuestionTypeProperty().set(QuestionType.MULTIPLE_CHOICE);
-            this.viewmodel.getQuestionProperty().set("This is a valid question");
-            this.viewmodel.getMultChoiceOptionsObservableList().clear();
+            viewmodel.getQuestionTypeProperty().set(QuestionType.MULTIPLE_CHOICE);
+            viewmodel.getQuestionProperty().set("This is a valid question");
+            viewmodel.getMultChoiceOptionsObservableList().clear();
 
             assertThrows(IllegalArgumentException.class, () -> {
-                this.viewmodel.applyQuestionChanges();
+                viewmodel.applyQuestionChanges();
             });
         }
 
         @Test
         public void throwsWhenMultipleChoiceAnswersIsEmpty() {
-            this.viewmodel.getQuestionTypeProperty().set(QuestionType.MULTIPLE_CHOICE);
-            this.viewmodel.getQuestionProperty().set("This is a valid question");
+            viewmodel.getQuestionTypeProperty().set(QuestionType.MULTIPLE_CHOICE);
+            viewmodel.getQuestionProperty().set("This is a valid question");
             var choices = new AnswerChoice[] { new AnswerChoice("valid", false) };
-            this.viewmodel.getMultChoiceOptionsObservableList().setAll(choices);
+            viewmodel.getMultChoiceOptionsObservableList().setAll(choices);
 
             assertThrows(IllegalArgumentException.class, () -> {
-                this.viewmodel.applyQuestionChanges();
+                viewmodel.applyQuestionChanges();
             });
         }
     }

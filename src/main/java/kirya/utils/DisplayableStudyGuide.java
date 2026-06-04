@@ -6,6 +6,12 @@ import java.util.Collection;
  * Abstract class that represents a UI displayable study guide.
  */
 public abstract class DisplayableStudyGuide {
+
+    /**
+     * {@return the id}
+     */
+    public abstract Integer getId();
+
     /**
      * {@return the title}
      */

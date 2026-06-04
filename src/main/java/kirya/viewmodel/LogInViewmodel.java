@@ -16,6 +16,8 @@ public class LogInViewmodel {
 
     /**
      * Initializes a new LogInViewmodel.
+     * 
+     * @param database the authentication database to rely on
      */
     public LogInViewmodel(AuthDatabase database) {
         this.database = database;

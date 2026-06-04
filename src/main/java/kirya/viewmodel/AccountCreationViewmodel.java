@@ -32,6 +32,8 @@ public class AccountCreationViewmodel {
 
     /**
      * Initializes a new AccountCreationViewmodel.
+     * 
+     * @param database the authentication database to rely on
      */
     public AccountCreationViewmodel(AuthDatabase database) {
         this.database = database;

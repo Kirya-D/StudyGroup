@@ -14,6 +14,7 @@ import kirya.utils.DisplayableStudyGuide;
  */
 public class StudyGuide extends DisplayableStudyGuide {
 
+    private Integer id;
     private boolean isDownloaded;
     private boolean isFavorited;
     private boolean isUploaded;
@@ -38,12 +39,32 @@ public class StudyGuide extends DisplayableStudyGuide {
      * {@link Collections#emptyList()}
      */
     public StudyGuide() {
+        this.id = null;
         this.isDownloaded = false;
         this.isFavorited = false;
         this.isUploaded = false;
         this.title = "";
         this.description = "";
         this.questions = new LinkedHashSet<>();
+    }
+
+    /**
+     * Initializes a {@link #StudyGuide()} with {@code id}.
+     * 
+     * @param id the id of the studyguide
+     */
+    public StudyGuide(int id) {
+        this();
+        this.id = id;
+    }
+
+    /**
+     * Sets the id of this studyguide
+     * 
+     * @param id the new id
+     */
+    public void setId(Integer id) {
+        this.id = id;
     }
 
     /**
@@ -118,6 +139,11 @@ public class StudyGuide extends DisplayableStudyGuide {
         }
         this.questions.clear();
         this.questions.addAll(questions);
+    }
+
+    @Override
+    public Integer getId() {
+        return this.id;
     }
 
     @Override
