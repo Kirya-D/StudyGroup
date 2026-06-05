@@ -51,7 +51,7 @@
                         <Label maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="*" textFill="RED" />
                      </children>
                   </HBox>
-                  <PasswordField fx:id="passwordField" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" />
+                  <PasswordField fx:id="passwordField" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" onAction="#onLogInButtonClick" />
                </children>
             </VBox>
             <VBox>
