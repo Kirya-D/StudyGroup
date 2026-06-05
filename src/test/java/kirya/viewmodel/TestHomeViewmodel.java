@@ -26,6 +26,7 @@ import kirya.model.StudyGuide;
 import kirya.utils.DisplayableQuestion;
 import kirya.utils.DisplayableStudyGuide;
 import kirya.utils.QuestionType;
+import kirya.utils.SessionData;
 
 public class TestHomeViewmodel {
 
@@ -34,14 +35,14 @@ public class TestHomeViewmodel {
 
     @BeforeEach
     public void setup() throws SQLException, IOException {
-        LoggedInAccount.LogOut();
+        SessionData.logOut();
         this.db = new TestingDatabase();
         this.viewmodel = new HomeViewmodel(db);
     }
 
     @AfterAll
     public static void teardown() {
-        LoggedInAccount.LogOut();
+        SessionData.logOut();
     }
 
     @Nested
@@ -336,7 +337,7 @@ public class TestHomeViewmodel {
 
         @BeforeEach
         public void setup() {
-            LoggedInAccount.LogInAs("testUser");
+            SessionData.logInAs("testUser");
             this.studyGuide = new StudyGuide();
             this.studyGuide.setTitle("Test Studyguide");
             this.studyGuide.setDescription("Test description");
@@ -356,12 +357,12 @@ public class TestHomeViewmodel {
 
         @AfterAll
         public static void teardown() {
-            LoggedInAccount.LogOut();
+            SessionData.logOut();
         }
 
         @Test
         public void testFailsWhenNoLoggedInAccount() throws SQLException {
-            LoggedInAccount.LogOut();
+            SessionData.logOut();
             var actualSuccess = viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
             var actualUploaded = this.studyGuide.getIsUploaded();
 

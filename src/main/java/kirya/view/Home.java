@@ -15,7 +15,6 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
-import javafx.stage.WindowEvent;
 import kirya.utils.DisplayText;
 import kirya.utils.DisplayableStudyGuide;
 import kirya.view.events.StudyGuideEvent;
@@ -71,7 +70,6 @@ public class Home extends ScrollPane {
         this.viewmodel = viewmodel;
         this.bindToViewmodel();
         this.addEventListeners();
-        this.viewmodel.load();
     }
 
     private void addEventListeners() {
@@ -86,19 +84,6 @@ public class Home extends ScrollPane {
         });
         this.addEventHandler(StudyGuideEvent.FINISH_EDIT, handler -> {
             this.finishEditStudyGuideHandler(handler);
-        });
-
-        this.studyGuideEditor.sceneProperty().addListener((_, _, scene) -> {
-            if (scene != null) {
-                if (scene.getWindow() != null) {
-                    this.bindOnApplicationExit(scene.getWindow());
-                }
-                scene.windowProperty().addListener((_, _, window) -> {
-                    if (window != null) {
-                        this.bindOnApplicationExit(scene.getWindow());
-                    }
-                });
-            }
         });
     }
 
@@ -251,11 +236,4 @@ public class Home extends ScrollPane {
         toToggle.setPrefHeight(newPrefHeight);
         toToggle.setVisible(!currentlyVisible);
     }
-
-    private void bindOnApplicationExit(javafx.stage.Window window) {
-        window.addEventHandler(WindowEvent.WINDOW_CLOSE_REQUEST, handler -> {
-            this.viewmodel.save(); // TODO Move this behaviour App.stop()
-        });
-    }
-
 }

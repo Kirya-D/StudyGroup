@@ -8,9 +8,9 @@ import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 import kirya.model.AuthDatabase;
-import kirya.model.FileIO;
 import kirya.model.StudyGuide;
 import kirya.utils.DisplayableStudyGuide;
+import kirya.utils.SessionData;
 
 /**
  * Viewmodel of the Home view class
@@ -32,37 +32,21 @@ public class HomeViewmodel {
         this.downloadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.favoritedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.uploadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
+
+        this.downloadedStudyGuidesProperty.addListener((_, _, newlist) -> this.downloadedStudyguidesChanged());
     }
 
-    /**
-     * Saves the downloaded study guides to file.
-     */
-    public void save() {
-        var toWrite = new ArrayList<StudyGuide>();
-        for (var displayableGuide : this.downloadedStudyGuidesProperty.get()) {
-            if (displayableGuide instanceof StudyGuide concreteGuide) {
-                toWrite.add(concreteGuide);
-            }
-        }
-        FileIO.Write(toWrite);
-    }
+    private void downloadedStudyguidesChanged() { // likely exclusively only for handling studyguides on-load
+        var newFavorited = new ArrayList<>(
+                this.downloadedStudyGuidesProperty.stream().filter(sg -> sg.getIsFavorited()).toList());
+        var newUploaded = new ArrayList<>(
+                this.downloadedStudyGuidesProperty.stream().filter(sg -> sg.getIsUploaded()).toList());
 
-    /**
-     * Loads the downloaded study guides from file.
-     */
-    public void load() {
-        var loadedStudyGuides = FileIO.Read();
-        for (var studyGuide : loadedStudyGuides) {
-            if (studyGuide.getIsFavorited()) {
-                this.favoritedStudyGuidesProperty.add(studyGuide);
-            }
-            if (studyGuide.getIsDownloaded()) {
-                this.downloadedStudyGuidesProperty.add(studyGuide);
-            }
-            if (studyGuide.getIsUploaded()) {
-                this.uploadedStudyGuidesProperty.add(studyGuide);
-            }
-        }
+        newFavorited.removeAll(this.favoritedStudyGuidesProperty);
+        newUploaded.removeAll(this.uploadedStudyGuidesProperty);
+
+        this.favoritedStudyGuidesProperty.addAll(newFavorited);
+        this.uploadedStudyGuidesProperty.addAll(newUploaded);
     }
 
     /**
@@ -152,7 +136,7 @@ public class HomeViewmodel {
             throw new IllegalArgumentException("studyGuide can't be null");
         }
 
-        var loggedUsername = LoggedInAccount.Username();
+        var loggedUsername = SessionData.getLoggedInUsername();
         var success = false;
         if (upload) {
             success = this.database.editStudyguide(loggedUsername, concreteGuide);

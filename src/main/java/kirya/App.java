@@ -9,7 +9,10 @@ import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
 import kirya.model.AuthDatabase;
+import kirya.model.FileIO;
 import kirya.model.RemoteDatabase;
+import kirya.model.StudyGuide;
+import kirya.utils.SessionData;
 import kirya.view.Root;
 import kirya.viewmodel.AccountCreationViewmodel;
 import kirya.viewmodel.HomeViewmodel;
@@ -38,16 +41,6 @@ public class App extends Application {
         stage.setTitle("StudyGroup");
         stage.setScene(scene);
         stage.show();
-    }
-
-    private void bindToDatabases(Root root) {
-        var accountCreationViewmodel = new AccountCreationViewmodel(this.remote);
-        var logInViewmodel = new LogInViewmodel(this.remote);
-        var homeViewmodel = new HomeViewmodel(this.remote);
-
-        root.accountCreation.setViewmodel(accountCreationViewmodel);
-        root.logIn.setViewmodel(logInViewmodel);
-        root.home.setViewmodel(homeViewmodel);
     }
 
     private void connectToDatabases(Root root) {
@@ -92,8 +85,35 @@ public class App extends Application {
         root.goToLogin();
     }
 
+    private void bindToDatabases(Root root) {
+        var accountCreationViewmodel = new AccountCreationViewmodel(this.remote);
+        var logInViewmodel = new LogInViewmodel(this.remote);
+        var homeViewmodel = new HomeViewmodel(this.remote);
+
+        root.accountCreation.setViewmodel(accountCreationViewmodel);
+        root.logIn.setViewmodel(logInViewmodel);
+        root.home.setViewmodel(homeViewmodel);
+
+        SessionData.getDownloadedStudyguides().bindBidirectional(homeViewmodel.getDownloadedStudyGuidesProperty());
+        this.load();
+    }
+
+    private void load() {
+        var loadedStudyGuides = FileIO.Read();
+        SessionData.getDownloadedStudyguides().addAll(loadedStudyGuides);
+    }
+
     @Override
     public void stop() {
+        this.save();
+    }
+
+    private void save() {
+        var toWrite = SessionData.getDownloadedStudyguides().stream()
+                .filter(sg -> sg instanceof StudyGuide)
+                .map(sg -> (StudyGuide) sg).toList();
+
+        FileIO.Write(toWrite);
     }
 
     /**

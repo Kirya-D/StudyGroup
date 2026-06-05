@@ -1,6 +1,7 @@
-package kirya.viewmodel;
+package kirya.utils;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
@@ -9,16 +10,29 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-public class TestLoggedInAccount {
+import javafx.beans.property.ListProperty;
+
+public class TestSessionData {
 
     @BeforeEach
     public void perTestSetup() {
-        LoggedInAccount.LogOut();
+        SessionData.logOut();
     }
 
     @AfterAll
     public static void perSuiteCleanup() {
-        LoggedInAccount.LogOut();
+        SessionData.logOut();
+    }
+
+    @Nested
+    public class TestGetDownloadedStudyguides {
+        @Test
+        public void testExpected() {
+            var expectedType = ListProperty.class;
+            var actual = SessionData.getDownloadedStudyguides();
+
+            assertInstanceOf(expectedType, actual);
+        }
     }
 
     @Nested
@@ -28,9 +42,9 @@ public class TestLoggedInAccount {
         public void testWhenValidUsername() {
             var expectedUsername = "myUser123";
 
-            LoggedInAccount.LogInAs(expectedUsername);
+            SessionData.logInAs(expectedUsername);
 
-            var actualUsername = LoggedInAccount.Username();
+            var actualUsername = SessionData.getLoggedInUsername();
 
             assertEquals(expectedUsername, actualUsername);
         }
@@ -38,7 +52,7 @@ public class TestLoggedInAccount {
         @Test
         public void throwsWhenNullUsername() {
             assertThrows(IllegalArgumentException.class, () -> {
-                LoggedInAccount.LogInAs(null);
+                SessionData.logInAs(null);
             });
         }
     }
@@ -48,17 +62,17 @@ public class TestLoggedInAccount {
 
         @Test
         public void testWhenNoLoggedInUser() {
-            LoggedInAccount.LogOut();
-            var actualUsername = LoggedInAccount.Username();
+            SessionData.logOut();
+            var actualUsername = SessionData.getLoggedInUsername();
 
             assertNull(actualUsername);
         }
 
         @Test
         public void testWhenPreviouslyLoggedIn() {
-            LoggedInAccount.LogInAs("AnotherUser456");
-            LoggedInAccount.LogOut();
-            var actualUsername = LoggedInAccount.Username();
+            SessionData.logInAs("AnotherUser456");
+            SessionData.logOut();
+            var actualUsername = SessionData.getLoggedInUsername();
 
             assertNull(actualUsername);
         }
