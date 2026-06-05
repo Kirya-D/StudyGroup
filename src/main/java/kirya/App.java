@@ -57,9 +57,9 @@ public class App extends Application {
             try {
                 database = new RemoteDatabase();
             } catch (SQLException err) {
-                err.printStackTrace();
+                throw new RuntimeException(err);
             } catch (IOException err) {
-                err.printStackTrace();
+                throw new RuntimeException(err);
             }
             return database;
         });
