@@ -40,11 +40,19 @@ public class StudyGuideEditor extends GridPane {
         loader.setRoot(this);
         try {
             loader.load();
-            this.setupCellFactory();
+            this.setupSelf();
             this.bindToViewmodel();
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    private void setupSelf() {
+        this.descriptionTextArea.textProperty().addListener((_, _, newText) -> {
+            var lineCount = newText.lines().toList().size();
+            this.descriptionTextArea.setPrefRowCount(lineCount);
+        });
+        this.setupCellFactory();
     }
 
     private void setupCellFactory() {
@@ -98,13 +106,11 @@ public class StudyGuideEditor extends GridPane {
         try {
             this.viewmodel.applyStudyGuideChanges();
             this.fireEditEvent(true);
-        }
-        catch (IllegalArgumentException e) {
+        } catch (IllegalArgumentException e) {
             var warningMessage = Utils.capitalizeString(e.getMessage());
             alert = new Alert(Alert.AlertType.WARNING);
             alert.setHeaderText(warningMessage);
-        }
-        catch (NullPointerException e) {
+        } catch (NullPointerException e) {
             var errorMessage = Utils.capitalizeString(e.getMessage());
             alert = new Alert(Alert.AlertType.ERROR);
             alert.setHeaderText(errorMessage);

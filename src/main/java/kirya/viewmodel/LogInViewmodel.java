@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import kirya.model.AuthDatabase;
+import kirya.utils.SessionData;
 
 public class LogInViewmodel {
 
@@ -40,7 +41,7 @@ public class LogInViewmodel {
 
         var success = this.database.hasAccountWithCredentials(accountUsername, accountPassword);
         if (success) {
-            LoggedInAccount.LogInAs(accountUsername);
+            SessionData.logInAs(accountUsername);
         }
         var propertyText = success ? "" : INCORRECT_CREDENTIALS;
         this.incorrectFieldProperty.set(propertyText);

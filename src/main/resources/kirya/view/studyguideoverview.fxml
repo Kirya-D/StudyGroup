@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<fx:root onMouseEntered="#onMouseEnter" onMouseExited="#onMouseExit" prefWidth="500.0" type="GridPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" onMouseEntered="#onMouseEnter" onMouseExited="#onMouseExit" type="GridPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <columnConstraints>
       <ColumnConstraints hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" />
       <ColumnConstraints hgrow="NEVER" minWidth="-Infinity" />
@@ -24,16 +24,16 @@
    </rowConstraints>
    <children>
       <ImageView fx:id="creatorProfileImageView" fitHeight="150.0" fitWidth="150.0" pickOnBounds="true" preserveRatio="true" GridPane.hgrow="NEVER" GridPane.vgrow="NEVER" />
-      <Separator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" orientation="VERTICAL" GridPane.columnIndex="1" GridPane.rowSpan="2147483647" />
-      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="2.0" GridPane.columnIndex="2">
+      <Separator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" orientation="VERTICAL" GridPane.columnIndex="1" GridPane.rowSpan="2147483647" />
+      <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" spacing="2.0" GridPane.columnIndex="2">
          <children>
-            <Label fx:id="titleByUsernameLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" text="Title Made by Username" wrapText="true" />
-            <Separator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" />
-            <Label fx:id="extendedUsernameAndTitleLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" text="Extended from OtherUsername's StudyGuideTitle" wrapText="true" />
-            <Separator fx:id="extendedUsernameBottomSeparator" layoutX="10.0" layoutY="27.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" />
-            <Label fx:id="questionCountLabel" layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" text="100 questions" wrapText="true" />
-            <Separator layoutX="10.0" layoutY="27.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" />
-            <Label fx:id="descriptionLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." wrapText="true" VBox.vgrow="ALWAYS" />
+            <Label fx:id="titleByUsernameLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="Title Made by Username" wrapText="true" />
+            <Separator maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" />
+            <Label fx:id="extendedUsernameAndTitleLabel" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="Extended from OtherUsername's StudyGuideTitle" wrapText="true" />
+            <Separator fx:id="extendedUsernameBottomSeparator" layoutX="10.0" layoutY="27.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" />
+            <Label fx:id="questionCountLabel" layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="100 questions" wrapText="true" />
+            <Separator layoutX="10.0" layoutY="27.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" />
+            <Label fx:id="descriptionLabel" alignment="TOP_LEFT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua. Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum." wrapText="true" VBox.vgrow="ALWAYS" />
          </children>
          <GridPane.margin>
             <Insets />
@@ -42,25 +42,25 @@
             <Insets top="2.0" />
          </padding>
       </VBox>
-      <Separator layoutX="160.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" orientation="VERTICAL" GridPane.columnIndex="3" GridPane.rowSpan="2147483647" />
-      <VBox layoutX="166.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" spacing="5.0" GridPane.columnIndex="4">
+      <Separator layoutX="160.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" orientation="VERTICAL" GridPane.columnIndex="3" GridPane.rowSpan="2147483647" />
+      <VBox layoutX="166.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" spacing="5.0" GridPane.columnIndex="4">
          <children>
-            <Button fx:id="downloadButton" layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onDownloadButtonClick" text="⭳" VBox.vgrow="ALWAYS">
+            <Button fx:id="downloadButton" layoutX="10.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" mnemonicParsing="false" onAction="#onDownloadButtonClick" text="⭳" VBox.vgrow="ALWAYS">
                <font>
                   <Font size="24.0" />
                </font>
             </Button>
-            <Button fx:id="editButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onEditButtonClick" text="📝">
+            <Button fx:id="editButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" mnemonicParsing="false" onAction="#onEditButtonClick" text="📝">
                <font>
                   <Font size="16.0" />
                </font>
             </Button>
-            <Button fx:id="favoriteButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onFavoriteButtonClick" text="🌟" VBox.vgrow="ALWAYS">
+            <Button fx:id="favoriteButton" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" mnemonicParsing="false" onAction="#onFavoriteButtonClick" text="🌟" VBox.vgrow="ALWAYS">
                <font>
                   <Font size="16.0" />
                </font>
             </Button>
-            <Button fx:id="uploadButton" layoutX="15.0" layoutY="126.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onUploadButtonClick" rotate="180.0" text="⭳" VBox.vgrow="ALWAYS">
+            <Button fx:id="uploadButton" layoutX="15.0" layoutY="126.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" mnemonicParsing="false" onAction="#onUploadButtonClick" rotate="180.0" text="⭳" VBox.vgrow="ALWAYS">
                <font>
                   <Font size="24.0" />
                </font>

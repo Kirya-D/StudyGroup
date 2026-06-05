@@ -11,6 +11,6 @@
       <Loading fx:id="loading"/>
       <LogIn fx:id="logIn" visible="false"/>
       <AccountCreation fx:id="accountCreation" visible="false"/>
-      <Home fx:id="home" fitToHeight="true" fitToWidth="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="false" />
+      <Home fx:id="home" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="false" />
    </children>
 </fx:root>

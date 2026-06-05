@@ -2,7 +2,7 @@
  * My project.
  */
 module kirya {
-    requires javafx.controls;
+    requires transitive javafx.controls;
     requires javafx.fxml;
     requires tools.jackson.databind;
     requires java.sql;

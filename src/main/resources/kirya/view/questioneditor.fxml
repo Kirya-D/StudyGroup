@@ -10,39 +10,39 @@
 <?import javafx.scene.layout.HBox?>
 <?import javafx.scene.layout.VBox?>
 
-<fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="1.0" type="VBox" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" type="VBox" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="1.0">
+      <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0">
          <children>
-            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="-Infinity" mnemonicParsing="false" onAction="#onTrashButtonClick" text="🗑" HBox.hgrow="NEVER" />
-            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minWidth="1.0" onMouseClicked="#onDropdownLabelClick" HBox.hgrow="ALWAYS">
+            <Button maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" mnemonicParsing="false" onAction="#onTrashButtonClick" text="🗑" HBox.hgrow="NEVER" />
+            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" onMouseClicked="#onDropdownLabelClick" HBox.hgrow="SOMETIMES">
                <children>
-                  <Label fx:id="headerLabel" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" text="Question Text" wrapText="true" HBox.hgrow="ALWAYS" />
-                  <Label fx:id="dropdownLabel" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="1.0" text="🔺" wrapText="true" />
+                  <Label fx:id="headerLabel" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="Question Text" wrapText="true" HBox.hgrow="ALWAYS" />
+                  <Label fx:id="dropdownLabel" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="🔺" wrapText="true" />
                </children>
             </HBox>
          </children>
       </HBox>
-      <VBox fx:id="configurationVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="1.0">
+      <VBox fx:id="configurationVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0">
          <children>
-            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="1.0">
+            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0">
                <children>
-                  <ComboBox fx:id="questionTypeComboBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="10.0" promptText="Question Type" HBox.hgrow="NEVER" />
-                  <TextField fx:id="questionTextField" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="-Infinity" minWidth="10.0" promptText="Question Title" HBox.hgrow="ALWAYS" />
+                  <ComboBox fx:id="questionTypeComboBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" promptText="Question Type" HBox.hgrow="NEVER" />
+                  <TextField fx:id="questionTextField" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" promptText="Question Title" HBox.hgrow="ALWAYS" />
                </children>
             </HBox>
-            <TextArea fx:id="freeResponseAnswerTextArea" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="10.0" minWidth="1.0" promptText="Question Answer" wrapText="true" />
-            <TableView fx:id="multipleChoiceTableView" editable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="200.0" minWidth="1.0" prefHeight="200.0">
+            <TextArea fx:id="freeResponseAnswerTextArea" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" prefRowCount="1" promptText="Question Answer" wrapText="true" />
+            <TableView fx:id="multipleChoiceTableView" editable="true" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0">
               <columns>
                   <TableColumn fx:id="correctnessTableColumn" prefWidth="50.0" />
                   <TableColumn fx:id="textTableColumn" prefWidth="300.0" />
-                  <TableColumn fx:id="deletionTableColumn" prefWidth="50.0" />
+                  <TableColumn fx:id="deletionTableColumn" prefWidth="50.0" sortable="false" />
               </columns>
                <columnResizePolicy>
                   <TableView fx:constant="CONSTRAINED_RESIZE_POLICY" />
                </columnResizePolicy>
             </TableView>
-            <Button fx:id="multipleChoiceNewChoiceButton" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" mnemonicParsing="false" onAction="#onNewMultipleChoiceOptionButtonClick" text="Create New Answer Choice" textAlignment="CENTER" />
+            <Button fx:id="multipleChoiceNewChoiceButton" alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" mnemonicParsing="false" onAction="#onNewMultipleChoiceOptionButtonClick" text="Create New Answer Choice" textAlignment="CENTER" wrapText="true" />
          </children>
       </VBox>
    </children>

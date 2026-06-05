@@ -130,6 +130,11 @@ public class QuestionEditor extends VBox {
             node.managedProperty().bind(node.visibleProperty());
         }
 
+        this.freeResponseAnswerTextArea.textProperty().addListener((_, _, newText) -> {
+            var lineCount = newText.lines().toList().size();
+            this.freeResponseAnswerTextArea.setPrefRowCount(lineCount);
+        });
+
         this.questionTypeComboBox.valueProperty().addListener((_, _, newType) -> changeElementVisibility());
 
         var listenedFocusNodes = List.of(this.questionTextField, this.freeResponseAnswerTextArea);
