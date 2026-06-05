@@ -8,11 +8,12 @@ import java.util.List;
 
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
+import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
-import javafx.scene.control.ScrollPane;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
 import javafx.scene.layout.VBox;
 import kirya.utils.DisplayText;
@@ -23,7 +24,7 @@ import kirya.viewmodel.HomeViewmodel;
 /**
  * Code-behind for home.fxml
  */
-public class Home extends ScrollPane {
+public class Home extends StackPane {
 
     @FXML
     private VBox homeVBox;
@@ -64,6 +65,11 @@ public class Home extends ScrollPane {
 
     private void initialize() {
         this.nodeGroup.addNodes(List.of(this.homeVBox, this.studyGuideEditor, this.studyGuideViewer));
+
+        var tilepanes = new Node[] { this.favoritedStudyGuidesTilePane, this.downloadedStudyGuidesTilePane };
+        for (var tilepane : tilepanes) {
+            tilepane.managedProperty().bind(tilepane.visibleProperty());
+        }
     }
 
     public void setViewmodel(HomeViewmodel viewmodel) {
@@ -72,18 +78,61 @@ public class Home extends ScrollPane {
         this.addEventListeners();
     }
 
+    private void bindToViewmodel() {
+        this.viewmodel.getFavoritedStudyGuidesProperty().addListener((_, _, newList) -> {
+            this.refreshBothStudyGuidePanes();
+        });
+        this.viewmodel.getDownloadedStudyGuidesProperty().addListener((_, _, newList) -> {
+            this.refreshBothStudyGuidePanes();
+        });
+        this.viewmodel.getUploadedStudyGuidesProperty().addListener((_, _, newList) -> {
+            this.refreshBothStudyGuidePanes();
+        });
+    }
+
+    private void refreshBothStudyGuidePanes() {
+        var favoritesPane = this.favoritedStudyGuidesTilePane;
+        var favoritesContent = this.viewmodel.getFavoritedStudyGuidesProperty().get();
+        var downloadPane = this.downloadedStudyGuidesTilePane;
+        var downloadContent = this.viewmodel.getDownloadedStudyGuidesProperty().get();
+        this.refreshTilePane(downloadPane, downloadContent);
+        this.refreshTilePane(favoritesPane, favoritesContent);
+    }
+
+    private void refreshTilePane(TilePane pane, List<DisplayableStudyGuide> content) {
+        for (var child : pane.getChildren()) {
+            child.setVisible(false);
+        }
+
+        var paneChildren = new ArrayList<>(pane.getChildren());
+
+        for (int i = 0; i < content.size(); i++) {
+            var studyGuide = content.get(i);
+            if (i < paneChildren.size()) {
+                var child = paneChildren.get(i);
+                if (child instanceof StudyGuideOverview overview) {
+                    overview.setStudyGuide(studyGuide);
+                    overview.setVisible(true);
+                }
+            } else {
+                var overview = new StudyGuideOverview();
+                overview.managedProperty().bind(overview.visibleProperty());
+                overview.setStudyGuide(studyGuide);
+                pane.getChildren().add(overview);
+            }
+        }
+    }
+
     private void addEventListeners() {
         this.addEventHandler(StudyGuideEvent.VIEW, handler -> this.viewStudyGuideHandler(handler));
         this.addEventHandler(StudyGuideEvent.CLOSE, handler -> this.homeVBox.setVisible(true));
         this.addEventHandler(StudyGuideEvent.DOWNLOAD, handler -> this.downloadStudyGuideHandler(handler));
         this.addEventHandler(StudyGuideEvent.FAVORITE, handler -> this.favoriteStudyGuideHandler(handler));
         this.addEventHandler(StudyGuideEvent.UPLOAD, handler -> this.uploadStudyGuideHandler(handler));
+        this.addEventHandler(StudyGuideEvent.FINISH_EDIT, handler -> this.finishEditStudyGuideHandler(handler));
         this.addEventHandler(StudyGuideEvent.START_EDIT, handler -> {
             var studyGuide = handler.getStudyGuide();
             this.startEditingStudyGuide(studyGuide);
-        });
-        this.addEventHandler(StudyGuideEvent.FINISH_EDIT, handler -> {
-            this.finishEditStudyGuideHandler(handler);
         });
     }
 
@@ -161,51 +210,6 @@ public class Home extends ScrollPane {
         return proceedWithAction;
     }
 
-    private void bindToViewmodel() {
-        this.viewmodel.getFavoritedStudyGuidesProperty().addListener((_, _, newList) -> {
-            this.refreshBothStudyGuidePanes();
-        });
-        this.viewmodel.getDownloadedStudyGuidesProperty().addListener((_, _, newList) -> {
-            this.refreshBothStudyGuidePanes();
-        });
-        this.viewmodel.getUploadedStudyGuidesProperty().addListener((_, _, newList) -> {
-            this.refreshBothStudyGuidePanes();
-        });
-    }
-
-    private void refreshBothStudyGuidePanes() {
-        var favoritesPane = this.favoritedStudyGuidesTilePane;
-        var favoritesContent = this.viewmodel.getFavoritedStudyGuidesProperty().get();
-        var downloadPane = this.downloadedStudyGuidesTilePane;
-        var downloadContent = this.viewmodel.getDownloadedStudyGuidesProperty().get();
-        this.refreshTilePane(downloadPane, downloadContent);
-        this.refreshTilePane(favoritesPane, favoritesContent);
-    }
-
-    private void refreshTilePane(TilePane pane, List<DisplayableStudyGuide> content) {
-        for (var child : pane.getChildren()) {
-            child.setVisible(false);
-        }
-
-        var paneChildren = new ArrayList<>(pane.getChildren());
-
-        for (int i = 0; i < content.size(); i++) {
-            var studyGuide = content.get(i);
-            if (i < paneChildren.size()) {
-                var child = paneChildren.get(i);
-                if (child instanceof StudyGuideOverview overview) {
-                    overview.setStudyGuide(studyGuide);
-                    overview.setVisible(true);
-                }
-            } else {
-                var overview = new StudyGuideOverview();
-                overview.managedProperty().bind(overview.visibleProperty());
-                overview.setStudyGuide(studyGuide);
-                pane.getChildren().add(overview);
-            }
-        }
-    }
-
     @FXML
     private void onCreateNewStudyGuideClick() {
         var studyGuide = this.viewmodel.createNewStudyGuide();
@@ -230,10 +234,8 @@ public class Home extends ScrollPane {
     private void toggleDropdown(TilePane toToggle, Label label) {
         var currentlyVisible = toToggle.isVisible();
         var newLabelText = currentlyVisible ? DisplayText.TRIANGLE_DOWN : DisplayText.TRIANGLE_UP;
-        var newPrefHeight = currentlyVisible ? 0 : USE_COMPUTED_SIZE;
 
         label.setText(newLabelText);
-        toToggle.setPrefHeight(newPrefHeight);
         toToggle.setVisible(!currentlyVisible);
     }
 }

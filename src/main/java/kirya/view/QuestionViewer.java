@@ -89,6 +89,10 @@ public class QuestionViewer extends GridPane {
         }
 
         this.freeResponseAnswerTextArea.visibleProperty().bind(this.answerIsHiddenProperty);
+        this.freeResponseAnswerTextArea.textProperty().addListener((_, _, newText) -> {
+            var lineCount = newText.lines().toList().size();
+            this.freeResponseAnswerTextArea.setPrefRowCount(lineCount);
+        });
         this.userMCTableView.visibleProperty().bind(this.answerIsHiddenProperty);
         this.freeResponseAnswerLabel.visibleProperty().bind(this.answerIsHiddenProperty.not());
         this.answerMCTableView.visibleProperty().bind(this.answerIsHiddenProperty.not());
