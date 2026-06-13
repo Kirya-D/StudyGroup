@@ -5,12 +5,16 @@
 <?import kirya.view.LogIn?>
 <?import kirya.view.AccountCreation?>
 <?import kirya.view.Home?>
+<?import kirya.view.StudyGuideEditor?>
+<?import kirya.view.StudyGuideViewer?>
 
 <fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" type="StackPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <Loading fx:id="loading"/>
-      <LogIn fx:id="logIn" visible="false"/>
-      <AccountCreation fx:id="accountCreation" visible="false"/>
+      <Loading fx:id="loading" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" />
+      <LogIn fx:id="logIn" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="false" />
+      <AccountCreation fx:id="accountCreation" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="false" />
       <Home fx:id="home" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="false" />
+      <StudyGuideEditor fx:id="studyGuideEditor" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="false" />
+      <StudyGuideViewer fx:id="studyGuideViewer" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="false" />
    </children>
 </fx:root>

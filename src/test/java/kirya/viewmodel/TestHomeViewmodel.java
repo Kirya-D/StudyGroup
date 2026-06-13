@@ -19,6 +19,7 @@ import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import javafx.beans.property.ListProperty;
+import javafx.beans.property.StringProperty;
 import kirya.TestingDatabase;
 import kirya.model.AuthDatabase;
 import kirya.model.Question;
@@ -51,16 +52,19 @@ public class TestHomeViewmodel {
         @Test
         public void testParameterlessDefaultMemberValues() {
             var expectedFavoritedType = ListProperty.class;
-            var actualFavoritedType = viewmodel.getFavoritedStudyGuidesProperty();
+            var actualFavoritedProperty = viewmodel.getFavoritedStudyGuidesProperty();
             var expectedDownloadedType = ListProperty.class;
-            var actualDownloadedType = viewmodel.getDownloadedStudyGuidesProperty();
+            var actualDownloadedProperty = viewmodel.getDownloadedStudyGuidesProperty();
             var expectedUploadedType = ListProperty.class;
-            var actualUploadedType = viewmodel.getUploadedStudyGuidesProperty();
+            var actualUploadedProperty = viewmodel.getUploadedStudyGuidesProperty();
+            var expectedSearchType = StringProperty.class;
+            var actualSearchProperty = viewmodel.getSearchProperty();
 
             assertAll("Members",
-                    () -> assertInstanceOf(expectedDownloadedType, actualDownloadedType),
-                    () -> assertInstanceOf(expectedFavoritedType, actualFavoritedType),
-                    () -> assertInstanceOf(expectedUploadedType, actualUploadedType));
+                    () -> assertInstanceOf(expectedDownloadedType, actualDownloadedProperty),
+                    () -> assertInstanceOf(expectedFavoritedType, actualFavoritedProperty),
+                    () -> assertInstanceOf(expectedUploadedType, actualUploadedProperty),
+                    () -> assertInstanceOf(expectedSearchType, actualSearchProperty));
         }
     }
 

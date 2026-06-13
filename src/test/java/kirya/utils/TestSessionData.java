@@ -25,11 +25,33 @@ public class TestSessionData {
     }
 
     @Nested
+    public class TestGetFavoritedStudyguides {
+        @Test
+        public void testExpected() {
+            var expectedType = ListProperty.class;
+            var actual = SessionData.getFavoritedStudyguides();
+
+            assertInstanceOf(expectedType, actual);
+        }
+    }
+
+    @Nested
     public class TestGetDownloadedStudyguides {
         @Test
         public void testExpected() {
             var expectedType = ListProperty.class;
             var actual = SessionData.getDownloadedStudyguides();
+
+            assertInstanceOf(expectedType, actual);
+        }
+    }
+
+    @Nested
+    public class TestGetUploadedStudyguides {
+        @Test
+        public void testExpected() {
+            var expectedType = ListProperty.class;
+            var actual = SessionData.getUploadedStudyguides();
 
             assertInstanceOf(expectedType, actual);
         }

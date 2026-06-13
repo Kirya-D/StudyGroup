@@ -1,11 +1,12 @@
 package kirya.viewmodel;
 
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.function.Consumer;
 
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.SimpleListProperty;
+import javafx.beans.property.SimpleStringProperty;
+import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import kirya.model.AuthDatabase;
 import kirya.model.StudyGuide;
@@ -21,6 +22,7 @@ public class HomeViewmodel {
     private final ListProperty<DisplayableStudyGuide> downloadedStudyGuidesProperty;
     private final ListProperty<DisplayableStudyGuide> favoritedStudyGuidesProperty;
     private final ListProperty<DisplayableStudyGuide> uploadedStudyGuidesProperty;
+    private final StringProperty searchProperty;
 
     /**
      * Initializes a new HomeViewmodel.
@@ -32,28 +34,11 @@ public class HomeViewmodel {
         this.downloadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.favoritedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.uploadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
-
-        this.downloadedStudyGuidesProperty.addListener((_, _, newlist) -> this.downloadedStudyguidesChanged());
-    }
-
-    private void downloadedStudyguidesChanged() { // likely exclusively only for handling studyguides on-load
-        var newFavorited = new ArrayList<>(
-                this.downloadedStudyGuidesProperty.stream().filter(sg -> sg.getIsFavorited()).toList());
-        var newUploaded = new ArrayList<>(
-                this.downloadedStudyGuidesProperty.stream().filter(sg -> sg.getIsUploaded()).toList());
-
-        newFavorited.removeAll(this.favoritedStudyGuidesProperty);
-        newUploaded.removeAll(this.uploadedStudyGuidesProperty);
-
-        this.favoritedStudyGuidesProperty.addAll(newFavorited);
-        this.uploadedStudyGuidesProperty.addAll(newUploaded);
+        this.searchProperty = new SimpleStringProperty();
     }
 
     /**
-     * Creates and returns a new study guide and sets it as the current editing
-     * study guide.
-     *
-     * @return The new study guide
+     * {@return a newly created study guide}
      */
     public DisplayableStudyGuide createNewStudyGuide() {
         return new StudyGuide();
@@ -178,23 +163,30 @@ public class HomeViewmodel {
     }
 
     /**
-     * {@return The favorited studyguides property}
+     * {@return the favorited studyguides property}
      */
     public ListProperty<DisplayableStudyGuide> getFavoritedStudyGuidesProperty() {
         return this.favoritedStudyGuidesProperty;
     }
 
     /**
-     * {@return The downloaded studyguides property}
+     * {@return the downloaded studyguides property}
      */
     public ListProperty<DisplayableStudyGuide> getDownloadedStudyGuidesProperty() {
         return this.downloadedStudyGuidesProperty;
     }
 
     /**
-     * {@return The uploaded studyguides property}
+     * {@return the uploaded studyguides property}
      */
     public ListProperty<DisplayableStudyGuide> getUploadedStudyGuidesProperty() {
         return this.uploadedStudyGuidesProperty;
+    }
+
+    /**
+     * {@return the search text property}
+     */
+    public StringProperty getSearchProperty() {
+        return this.searchProperty;
     }
 }

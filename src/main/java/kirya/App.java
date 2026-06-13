@@ -13,6 +13,7 @@ import kirya.model.FileIO;
 import kirya.model.RemoteDatabase;
 import kirya.model.StudyGuide;
 import kirya.utils.SessionData;
+import kirya.view.ConfirmationDialog;
 import kirya.view.Root;
 import kirya.viewmodel.AccountCreationViewmodel;
 import kirya.viewmodel.HomeViewmodel;
@@ -24,6 +25,9 @@ import kirya.viewmodel.LogInViewmodel;
 public class App extends Application {
 
     private static final int MAX_AUTO_CONNECT_ATTEMPTS = 2;
+    private static final String RECONNECT_TITLE = "Failed to Connect";
+    private static final String RECONNECT_HEADER = "Failed to Connect to Database";
+    private static final String RECONNECT_BODY = "Would you like to try connecting again?";
 
     private AuthDatabase remote = null;
     private int connectionAttempts = 0;
@@ -33,6 +37,7 @@ public class App extends Application {
         var root = new Root();
         this.showGui(stage, root);
         this.connectToDatabases(root);
+        this.load();
     }
 
     private void showGui(Stage stage, Root root) {
@@ -44,7 +49,7 @@ public class App extends Application {
     }
 
     private void connectToDatabases(Root root) {
-        var completableFuture = CompletableFuture.supplyAsync(() -> {
+        var connectionFuture = CompletableFuture.supplyAsync(() -> {
             this.connectionAttempts += 1;
             AuthDatabase database = null;
             try {
@@ -56,12 +61,14 @@ public class App extends Application {
             }
             return database;
         });
-        completableFuture.thenAcceptAsync(database -> {
+
+        connectionFuture.thenAcceptAsync(database -> {
             this.remote = database;
             this.goToLogin(root);
         }, Platform::runLater);
-        completableFuture.exceptionallyAsync(exception -> {
-            if (connectionAttempts < MAX_AUTO_CONNECT_ATTEMPTS) {
+
+        connectionFuture.exceptionallyAsync(exception -> {
+            if (this.connectionAttempts < MAX_AUTO_CONNECT_ATTEMPTS) {
                 this.connectToDatabases(root);
             } else {
                 this.promptUserToReconnect(root);
@@ -71,7 +78,7 @@ public class App extends Application {
     }
 
     private void promptUserToReconnect(Root root) {
-        var attemptReconnect = root.promptReconnectionAttempt();
+        var attemptReconnect = ConfirmationDialog.show(RECONNECT_TITLE, RECONNECT_HEADER, RECONNECT_BODY);
         if (attemptReconnect) {
             this.connectToDatabases(root);
         } else {
@@ -90,17 +97,24 @@ public class App extends Application {
         var logInViewmodel = new LogInViewmodel(this.remote);
         var homeViewmodel = new HomeViewmodel(this.remote);
 
+        homeViewmodel.getFavoritedStudyGuidesProperty().bindBidirectional(SessionData.getFavoritedStudyguides());
+        homeViewmodel.getUploadedStudyGuidesProperty().bindBidirectional(SessionData.getUploadedStudyguides());
+        homeViewmodel.getDownloadedStudyGuidesProperty().bindBidirectional(SessionData.getDownloadedStudyguides());
+
         root.accountCreation.setViewmodel(accountCreationViewmodel);
         root.logIn.setViewmodel(logInViewmodel);
         root.home.setViewmodel(homeViewmodel);
 
-        SessionData.getDownloadedStudyguides().bindBidirectional(homeViewmodel.getDownloadedStudyGuidesProperty());
-        this.load();
     }
 
     private void load() {
-        var loadedStudyGuides = FileIO.Read();
-        SessionData.getDownloadedStudyguides().addAll(loadedStudyGuides);
+        var downloadedStudyguides = FileIO.Read();
+        var favoritedStudyguides = downloadedStudyguides.stream().filter(sg -> sg.getIsFavorited()).toList();
+        var uploadedStudyguides = downloadedStudyguides.stream().filter(sg -> sg.getIsUploaded()).toList();
+
+        SessionData.getDownloadedStudyguides().setAll(downloadedStudyguides);
+        SessionData.getFavoritedStudyguides().setAll(favoritedStudyguides);
+        SessionData.getUploadedStudyguides().setAll(uploadedStudyguides);
     }
 
     @Override

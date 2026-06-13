@@ -45,6 +45,10 @@ public class StudyGuideViewer extends GridPane {
         this.questionsListView.setCellFactory(listview -> new ListCell<DisplayableQuestion>() {
             private final QuestionViewer questionViewer = new QuestionViewer();
 
+            {
+                questionViewer.prefWidthProperty().bind(this.widthProperty());
+            }
+
             @Override
             public void updateItem(DisplayableQuestion question, boolean empty) {
                 super.updateItem(question, empty);
