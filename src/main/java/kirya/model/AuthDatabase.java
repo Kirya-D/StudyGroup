@@ -2,9 +2,12 @@ package kirya.model;
 
 import java.sql.Connection;
 import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.Properties;
+import java.util.SequencedCollection;
 
 import kirya.utils.DisplayableQuestion;
 import kirya.utils.DisplayableStudyGuide;
@@ -22,7 +25,8 @@ public abstract class AuthDatabase {
     private PreparedStatement createStudyguide;
     private PreparedStatement createQuestion;
     private PreparedStatement createChoice;
-    private PreparedStatement getStudyguide;
+    private PreparedStatement getStudyguideFromId;
+    private PreparedStatement getStudyguideContainingSubstring;
     private PreparedStatement deleteStudyguide;
 
     public AuthDatabase(Properties properties) throws SQLException {
@@ -34,7 +38,8 @@ public abstract class AuthDatabase {
         var createStudyguideQuery = properties.getProperty("CREATE_STUDYGUIDE_QUERY");
         var createQuestionQuery = properties.getProperty("CREATE_QUESTION_QUERY");
         var createChoiceQuery = properties.getProperty("CREATE_CHOICE_QUERY");
-        var getStudyguideQuery = properties.getProperty("GET_STUDYGUIDE_QUERY");
+        var getStudyguideFromIdQuery = properties.getProperty("GET_STUDYGUIDE_FROM_ID_QUERY");
+        var getStudyguideContainingSubstringQuery = properties.getProperty("GET_STUDYGUIDE_CONTAINING_SUBSTRING_QUERY");
         var deleteStudyguideQuery = properties.getProperty("DELETE_STUDYGUIDE_QUERY");
 
         this.getUsernameIsTaken = this.dbConnection.prepareStatement(usernameExistsQuery);
@@ -43,7 +48,9 @@ public abstract class AuthDatabase {
         this.createStudyguide = this.dbConnection.prepareStatement(createStudyguideQuery);
         this.createQuestion = this.dbConnection.prepareStatement(createQuestionQuery);
         this.createChoice = this.dbConnection.prepareStatement(createChoiceQuery);
-        this.getStudyguide = this.dbConnection.prepareStatement(getStudyguideQuery);
+        this.getStudyguideFromId = this.dbConnection.prepareStatement(getStudyguideFromIdQuery);
+        this.getStudyguideContainingSubstring = this.dbConnection
+                .prepareStatement(getStudyguideContainingSubstringQuery);
         this.deleteStudyguide = this.dbConnection.prepareStatement(deleteStudyguideQuery);
     }
 
@@ -186,55 +193,119 @@ public abstract class AuthDatabase {
         return questionId;
     }
 
-    public final DisplayableStudyGuide getStudyguide(int guideId) throws SQLException {
-        StudyGuide studyguide = null;
+    /**
+     * {@return the studyguide with the id that matches {@code guideId}}
+     * 
+     * @param guideId The id to look for
+     * @throws SQLException When a database error occurs
+     */
+    public final DisplayableStudyGuide getStudyguideFromId(int guideId) throws SQLException {
+        this.getStudyguideFromId.setInt(1, guideId);
+        var result = this.getStudyguideFromId.executeQuery();
 
-        this.getStudyguide.setInt(1, guideId);
-        var result = this.getStudyguide.executeQuery();
-        var questions = new HashMap<String, Question>();
-        while (result.next()) {
-            if (studyguide == null) {
-                var id = result.getInt("id");
-                var title = result.getString("title");
-                var description = result.getString("description");
-                studyguide = new StudyGuide(id);
-                studyguide.setTitle(title);
-                studyguide.setDescription(description);
-                studyguide.setIsUploaded(true);
-            }
-            var questionText = result.getString("questionText");
-            if (!questions.containsKey(questionText)) {
-                var questionObj = new Question(questionText);
-                questions.put(questionText, questionObj);
-            }
-            var choiceText = result.getString("choiceText");
-            var choiceIsAnswer = result.getBoolean("choiceIsAnswer");
-            var question = questions.get(questionText);
+        var studyguides = this.getStudyguidesFromResultSet(result);
+        var studyguide = studyguides.getFirst();
 
-            var oldChoices = question.getChoices();
-            oldChoices.add(choiceText);
-            if (choiceIsAnswer) {
-                var oldAnswers = question.getAnswers();
-                oldAnswers.add(choiceText);
-                question.setAnswers(oldAnswers);
-            }
-            if (oldChoices.size() > 1 && question.getQuestionType() != QuestionType.MULTIPLE_CHOICE) {
-                question.setQuestionType(QuestionType.MULTIPLE_CHOICE);
-            }
-        }
-        result.close();
-
-        if (studyguide != null) {
-            studyguide.setQuestions(questions.values());
-        }
         return studyguide;
     }
 
+    /**
+     * {@return a collection of {@link DisplayableStudyGuide} that contain
+     * {@code substring} (case insensitive) in either the title or description, or
+     * its creator's username}
+     * 
+     * @param substring The substring to search for
+     * @throws SQLException If a database error occurs
+     */
+    public final SequencedCollection<DisplayableStudyGuide> getStudyguidesContaining(String substring)
+            throws SQLException {
+        var fixedParameterSubstring = "%" + substring + "%";
+        this.getStudyguideContainingSubstring.setString(1, fixedParameterSubstring);
+        this.getStudyguideContainingSubstring.setString(2, fixedParameterSubstring);
+        this.getStudyguideContainingSubstring.setString(3, fixedParameterSubstring);
+
+        var results = this.getStudyguideContainingSubstring.executeQuery();
+        var fittingGuides = this.getStudyguidesFromResultSet(results);
+
+        return fittingGuides;
+    }
+
+    private SequencedCollection<DisplayableStudyGuide> getStudyguidesFromResultSet(ResultSet results)
+            throws SQLException {
+        var studyguides = new HashMap<Integer, StudyGuide>();
+        var questions = new HashMap<Integer, Question>();
+
+        while (results.next()) {
+            StudyGuide curGuide = null;
+            Question curQuestion = null;
+            var studyguideId = results.getInt("studyguideId");
+
+            var studyGuideIdStored = studyguides.containsKey(studyguideId);
+            if (!studyGuideIdStored) {
+                var creatorUsername = results.getString("username");
+                var title = results.getString("title");
+                var description = results.getString("description");
+
+                curGuide = new StudyGuide(studyguideId);
+                curGuide.setCreatorUsername(creatorUsername);
+                curGuide.setTitle(title);
+                curGuide.setDescription(description);
+                curGuide.setIsUploaded(true);
+                studyguides.put(studyguideId, curGuide);
+            } else {
+                curGuide = studyguides.get(studyguideId);
+            }
+
+            var questionId = results.getInt("questionId");
+            var questionIdStored = questions.containsKey(questionId);
+            if (!questionIdStored) {
+                var questionText = results.getString("questionText");
+                curQuestion = new Question(questionText);
+                var oldQuestions = curGuide.getQuestions();
+                oldQuestions.add(curQuestion);
+                var newQuestions = oldQuestions.stream().map(q -> (Question) q).toList();
+                curGuide.setQuestions(newQuestions);
+                questions.put(questionId, curQuestion);
+            } else {
+                curQuestion = questions.get(questionId);
+            }
+            var choiceText = results.getString("choiceText");
+            var choiceIsAnswer = results.getBoolean("choiceIsAnswer");
+
+            var oldChoices = curQuestion.getChoices();
+            oldChoices.add(choiceText);
+            if (choiceIsAnswer) {
+                var oldAnswers = curQuestion.getAnswers();
+                oldAnswers.add(choiceText);
+                curQuestion.setAnswers(oldAnswers);
+            }
+            if (oldChoices.size() > 1 && curQuestion.getQuestionType() != QuestionType.MULTIPLE_CHOICE) {
+                curQuestion.setQuestionType(QuestionType.MULTIPLE_CHOICE);
+            }
+        }
+        results.close();
+
+        var guides = new ArrayList<DisplayableStudyGuide>(studyguides.values());
+        return guides;
+    }
+
+    /**
+     * Deletes the studyguide with the id that matches {@code guideId} from the
+     * database.
+     * 
+     * @param guideId The id to look for
+     * @throws SQLException When a database error occurs
+     */
     public final void deleteStudyguide(int guideId) throws SQLException {
         this.deleteStudyguide.setInt(1, guideId);
         this.deleteStudyguide.executeUpdate();
     }
 
+    /**
+     * A type that represents an answer choice containing {@code text} and
+     * {@code isAnswer} which corresponds to the textual content of the answer
+     * choice and whether or not is is correct respectively.
+     */
     private record DbChoice(String text, boolean isAnswer) {
     }
 }

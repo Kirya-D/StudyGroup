@@ -115,7 +115,7 @@ public class StudyGuideOverview extends GridPane {
     }
 
     private void refreshDisplay() {
-        this.titleByUsernameLabel.setText(this.displayableStudyGuide.getTitle());
+        this.titleByUsernameLabel.setText(this.displayableStudyGuide.toString());
         this.extendedUsernameAndTitleLabel.setText("");
         this.questionCountLabel.setText(this.displayableStudyGuide.getQuestions().size() + " questions");
         this.descriptionLabel.setText(this.displayableStudyGuide.getDescription());

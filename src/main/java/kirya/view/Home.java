@@ -8,22 +8,24 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
 
+import javafx.beans.property.ListProperty;
 import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
-import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.shape.Shape;
 import kirya.utils.DisplayText;
 import kirya.utils.DisplayableStudyGuide;
+import kirya.utils.SessionData;
 import kirya.view.events.StudyGuideEvent;
 import kirya.viewmodel.HomeViewmodel;
 
@@ -43,14 +45,19 @@ public class Home extends StackPane {
     @FXML
     private ToggleButton uploadedToggleButton;
     @FXML
+    private Label headerLabel;
+    @FXML
     private TilePane quickAccessStudyguideTilePane;
     @FXML
-    private VBox searchingVBox;
+    private BorderPane searchingBorderPane;
     @FXML
     private TextField searchTextField;
     @FXML
+    private ScrollPane searchScrollPane;
+    @FXML
     private TilePane searchedStudyguideTilePane;
 
+    private static final String HEADER_STRING = "{0}''s Quick Access Study Guides";
     private static final String DELETION_HEADER = "You are about to delete the study guide \"{0}\"";
     private static final String DELETION_CONTENT = "This action is irreversible, are you sure you want to PERMANENTLY DELETE \"{0}\"?";
     private static final String DELIST_HEADER = "You are about to remove the study guide \"{0}\" from the cloud";
@@ -75,7 +82,28 @@ public class Home extends StackPane {
     }
 
     private void initialize() {
-        this.nodeGroup.addNodes(List.of(this.homeBorderPane, this.searchingVBox));
+        this.nodeGroup.addNodes(List.of(this.homeBorderPane, this.searchingBorderPane));
+
+        this.visibleProperty().addListener((_, _, visible) -> {
+            if (!visible) {
+                return;
+            }
+            var header = MessageFormat.format(HEADER_STRING, SessionData.getLoggedInUsername());
+            this.headerLabel.setText(header);
+        });
+
+        var prefColumnWidth = 480;
+        for (var tilepane : new TilePane[] { this.quickAccessStudyguideTilePane, this.searchedStudyguideTilePane }) {
+            tilepane.widthProperty().addListener((_, _, newWidth) -> {
+                var numChildren = tilepane.getChildren().size();
+                var desiredColumns = Math.max(1, (newWidth.intValue() / prefColumnWidth));
+                var actualColumns = Math.min(numChildren, desiredColumns);
+                actualColumns = actualColumns == 0 ? 1 : actualColumns;
+                var newPrefWidth = newWidth.intValue() / actualColumns;
+
+                tilepane.setPrefTileWidth(newPrefWidth);
+            });
+        }
     }
 
     /**
@@ -96,7 +124,7 @@ public class Home extends StackPane {
     private void bindToViewmodel() {
         this.searchTextField.textProperty().bindBidirectional(this.viewmodel.getSearchProperty());
 
-        var buttonMapping = new HashMap<ToggleButton, List<DisplayableStudyGuide>>();
+        var buttonMapping = new HashMap<ToggleButton, ListProperty<DisplayableStudyGuide>>();
 
         var favoritedGuidesProperty = this.viewmodel.getFavoritedStudyGuidesProperty();
         var downloadedGuidesProperty = this.viewmodel.getDownloadedStudyGuidesProperty();
@@ -133,6 +161,16 @@ public class Home extends StackPane {
 
         this.allToggleButton.setSelected(false);
         this.allToggleButton.setSelected(true);
+
+        var allProps = new ArrayList<ListProperty<DisplayableStudyGuide>>();
+        allProps.addAll(buttonMapping.values());
+        allProps.add(this.viewmodel.getSearchedStudyGuidesProperty());
+        for (var prop : allProps) {
+            prop.addListener((_, _, list) -> {
+                var updatedList = this.viewmodel.getSearchedStudyGuidesProperty().get();
+                this.refreshTilePane(this.searchedStudyguideTilePane, updatedList);
+            });
+        }
     }
 
     private void refreshTilePane(TilePane pane, List<DisplayableStudyGuide> content) {
@@ -265,12 +303,19 @@ public class Home extends StackPane {
 
     @FXML
     private void onSearchButtonClick() {
-        this.searchingVBox.setVisible(true);
+        this.searchingBorderPane.setVisible(true);
     }
 
     @FXML
     private void onSearchEntered() {
-        // TODO implement searching
+        try {
+            this.viewmodel.searchForStudyguides();
+        } catch (SQLException err) {
+            var alert = new Alert(AlertType.ERROR);
+            alert.setHeaderText("Database error");
+            alert.setContentText(err.getMessage());
+            alert.showAndWait();
+        }
     }
 
     @FXML

@@ -2,6 +2,7 @@
 
 <?import javafx.geometry.Insets?>
 <?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.control.ToggleButton?>
 <?import javafx.scene.control.ToggleGroup?>
@@ -15,7 +16,7 @@
 
 <fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" type="StackPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <children>
-      <BorderPane fx:id="homeBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="false">
+      <BorderPane fx:id="homeBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0">
          <left>
             <VBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" BorderPane.alignment="CENTER">
                <children>
@@ -35,7 +36,7 @@
                <children>
                   <HBox alignment="TOP_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0">
                      <children>
-                        <Label alignment="CENTER" contentDisplay="CENTER" layoutX="366.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="Quick Access Study Guides" textAlignment="CENTER" HBox.hgrow="ALWAYS">
+                        <Label fx:id="headerLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="366.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="Quick Access Study Guides" textAlignment="CENTER" HBox.hgrow="ALWAYS">
                            <padding>
                               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
                            </padding>
@@ -61,14 +62,18 @@
                         </Label>
                      </children>
                   </HBox>
-                  <TilePane fx:id="quickAccessStudyguideTilePane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" prefColumns="4" VBox.vgrow="ALWAYS" />
+                  <ScrollPane fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" VBox.vgrow="ALWAYS">
+                     <content>
+                        <TilePane fx:id="quickAccessStudyguideTilePane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" prefColumns="4" prefTileHeight="270.0" />
+                     </content>
+                  </ScrollPane>
                </children>
             </VBox>
          </center>
       </BorderPane>
-      <VBox fx:id="searchingVBox" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0">
-         <children>
-            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0">
+      <BorderPane fx:id="searchingBorderPane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" visible="false">
+         <top>
+            <HBox maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" BorderPane.alignment="CENTER">
                <children>
                   <Label alignment="CENTER" contentDisplay="CENTER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" onMouseClicked="#onBackButtonClick" onMouseEntered="#onInteractableElementEntered" onMouseExited="#onInteractableElementExited" text="⬅">
                      <padding>
@@ -89,8 +94,14 @@
                   </Label>
                </children>
             </HBox>
-            <TilePane fx:id="searchedStudyguideTilePane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" prefColumns="4" />
-         </children>
-      </VBox>
+         </top>
+         <center>
+            <ScrollPane fx:id="searchScrollPane" fitToWidth="true" hbarPolicy="NEVER" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" BorderPane.alignment="CENTER">
+               <content>
+                  <TilePane fx:id="searchedStudyguideTilePane" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" prefColumns="4" prefTileHeight="270.0" />
+               </content>
+            </ScrollPane>
+         </center>
+      </BorderPane>
    </children>
 </fx:root>

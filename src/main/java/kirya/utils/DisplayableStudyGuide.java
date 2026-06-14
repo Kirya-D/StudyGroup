@@ -13,6 +13,11 @@ public abstract class DisplayableStudyGuide {
     public abstract Integer getId();
 
     /**
+     * {@return the username of the account that created this studyguide}
+     */
+    public abstract String getCreatorUsername();
+
+    /**
      * {@return the title}
      */
     public abstract String getTitle();
@@ -21,11 +26,6 @@ public abstract class DisplayableStudyGuide {
      * {@return the description}
      */
     public abstract String getDescription();
-
-    /**
-     * {@return the questions}
-     */
-    public abstract Collection<DisplayableQuestion> getQuestions();
 
     /**
      * {@return the downloaded status}
@@ -42,8 +42,13 @@ public abstract class DisplayableStudyGuide {
      */
     public abstract boolean getIsUploaded();
 
+    /**
+     * {@return the questions}
+     */
+    public abstract Collection<DisplayableQuestion> getQuestions();
+
     @Override
     public String toString() {
-        return this.getTitle();
+        return this.getTitle() + " by " + this.getCreatorUsername();
     }
 }

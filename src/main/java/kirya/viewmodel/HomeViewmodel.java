@@ -23,6 +23,7 @@ public class HomeViewmodel {
     private final ListProperty<DisplayableStudyGuide> favoritedStudyGuidesProperty;
     private final ListProperty<DisplayableStudyGuide> uploadedStudyGuidesProperty;
     private final StringProperty searchProperty;
+    private final ListProperty<DisplayableStudyGuide> searchedStudyGuidesProperty;
 
     /**
      * Initializes a new HomeViewmodel.
@@ -35,6 +36,7 @@ public class HomeViewmodel {
         this.favoritedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.uploadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.searchProperty = new SimpleStringProperty();
+        this.searchedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
     }
 
     /**
@@ -158,6 +160,24 @@ public class HomeViewmodel {
         }
     }
 
+    /**
+     * Searches for study guides that contains
+     * {@link HomeViewmodel#getSearchProperty()}'s value
+     */
+    public void searchForStudyguides() throws SQLException {
+        var searchString = this.searchProperty.get();
+        if (searchString == null || searchString.isBlank()) {
+            return;
+        }
+
+        var results = this.database.getStudyguidesContaining(searchString);
+        this.searchedStudyGuidesProperty.setAll(results);
+    }
+
+    public void attemptGetMoreResults() throws SQLException {
+        // TODO
+    }
+
     private StudyGuide getConcreteGuide(DisplayableStudyGuide studyGuide) {
         return studyGuide instanceof StudyGuide concreteGuide ? concreteGuide : null;
     }
@@ -188,5 +208,12 @@ public class HomeViewmodel {
      */
     public StringProperty getSearchProperty() {
         return this.searchProperty;
+    }
+
+    /**
+     * {@return the searched studyguides property}
+     */
+    public ListProperty<DisplayableStudyGuide> getSearchedStudyGuidesProperty() {
+        return this.searchedStudyGuidesProperty;
     }
 }

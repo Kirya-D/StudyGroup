@@ -18,6 +18,7 @@ public class StudyGuide extends DisplayableStudyGuide {
     private boolean isDownloaded;
     private boolean isFavorited;
     private boolean isUploaded;
+    private String creatorUsername;
     private String title;
     private String description;
     private final Set<Question> questions;
@@ -31,6 +32,8 @@ public class StudyGuide extends DisplayableStudyGuide {
      * <p>
      * Postcondition: {@link StudyGuide#getIsUploaded()} == false
      * <p>
+     * Postcondition: {@link StudyGuide#getCreatorUsername()} == ""
+     * <p>
      * Postcondition: {@link StudyGuide#getTitle()} == ""
      * <p>
      * Postcondition: {@link StudyGuide#getDescription()} == ""
@@ -43,6 +46,7 @@ public class StudyGuide extends DisplayableStudyGuide {
         this.isDownloaded = false;
         this.isFavorited = false;
         this.isUploaded = false;
+        this.creatorUsername = "";
         this.title = "";
         this.description = "";
         this.questions = new LinkedHashSet<>();
@@ -95,6 +99,18 @@ public class StudyGuide extends DisplayableStudyGuide {
     }
 
     /**
+     * Sets the username of the creator of this study guide.
+     * 
+     * @param username The new non-null username
+     */
+    public void setCreatorUsername(String username) {
+        if (username == null) {
+            throw new IllegalArgumentException("username can't be null");
+        }
+        this.creatorUsername = username;
+    }
+
+    /**
      * Sets the title.
      * 
      * @param title The new non-null && not-blank title
@@ -144,6 +160,11 @@ public class StudyGuide extends DisplayableStudyGuide {
     @Override
     public Integer getId() {
         return this.id;
+    }
+
+    @Override
+    public String getCreatorUsername() {
+        return this.creatorUsername;
     }
 
     @Override

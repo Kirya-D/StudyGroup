@@ -11,7 +11,7 @@
 <?import javafx.scene.layout.VBox?>
 <?import javafx.scene.text.Font?>
 
-<fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" onMouseEntered="#onMouseEnter" onMouseExited="#onMouseExit" prefHeight="270.0" prefWidth="480.0" type="GridPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
+<fx:root maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" onMouseEntered="#onMouseEnter" onMouseExited="#onMouseExit" type="GridPane" xmlns="http://javafx.com/javafx/26" xmlns:fx="http://javafx.com/fxml/1">
    <columnConstraints>
       <ColumnConstraints hgrow="NEVER" maxWidth="-Infinity" minWidth="-Infinity" />
       <ColumnConstraints hgrow="NEVER" minWidth="-Infinity" />
