@@ -9,6 +9,9 @@ import java.util.HashMap;
 import java.util.Properties;
 import java.util.SequencedCollection;
 
+import kirya.model.request.CredentialsRequest;
+import kirya.model.request.SearchRequest;
+import kirya.model.request.UpdateRequest;
 import kirya.utils.DisplayableQuestion;
 import kirya.utils.DisplayableStudyGuide;
 import kirya.utils.QuestionType;
@@ -25,7 +28,6 @@ public abstract class AuthDatabase {
     private PreparedStatement createStudyguide;
     private PreparedStatement createQuestion;
     private PreparedStatement createChoice;
-    private PreparedStatement getStudyguideFromId;
     private PreparedStatement getStudyguideContainingSubstring;
     private PreparedStatement deleteStudyguide;
 
@@ -38,7 +40,6 @@ public abstract class AuthDatabase {
         var createStudyguideQuery = properties.getProperty("CREATE_STUDYGUIDE_QUERY");
         var createQuestionQuery = properties.getProperty("CREATE_QUESTION_QUERY");
         var createChoiceQuery = properties.getProperty("CREATE_CHOICE_QUERY");
-        var getStudyguideFromIdQuery = properties.getProperty("GET_STUDYGUIDE_FROM_ID_QUERY");
         var getStudyguideContainingSubstringQuery = properties.getProperty("GET_STUDYGUIDE_CONTAINING_SUBSTRING_QUERY");
         var deleteStudyguideQuery = properties.getProperty("DELETE_STUDYGUIDE_QUERY");
 
@@ -48,7 +49,6 @@ public abstract class AuthDatabase {
         this.createStudyguide = this.dbConnection.prepareStatement(createStudyguideQuery);
         this.createQuestion = this.dbConnection.prepareStatement(createQuestionQuery);
         this.createChoice = this.dbConnection.prepareStatement(createChoiceQuery);
-        this.getStudyguideFromId = this.dbConnection.prepareStatement(getStudyguideFromIdQuery);
         this.getStudyguideContainingSubstring = this.dbConnection
                 .prepareStatement(getStudyguideContainingSubstringQuery);
         this.deleteStudyguide = this.dbConnection.prepareStatement(deleteStudyguideQuery);
@@ -57,44 +57,64 @@ public abstract class AuthDatabase {
     /**
      * Sets up the database connection
      * 
-     * @throws SQLException if a database error occurs
+     * @throws SQLException If a database access error occurs
      */
     protected abstract void setupDatabase() throws SQLException;
 
     /**
-     * {@return {@code true} if an account with {@code username} exists,
-     * otherwise {@code false}}
+     * {@return {@code true} if an account with {@link CredentialsRequest#username}
+     * exists, otherwise {@code false}}
      * 
-     * @param username The username to look for
-     * @throws SQLException
+     * @param request the {@link CredentialsRequest} information to use
+     * 
+     * @throws SQLException             If a database access error occurs
+     * @throws IllegalArgumentException If {@link CredentialsRequest#username} ==
+     *                                  null
      */
-    public final boolean hasAccountWithUsername(String username) throws SQLException {
-        this.getUsernameIsTaken.setString(1, username);
+    public final boolean hasAccountWithUsername(CredentialsRequest request) throws SQLException {
+        if (request.username == null) {
+            throw new IllegalArgumentException("username can't be null");
+        }
+
+        this.getUsernameIsTaken.setString(1, request.username);
         var results = this.getUsernameIsTaken.executeQuery();
         var usernameTaken = results.next();
+        results.close();
 
         return usernameTaken;
     }
 
     /**
-     * {@return {@code true} if an account with {@code username} and
-     * {@code password} exists,
-     * otherwise {@code false}}
+     * {@return {@code true} if an account with {@link CredentialsRequest#username}
+     * and
+     * {@link CredentialsRequest#password} exists, otherwise {@code false}}
      * 
-     * @param username The username to compare against
-     * @param password the password to compare against
-     * @throws SQLException
+     * @param request the {@link CredentialsRequest} information to use
+     * 
+     * @throws SQLException             If a database access error occurs
+     * @throws IllegalArgumentException If {@link CredentialsRequest#username} ==
+     *                                  null
+     * @throws IllegalArgumentException If {@link CredentialsRequest#password} ==
+     *                                  null
      */
-    public final boolean hasAccountWithCredentials(String username, String password) throws SQLException {
-        this.getAccountWithCredentials.setString(1, username);
+    public final boolean hasAccountWithCredentials(CredentialsRequest request)
+            throws SQLException, IllegalArgumentException {
+        if (request.username == null) {
+            throw new IllegalArgumentException("username can't be null");
+        }
+        if (request.password == null) {
+            throw new IllegalArgumentException("password can't be null");
+        }
+
+        this.getAccountWithCredentials.setString(1, request.username);
         var results = this.getAccountWithCredentials.executeQuery();
         var foundAccountWithCredentials = false;
 
         while (results.next()) {
             var resultUsername = results.getString("username");
             var resultPassword = results.getString("password");
-            var usernameMatches = username.equals(resultUsername);
-            var passwordMatches = password.equals(resultPassword);
+            var usernameMatches = request.username.equals(resultUsername);
+            var passwordMatches = request.password.equals(resultPassword);
             if (usernameMatches && passwordMatches) {
                 foundAccountWithCredentials = true;
                 break;
@@ -105,29 +125,56 @@ public abstract class AuthDatabase {
     }
 
     /**
-     * Attempts to create a new account with {@code username} and {@code password}.
+     * Attempts to create a new account with the specifications from the
+     * {@code request}.
      * 
-     * @param username the username to use
-     * @param password the password to use
+     * @param request the {@link CredentialsRequest} information to use
      * 
-     * @throws SQLException If a database access error occurs
+     * @throws SQLException             If a database access error occurs
+     * @throws IllegalArgumentException If {@link CredentialsRequest#username} ==
+     *                                  null
+     * @throws IllegalArgumentException If {@link CredentialsRequest#password} ==
+     *                                  null
      */
-    public final void attemptCreateAccount(String username, String password) throws SQLException {
-        this.createAccount.setString(1, username);
-        this.createAccount.setString(2, password);
+    public final void attemptCreateAccount(CredentialsRequest request) throws SQLException, IllegalArgumentException {
+        if (request.username == null) {
+            throw new IllegalArgumentException("username can't be null");
+        }
+        if (request.password == null) {
+            throw new IllegalArgumentException("password can't be null");
+        }
+
+        this.createAccount.setString(1, request.username);
+        this.createAccount.setString(2, request.password);
         this.createAccount.execute();
     }
 
     /**
-     * Attempts to upload {@code studyguide} under the account with {@code username}
+     * Attempts to upload {@link UpdateRequest#studyguide} under the account with
+     * the username {@link UpdateRequest#username}
      * 
-     * @param username   the username of the account to upload the studyguide to
-     * @param studyguide the studyguide object to upload
+     * @param request the {@link UpdateRequest} information to use
+     * 
      * @return {@code true} if successful, otherwise {@code false}
-     * @throws SQLException If a database error occurs
+     * 
+     * @throws SQLException             If a database error occurs
+     * @throws IllegalArgumentException If {@link UpdateRequest#username} == null
+     * @throws IllegalArgumentException If {@link UpdateRequest#studyguide} == null
+     *                                  OR not an {@code instanceof}
+     *                                  {@link StudyGuide}
      */
-    public final boolean editStudyguide(String username, StudyGuide studyguide) throws SQLException {
-        this.getUsernameIsTaken.setString(1, username);
+    public final boolean editStudyguide(UpdateRequest request) throws SQLException, IllegalArgumentException {
+        if (request.username == null) {
+            throw new IllegalArgumentException("username can't be null");
+        }
+        if (request.studyguide == null) {
+            throw new IllegalArgumentException("studyguide can't be null");
+        }
+        if (!(request.studyguide instanceof StudyGuide)) {
+            throw new IllegalArgumentException("studyguide must be editable");
+        }
+
+        this.getUsernameIsTaken.setString(1, request.username);
         var accountResult = this.getUsernameIsTaken.executeQuery();
         var accountId = accountResult.next() ? accountResult.getInt("id") : null;
         accountResult.close();
@@ -135,15 +182,15 @@ public abstract class AuthDatabase {
             return false;
         }
 
-        var oldStudyguideId = studyguide.getId();
+        var oldStudyguideId = request.studyguide.getId();
         var overwriteStudyguideRow = oldStudyguideId != null;
 
-        var newStudyguideId = this.createNewStudyguide(accountId, studyguide);
+        var newStudyguideId = this.createNewStudyguide(accountId, request.studyguide);
         if (newStudyguideId == null) {
             return false;
         }
 
-        for (var question : studyguide.getQuestions()) {
+        for (var question : request.studyguide.getQuestions()) {
             var questionId = this.createNewQuestion(newStudyguideId, question);
             if (questionId == null) {
                 continue;
@@ -160,14 +207,14 @@ public abstract class AuthDatabase {
         }
 
         if (overwriteStudyguideRow) {
-            this.deleteStudyguide(oldStudyguideId);
+            this.deleteStudyguide(request);
         }
 
-        studyguide.setId(newStudyguideId);
+        ((StudyGuide) request.studyguide).setId(newStudyguideId);
         return true;
     }
 
-    private Integer createNewStudyguide(int accountId, DisplayableStudyGuide studyguide) throws SQLException {
+    private final Integer createNewStudyguide(int accountId, DisplayableStudyGuide studyguide) throws SQLException {
         var title = studyguide.getTitle();
         var description = studyguide.getDescription();
         this.createStudyguide.setString(1, title);
@@ -181,7 +228,7 @@ public abstract class AuthDatabase {
         return studyguideId;
     }
 
-    private Integer createNewQuestion(int studyguideId, DisplayableQuestion question) throws SQLException {
+    private final Integer createNewQuestion(int studyguideId, DisplayableQuestion question) throws SQLException {
         var text = question.getQuestion();
         this.createQuestion.setString(1, text);
         this.createQuestion.setInt(2, studyguideId);
@@ -194,35 +241,29 @@ public abstract class AuthDatabase {
     }
 
     /**
-     * {@return the studyguide with the id that matches {@code guideId}}
-     * 
-     * @param guideId The id to look for
-     * @throws SQLException When a database error occurs
-     */
-    public final DisplayableStudyGuide getStudyguideFromId(int guideId) throws SQLException {
-        this.getStudyguideFromId.setInt(1, guideId);
-        var result = this.getStudyguideFromId.executeQuery();
-
-        var studyguides = this.getStudyguidesFromResultSet(result);
-        var studyguide = studyguides.getFirst();
-
-        return studyguide;
-    }
-
-    /**
      * {@return a collection of {@link DisplayableStudyGuide} that contain
-     * {@code substring} (case insensitive) in either the title or description, or
-     * its creator's username}
+     * {@link SearchRequest#search} (case insensitive) in either the title or
+     * description, or its creator's username}
      * 
-     * @param substring The substring to search for
-     * @throws SQLException If a database error occurs
+     * @param request the {@link SearchRequest} information to use
+     * 
+     * @throws SQLException             If a database error occurs
+     * @throws IllegalArgumentException If {@link SearchRequest#username} == null
+     * @throws IllegalArgumentException If {@link SearchRequest#search} == null
      */
-    public final SequencedCollection<DisplayableStudyGuide> getStudyguidesContaining(String substring)
-            throws SQLException {
-        var fixedParameterSubstring = "%" + substring + "%";
-        this.getStudyguideContainingSubstring.setString(1, fixedParameterSubstring);
-        this.getStudyguideContainingSubstring.setString(2, fixedParameterSubstring);
-        this.getStudyguideContainingSubstring.setString(3, fixedParameterSubstring);
+    public final SequencedCollection<DisplayableStudyGuide> getStudyguidesContaining(SearchRequest request)
+            throws SQLException, IllegalArgumentException {
+        if (request.username == null) {
+            throw new IllegalArgumentException("username can't be null");
+        }
+        if (request.search == null) {
+            throw new IllegalArgumentException("search can't be null");
+        }
+
+        this.getStudyguideContainingSubstring.setString(1, request.username);
+        this.getStudyguideContainingSubstring.setString(2, request.search);
+        this.getStudyguideContainingSubstring.setString(3, request.search);
+        this.getStudyguideContainingSubstring.setString(4, request.search);
 
         var results = this.getStudyguideContainingSubstring.executeQuery();
         var fittingGuides = this.getStudyguidesFromResultSet(results);
@@ -230,7 +271,7 @@ public abstract class AuthDatabase {
         return fittingGuides;
     }
 
-    private SequencedCollection<DisplayableStudyGuide> getStudyguidesFromResultSet(ResultSet results)
+    private final SequencedCollection<DisplayableStudyGuide> getStudyguidesFromResultSet(ResultSet results)
             throws SQLException {
         var studyguides = new HashMap<Integer, StudyGuide>();
         var questions = new HashMap<Integer, Question>();
@@ -290,15 +331,26 @@ public abstract class AuthDatabase {
     }
 
     /**
-     * Deletes the studyguide with the id that matches {@code guideId} from the
-     * database.
+     * {@return Attempst to delete the studyguide with the id that matches
+     * {@link UpdateRequest#studyguide}'s {@link DisplayableStudyGuide#getId()} from
+     * the database and returns {@code true} if successful, otherwise
+     * {@code false}.}
      * 
-     * @param guideId The id to look for
-     * @throws SQLException When a database error occurs
+     * @param request the {@link UpdateRequest} to make
+     * 
+     * @throws SQLException             If a database access error occurs
+     * @throws IllegalArgumentException If {@link UpdateRequest#studyguide} == null
      */
-    public final void deleteStudyguide(int guideId) throws SQLException {
-        this.deleteStudyguide.setInt(1, guideId);
-        this.deleteStudyguide.executeUpdate();
+    public final boolean deleteStudyguide(UpdateRequest request) throws SQLException {
+        if (request.studyguide == null) {
+            throw new IllegalArgumentException("studyguide can't be null");
+        }
+        var guide = request.studyguide;
+
+        this.deleteStudyguide.setString(1, request.username);
+        this.deleteStudyguide.setInt(2, guide.getId());
+        boolean success = this.deleteStudyguide.executeUpdate() > 0 ? true : false;
+        return success;
     }
 
     /**

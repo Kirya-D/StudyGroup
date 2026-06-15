@@ -3,7 +3,6 @@ package kirya.viewmodel;
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
-import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
@@ -31,6 +30,8 @@ public class TestAccountCreationViewmodel {
 
         @Test
         public void testMembers() {
+            var expectedUsername = "";
+            var expectedPassword = "";
             var expectedUsernameIssue = AccountCreationViewmodel.REQUIRED_FIELD;
             var expectedPasswordIssue = AccountCreationViewmodel.REQUIRED_FIELD;
 
@@ -42,8 +43,8 @@ public class TestAccountCreationViewmodel {
 
             assertAll("member checks",
                     () -> assertFalse(actualUsernameIsFinalized),
-                    () -> assertNull(actualUsername),
-                    () -> assertNull(actualPassword),
+                    () -> assertEquals(expectedUsername, actualUsername),
+                    () -> assertEquals(expectedPassword, actualPassword),
                     () -> assertEquals(expectedUsernameIssue, actualUsernameIssue),
                     () -> assertEquals(expectedPasswordIssue, actualPasswordIssue));
         }

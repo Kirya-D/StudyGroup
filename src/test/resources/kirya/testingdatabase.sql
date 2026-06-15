@@ -17,6 +17,17 @@ CREATE TABLE Studyguide (
         ON UPDATE CASCADE
 );
 
+CREATE TABLE AccountStudyguideStatus (
+    idAccount INT NOT NULL,
+    idStudyguide INT NOT NULL,
+    favorited BOOLEAN NOT NULL,
+    downloaded BOOLEAN NOT NULL,
+
+    PRIMARY KEY (idAccount, idStudyguide),
+    FOREIGN KEY (idAccount) REFERENCES Account(id),
+    FOREIGN KEY (idStudyguide) REFERENCES Studyguide(id)
+);
+
 CREATE TABLE Question (
     id INTEGER PRIMARY KEY,
     text NVARCHAR(255) NOT NULL,

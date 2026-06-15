@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import kirya.model.AuthDatabase;
+import kirya.model.request.CredentialsRequest;
 import kirya.utils.SessionData;
 
 public class LogInViewmodel {
@@ -22,8 +23,8 @@ public class LogInViewmodel {
      */
     public LogInViewmodel(AuthDatabase database) {
         this.database = database;
-        this.usernameProperty = new SimpleStringProperty();
-        this.passwordProperty = new SimpleStringProperty();
+        this.usernameProperty = new SimpleStringProperty("");
+        this.passwordProperty = new SimpleStringProperty("");
         this.incorrectFieldProperty = new SimpleStringProperty("");
     }
 
@@ -39,7 +40,8 @@ public class LogInViewmodel {
         var accountUsername = this.usernameProperty.get();
         var accountPassword = this.passwordProperty.get();
 
-        var success = this.database.hasAccountWithCredentials(accountUsername, accountPassword);
+        var credentialRequest = new CredentialsRequest(accountUsername, accountPassword);
+        var success = this.database.hasAccountWithCredentials(credentialRequest);
         if (success) {
             SessionData.logInAs(accountUsername);
         }

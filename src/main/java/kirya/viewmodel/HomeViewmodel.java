@@ -10,6 +10,8 @@ import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
 import kirya.model.AuthDatabase;
 import kirya.model.StudyGuide;
+import kirya.model.request.SearchRequest;
+import kirya.model.request.UpdateRequest;
 import kirya.utils.DisplayableStudyGuide;
 import kirya.utils.SessionData;
 
@@ -35,7 +37,7 @@ public class HomeViewmodel {
         this.downloadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.favoritedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.uploadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
-        this.searchProperty = new SimpleStringProperty();
+        this.searchProperty = new SimpleStringProperty("");
         this.searchedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
     }
 
@@ -72,9 +74,11 @@ public class HomeViewmodel {
      *
      * @param studyGuide The non-null study guide to download
      * @param download   The new download state to set to
+     * 
      * @throws IllegalArgumentException If {@code studyGuide} == null
      */
-    public void toggleDownloadStudyGuide(DisplayableStudyGuide studyGuide, boolean download) {
+    public void toggleDownloadStudyGuide(DisplayableStudyGuide studyGuide, boolean download)
+            throws IllegalArgumentException {
         var concreteGuide = this.getConcreteGuide(studyGuide);
         if (concreteGuide == null) {
             throw new IllegalArgumentException("studyGuide can't be null");
@@ -92,9 +96,11 @@ public class HomeViewmodel {
      *
      * @param studyGuide The non-null study guide to favorite
      * @param favorite   The new favorite state to set to
+     * 
      * @throws IllegalArgumentException If {@code studyGuide} == null
      */
-    public void toggleFavoriteStudyGuide(DisplayableStudyGuide studyGuide, boolean favorite) {
+    public void toggleFavoriteStudyGuide(DisplayableStudyGuide studyGuide, boolean favorite)
+            throws IllegalArgumentException {
         var concreteGuide = this.getConcreteGuide(studyGuide);
         if (concreteGuide == null) {
             throw new IllegalArgumentException("studyGuide can't be null");
@@ -112,12 +118,14 @@ public class HomeViewmodel {
      *
      * @param studyGuide The non-null study guide to upload
      * @param upload     The new upload state to set to
+     * 
      * @throws IllegalArgumentException If {@code studyGuide} == null
+     * @throws IllegalArgumentException If there is no currently logged-in user
+     *                                  (user == null)
      * @throws SQLException             If database error occurs
-     * @return {@code true} if successfully uploads studyguide to database, false
-     *         otherwise
+     * 
      */
-    public boolean toggleUploadStudyGuide(DisplayableStudyGuide studyGuide, boolean upload) throws SQLException {
+    public void toggleUploadStudyGuide(DisplayableStudyGuide studyGuide, boolean upload) throws SQLException {
         var concreteGuide = this.getConcreteGuide(studyGuide);
         if (concreteGuide == null) {
             throw new IllegalArgumentException("studyGuide can't be null");
@@ -125,14 +133,14 @@ public class HomeViewmodel {
 
         var loggedUsername = SessionData.getLoggedInUsername();
         var success = false;
+        var uploadRequest = new UpdateRequest(loggedUsername, studyGuide);
         if (upload) {
-            success = this.database.editStudyguide(loggedUsername, concreteGuide);
+            success = this.database.editStudyguide(uploadRequest);
         } else {
             var guideId = concreteGuide.getId();
             if (guideId != null) {
-                this.database.deleteStudyguide(guideId);
+                success = this.database.deleteStudyguide(uploadRequest);
                 concreteGuide.setId(null);
-                success = true;
             }
         }
 
@@ -141,8 +149,6 @@ public class HomeViewmodel {
             var collection = this.uploadedStudyGuidesProperty;
             this.toggleStudyGuideMember(concreteGuide, setMethod, upload, collection);
         }
-
-        return success;
     }
 
     private void toggleStudyGuideMember(StudyGuide studyGuide, Consumer<Boolean> setMethod, boolean toggle,
@@ -163,6 +169,8 @@ public class HomeViewmodel {
     /**
      * Searches for study guides that contains
      * {@link HomeViewmodel#getSearchProperty()}'s value
+     * 
+     * @throws SQLException If a database error occurs
      */
     public void searchForStudyguides() throws SQLException {
         var searchString = this.searchProperty.get();
@@ -170,7 +178,8 @@ public class HomeViewmodel {
             return;
         }
 
-        var results = this.database.getStudyguidesContaining(searchString);
+        var searchRequest = new SearchRequest(SessionData.getLoggedInUsername(), searchString);
+        var results = this.database.getStudyguidesContaining(searchRequest);
         this.searchedStudyGuidesProperty.setAll(results);
     }
 

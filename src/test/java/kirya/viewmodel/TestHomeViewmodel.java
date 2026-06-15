@@ -14,7 +14,7 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterAll;
+import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -25,6 +25,7 @@ import kirya.TestingDatabase;
 import kirya.model.AuthDatabase;
 import kirya.model.Question;
 import kirya.model.StudyGuide;
+import kirya.model.request.SearchRequest;
 import kirya.utils.DisplayableQuestion;
 import kirya.utils.DisplayableStudyGuide;
 import kirya.utils.QuestionType;
@@ -42,8 +43,8 @@ public class TestHomeViewmodel {
         this.viewmodel = new HomeViewmodel(db);
     }
 
-    @AfterAll
-    public static void teardown() {
+    @AfterEach
+    public void teardown() {
         SessionData.logOut();
     }
 
@@ -363,33 +364,26 @@ public class TestHomeViewmodel {
             this.studyGuide.setQuestions(questions);
         }
 
-        @AfterAll
-        public static void teardown() {
-            SessionData.logOut();
-        }
-
         @Test
-        public void testFailsWhenNoLoggedInAccount() throws SQLException {
+        public void throwsWhenNoLoggedInAccount() throws SQLException {
             SessionData.logOut();
-            var actualSuccess = viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
-            var actualUploaded = this.studyGuide.getIsUploaded();
 
-            assertAll("Member checks",
-                    () -> assertFalse(actualSuccess),
-                    () -> assertFalse(actualUploaded),
-                    () -> assertFalse(viewmodel.getUploadedStudyGuidesProperty().contains(this.studyGuide)));
+            assertThrows(IllegalArgumentException.class, () -> {
+                viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
+            });
         }
 
         @Test
         public void testSucceedsWhenLoggedInAccount() throws SQLException {
-            var actualSuccess = viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
+            viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
             var actualUploaded = this.studyGuide.getIsUploaded();
-            var uploadedStudyguide = db.getStudyguideFromId(this.studyGuide.getId()) instanceof StudyGuide concreteSg
+            var searchRequest = new SearchRequest(SessionData.getLoggedInUsername(), this.studyGuide.getTitle());
+            var matchingGuides = db.getStudyguidesContaining(searchRequest);
+            var uploadedStudyguide = matchingGuides.getFirst() instanceof StudyGuide concreteSg
                     ? concreteSg
                     : null;
 
             assertAll("Member checks",
-                    () -> assertTrue(actualSuccess),
                     () -> assertTrue(actualUploaded),
                     () -> assertTrue(viewmodel.getUploadedStudyGuidesProperty().contains(this.studyGuide)),
                     () -> assertStudyguideEquals(this.studyGuide, uploadedStudyguide));
@@ -398,11 +392,10 @@ public class TestHomeViewmodel {
         @Test
         public void testWhenStudyguideIsAlreadyUploaded() throws SQLException {
             viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
-            var actualSuccess = viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
+            viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
             var actualUploaded = this.studyGuide.getIsUploaded();
 
             assertAll("Member checks",
-                    () -> assertTrue(actualSuccess),
                     () -> assertTrue(actualUploaded),
                     () -> assertTrue(viewmodel.getUploadedStudyGuidesProperty().contains(this.studyGuide)));
         }
@@ -444,14 +437,30 @@ public class TestHomeViewmodel {
             viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
             viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
 
-            var actualSuccess = viewmodel.toggleUploadStudyGuide(this.studyGuide, false);
+            viewmodel.toggleUploadStudyGuide(this.studyGuide, false);
             var uploadedCollection = viewmodel.getUploadedStudyGuidesProperty().get();
             var expectedCount = 2;
             var actualCount = uploadedCollection.size();
 
             assertAll("collection check",
-                    () -> assertTrue(actualSuccess),
                     () -> assertFalse(uploadedCollection.contains(this.studyGuide)),
+                    () -> assertEquals(expectedCount, actualCount));
+        }
+
+        @Test
+        public void testCantRemoveUploadedStudyGuideThatIsNotYours() throws SQLException {
+            viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
+            viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
+            viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
+            SessionData.logInAs("Random username");
+
+            viewmodel.toggleUploadStudyGuide(this.studyGuide, false);
+            var uploadedCollection = viewmodel.getUploadedStudyGuidesProperty().get();
+            var expectedCount = 3;
+            var actualCount = uploadedCollection.size();
+
+            assertAll("collection check",
+                    () -> assertTrue(uploadedCollection.contains(this.studyGuide)),
                     () -> assertEquals(expectedCount, actualCount));
         }
 
@@ -466,6 +475,11 @@ public class TestHomeViewmodel {
     @Nested
     public class TestSearchForStudyguides {
 
+        @BeforeEach
+        public void setup() {
+            SessionData.logInAs("testUser");
+        }
+
         @Test
         public void testWhenNoStudyguidesUploaded() throws SQLException {
             viewmodel.searchForStudyguides();
@@ -478,7 +492,6 @@ public class TestHomeViewmodel {
 
         @Test
         public void testWhenSearchCriteriaDoesNotMatchAnyStudyguide() throws SQLException {
-            SessionData.logInAs("testUser");
             var studyguides = new StudyGuide[] { new StudyGuide(), new StudyGuide(), new StudyGuide() };
             var titles = new String[] { "Fruit", "Vegetable", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
@@ -503,7 +516,6 @@ public class TestHomeViewmodel {
 
         @Test
         public void testWhenSearchCriteriaMatchesUsername() throws SQLException {
-            SessionData.logInAs("testUser");
             var studyguides = new StudyGuide[] { new StudyGuide(), new StudyGuide(), new StudyGuide() };
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
@@ -542,7 +554,6 @@ public class TestHomeViewmodel {
 
         @Test
         public void testWhenSearchCriteriaMatchesOneTitle() throws SQLException {
-            SessionData.logInAs("testUser");
             var studyguides = new StudyGuide[] { new StudyGuide(), new StudyGuide(), new StudyGuide() };
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
@@ -581,7 +592,6 @@ public class TestHomeViewmodel {
 
         @Test
         public void testWhenSearchCriteriaMatchesMultipleTitles() throws SQLException {
-            SessionData.logInAs("testUser");
             var studyguides = new StudyGuide[] { new StudyGuide(), new StudyGuide(), new StudyGuide() };
             var titles = new String[] { "Calculus 1", "Calculus 2", "Meat" };
             var descriptions = new String[] { "about c1", "about c2", "about meat" };
@@ -620,7 +630,6 @@ public class TestHomeViewmodel {
 
         @Test
         public void testWhenSearchCriteriaMatchesOneDescription() throws SQLException {
-            SessionData.logInAs("testUser");
             var studyguides = new StudyGuide[] { new StudyGuide(), new StudyGuide(), new StudyGuide() };
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
@@ -659,7 +668,6 @@ public class TestHomeViewmodel {
 
         @Test
         public void testWhenSearchCriteriaMatchesMultipleDescriptions() throws SQLException {
-            SessionData.logInAs("testUser");
             var studyguides = new StudyGuide[] { new StudyGuide(), new StudyGuide(), new StudyGuide() };
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Vegan options", "vegan options", "Turkey" };
