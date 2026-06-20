@@ -57,7 +57,7 @@ public class Home extends StackPane {
     @FXML
     private TilePane searchedStudyguideTilePane;
 
-    private static final String HEADER_STRING = "{0}''s Quick Access Study Guides";
+    private static final String HEADER_STRING = "{0}''s Dashboard";
     private static final String DELETION_HEADER = "You are about to delete the study guide \"{0}\"";
     private static final String DELETION_CONTENT = "This action is irreversible, are you sure you want to PERMANENTLY DELETE \"{0}\"?";
     private static final String DELIST_HEADER = "You are about to remove the study guide \"{0}\" from the cloud";
@@ -90,6 +90,8 @@ public class Home extends StackPane {
             }
             var header = MessageFormat.format(HEADER_STRING, SessionData.getLoggedInUsername());
             this.headerLabel.setText(header);
+            this.updateDashboardDisplay();
+            this.updateSearchedDisplay();
         });
 
         var prefColumnWidth = 480;
@@ -167,8 +169,7 @@ public class Home extends StackPane {
         allProps.add(this.viewmodel.getSearchedStudyGuidesProperty());
         for (var prop : allProps) {
             prop.addListener((_, _, list) -> {
-                var updatedList = this.viewmodel.getSearchedStudyGuidesProperty().get();
-                this.refreshTilePane(this.searchedStudyguideTilePane, updatedList);
+                this.updateSearchedDisplay();
             });
         }
     }
@@ -200,15 +201,15 @@ public class Home extends StackPane {
     private void addEventListeners() {
         this.addEventHandler(StudyGuideEvent.DOWNLOAD, handler -> {
             this.downloadStudyGuideHandler(handler);
-            this.updateCurrentTilePaneDisplay();
+            this.updateDashboardDisplay();
         });
         this.addEventHandler(StudyGuideEvent.FAVORITE, handler -> {
             this.favoriteStudyGuideHandler(handler);
-            this.updateCurrentTilePaneDisplay();
+            this.updateDashboardDisplay();
         });
         this.addEventHandler(StudyGuideEvent.UPLOAD, handler -> {
             this.uploadStudyGuideHandler(handler);
-            this.updateCurrentTilePaneDisplay();
+            this.updateDashboardDisplay();
         });
     }
 
@@ -262,9 +263,14 @@ public class Home extends StackPane {
         }
     }
 
-    private void updateCurrentTilePaneDisplay() {
+    private void updateDashboardDisplay() {
         this.currentlyToggled.setSelected(false);
         this.currentlyToggled.setSelected(true);
+    }
+
+    private void updateSearchedDisplay() {
+        var updatedList = this.viewmodel.getSearchedStudyGuidesProperty().get();
+        this.refreshTilePane(this.searchedStudyguideTilePane, updatedList);
     }
 
     private void alertUserOfError(Exception err) {
@@ -320,7 +326,7 @@ public class Home extends StackPane {
 
     @FXML
     private void onBackButtonClick() {
-        this.updateCurrentTilePaneDisplay();
+        this.updateDashboardDisplay();
         this.homeBorderPane.setVisible(true);
     }
 }

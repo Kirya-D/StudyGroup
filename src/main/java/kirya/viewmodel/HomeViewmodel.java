@@ -21,6 +21,7 @@ import kirya.utils.SessionData;
 public class HomeViewmodel {
 
     private final AuthDatabase database;
+
     private final ListProperty<DisplayableStudyGuide> downloadedStudyGuidesProperty;
     private final ListProperty<DisplayableStudyGuide> favoritedStudyGuidesProperty;
     private final ListProperty<DisplayableStudyGuide> uploadedStudyGuidesProperty;
@@ -34,11 +35,40 @@ public class HomeViewmodel {
      */
     public HomeViewmodel(AuthDatabase database) {
         this.database = database;
+
         this.downloadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.favoritedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.uploadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.searchProperty = new SimpleStringProperty("");
         this.searchedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
+
+        this.bindToSelf();
+    }
+
+    private void bindToSelf() {
+        this.searchedStudyGuidesProperty.addListener((_, _, newList) -> {
+            newList.forEach(searchedGuide -> {
+                var matchingFavorites = this.favoritedStudyGuidesProperty.stream()
+                        .filter(sg -> searchedGuide.getId() == sg.getId()).toList();
+                var matchingDownloads = this.downloadedStudyGuidesProperty.stream()
+                        .filter(sg -> searchedGuide.getId() == sg.getId()).toList();
+                var matchingUploads = this.uploadedStudyGuidesProperty.stream()
+                        .filter(sg -> searchedGuide.getId() == sg.getId()).toList();
+
+                for (var favMatch : matchingFavorites) {
+                    var index = this.favoritedStudyGuidesProperty.indexOf(favMatch);
+                    this.favoritedStudyGuidesProperty.set(index, searchedGuide);
+                }
+                for (var downloadMatch : matchingDownloads) {
+                    var index = this.downloadedStudyGuidesProperty.indexOf(downloadMatch);
+                    this.downloadedStudyGuidesProperty.set(index, searchedGuide);
+                }
+                for (var uploadMatch : matchingUploads) {
+                    var index = this.uploadedStudyGuidesProperty.indexOf(uploadMatch);
+                    this.uploadedStudyGuidesProperty.set(index, searchedGuide);
+                }
+            });
+        });
     }
 
     /**
@@ -140,7 +170,6 @@ public class HomeViewmodel {
             var guideId = concreteGuide.getId();
             if (guideId != null) {
                 success = this.database.deleteStudyguide(uploadRequest);
-                concreteGuide.setId(null);
             }
         }
 

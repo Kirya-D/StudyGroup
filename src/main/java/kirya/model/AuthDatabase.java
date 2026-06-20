@@ -3,7 +3,6 @@ package kirya.model;
 import java.sql.Connection;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
-import java.sql.ResultSetMetaData;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -296,14 +295,17 @@ public abstract class AuthDatabase {
      * @throws IllegalArgumentException If {@link UpdateRequest#studyguide} == null
      */
     public final boolean deleteStudyguide(UpdateRequest request) throws SQLException {
-        if (request.studyguide == null) {
+        var guide = request.studyguide instanceof StudyGuide ? (StudyGuide) request.studyguide : null;
+        if (guide == null) {
             throw new IllegalArgumentException("studyguide can't be null");
         }
-        var guide = request.studyguide;
 
         this.deleteStudyguide.setString(1, request.username);
         this.deleteStudyguide.setInt(2, guide.getId());
         boolean success = this.deleteStudyguide.executeUpdate() > 0 ? true : false;
+        if (success) {
+            guide.setId(null);
+        }
         return success;
     }
 

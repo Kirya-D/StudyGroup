@@ -23,7 +23,7 @@ public class ConfirmationDialog {
 
         alert.setTitle(title);
         alert.setHeaderText(header);
-        alert.setTitle(title);
+        alert.setContentText(body);
 
         var optional = alert.showAndWait();
         var result = optional.isPresent() && optional.get() == ButtonType.OK;
