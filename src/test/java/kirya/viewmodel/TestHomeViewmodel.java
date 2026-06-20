@@ -10,6 +10,7 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 import java.io.IOException;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
@@ -348,6 +349,7 @@ public class TestHomeViewmodel {
         public void setup() {
             SessionData.logInAs("testUser");
             this.studyGuide = new StudyGuide();
+            this.studyGuide.setCreatorUsername(SessionData.getLoggedInUsername());
             this.studyGuide.setTitle("Test Studyguide");
             this.studyGuide.setDescription("Test description");
             var questions = new ArrayList<Question>();
@@ -492,19 +494,11 @@ public class TestHomeViewmodel {
 
         @Test
         public void testWhenSearchCriteriaDoesNotMatchAnyStudyguide() throws SQLException {
-            var studyguides = new StudyGuide[] { new StudyGuide(), new StudyGuide(), new StudyGuide() };
+            var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetable", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
+            this.populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
-            for (var i = 0; i < studyguides.length; i++) {
-                var guide = studyguides[i];
-                var title = titles[i];
-                var description = descriptions[i];
-                guide.setTitle(title);
-                guide.setDescription(description);
-                guide.setQuestions(List.of(new Question("question")));
-                viewmodel.toggleUploadStudyGuide(guide, true);
-            }
             viewmodel.getSearchProperty().set("Banana");
             viewmodel.searchForStudyguides();
 
@@ -516,27 +510,16 @@ public class TestHomeViewmodel {
 
         @Test
         public void testWhenSearchCriteriaMatchesUsername() throws SQLException {
-            var studyguides = new StudyGuide[] { new StudyGuide(), new StudyGuide(), new StudyGuide() };
+            var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
+            this.populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
-            for (var i = 0; i < studyguides.length; i++) {
-                var guide = studyguides[i];
-                var title = titles[i];
-                var description = descriptions[i];
-                guide.setTitle(title);
-                guide.setDescription(description);
-                var question = new Question("question");
-                question.setQuestionType(QuestionType.MULTIPLE_CHOICE);
-                question.setChoices(List.of("True", "False"));
-                question.setAnswers(List.of("True"));
-                guide.setQuestions(List.of(question));
-                viewmodel.toggleUploadStudyGuide(guide, true);
-            }
             viewmodel.getSearchProperty().set("user");
             viewmodel.searchForStudyguides();
 
-            List<DisplayableStudyGuide> expectedList = List.of(studyguides);
+            studyguides.forEach(sg -> sg.setCreatorUsername(SessionData.getLoggedInUsername()));
+            var expectedList = studyguides;
             var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
 
             assertAll(
@@ -547,34 +530,23 @@ public class TestHomeViewmodel {
                         for (var i = 0; i < smallerMax; i++) {
                             var expectedItem = expectedList.get(i);
                             var actualItem = actualList.get(i);
-                            assertStudyguideEquals(actualItem, expectedItem);
+                            assertStudyguideEquals(expectedItem, actualItem);
                         }
                     });
         }
 
         @Test
         public void testWhenSearchCriteriaMatchesOneTitle() throws SQLException {
-            var studyguides = new StudyGuide[] { new StudyGuide(), new StudyGuide(), new StudyGuide() };
+            var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
+            this.populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
-            for (var i = 0; i < studyguides.length; i++) {
-                var guide = studyguides[i];
-                var title = titles[i];
-                var description = descriptions[i];
-                guide.setTitle(title);
-                guide.setDescription(description);
-                var question = new Question("question");
-                question.setQuestionType(QuestionType.MULTIPLE_CHOICE);
-                question.setChoices(List.of("True", "False"));
-                question.setAnswers(List.of("True"));
-                guide.setQuestions(List.of(question));
-                viewmodel.toggleUploadStudyGuide(guide, true);
-            }
             viewmodel.getSearchProperty().set("veget");
             viewmodel.searchForStudyguides();
 
-            List<DisplayableStudyGuide> expectedList = List.of(studyguides[1]);
+            studyguides.forEach(sg -> sg.setCreatorUsername(SessionData.getLoggedInUsername()));
+            var expectedList = List.of(studyguides.get(1));
             var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
 
             assertAll(
@@ -585,34 +557,23 @@ public class TestHomeViewmodel {
                         for (var i = 0; i < smallerMax; i++) {
                             var expectedItem = expectedList.get(i);
                             var actualItem = actualList.get(i);
-                            assertStudyguideEquals(actualItem, expectedItem);
+                            assertStudyguideEquals(expectedItem, actualItem);
                         }
                     });
         }
 
         @Test
         public void testWhenSearchCriteriaMatchesMultipleTitles() throws SQLException {
-            var studyguides = new StudyGuide[] { new StudyGuide(), new StudyGuide(), new StudyGuide() };
+            var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Calculus 1", "Calculus 2", "Meat" };
             var descriptions = new String[] { "about c1", "about c2", "about meat" };
+            this.populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
-            for (var i = 0; i < studyguides.length; i++) {
-                var guide = studyguides[i];
-                var title = titles[i];
-                var description = descriptions[i];
-                guide.setTitle(title);
-                guide.setDescription(description);
-                var question = new Question("question");
-                question.setQuestionType(QuestionType.MULTIPLE_CHOICE);
-                question.setChoices(List.of("True", "False"));
-                question.setAnswers(List.of("True"));
-                guide.setQuestions(List.of(question));
-                viewmodel.toggleUploadStudyGuide(guide, true);
-            }
             viewmodel.getSearchProperty().set("calcu");
             viewmodel.searchForStudyguides();
 
-            List<DisplayableStudyGuide> expectedList = List.of(studyguides[0], studyguides[1]);
+            studyguides.forEach(sg -> sg.setCreatorUsername(SessionData.getLoggedInUsername()));
+            var expectedList = List.of(studyguides.get(0), studyguides.get(1));
             var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
 
             assertAll(
@@ -623,34 +584,23 @@ public class TestHomeViewmodel {
                         for (var i = 0; i < smallerMax; i++) {
                             var expectedItem = expectedList.get(i);
                             var actualItem = actualList.get(i);
-                            assertStudyguideEquals(actualItem, expectedItem);
+                            assertStudyguideEquals(expectedItem, actualItem);
                         }
                     });
         }
 
         @Test
         public void testWhenSearchCriteriaMatchesOneDescription() throws SQLException {
-            var studyguides = new StudyGuide[] { new StudyGuide(), new StudyGuide(), new StudyGuide() };
+            var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
+            this.populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
-            for (var i = 0; i < studyguides.length; i++) {
-                var guide = studyguides[i];
-                var title = titles[i];
-                var description = descriptions[i];
-                guide.setTitle(title);
-                guide.setDescription(description);
-                var question = new Question("question");
-                question.setQuestionType(QuestionType.MULTIPLE_CHOICE);
-                question.setChoices(List.of("True", "False"));
-                question.setAnswers(List.of("True"));
-                guide.setQuestions(List.of(question));
-                viewmodel.toggleUploadStudyGuide(guide, true);
-            }
             viewmodel.getSearchProperty().set("app");
             viewmodel.searchForStudyguides();
 
-            List<DisplayableStudyGuide> expectedList = List.of(studyguides[0]);
+            studyguides.forEach(sg -> sg.setCreatorUsername(SessionData.getLoggedInUsername()));
+            var expectedList = List.of(studyguides.getFirst());
             var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
 
             assertAll(
@@ -661,34 +611,23 @@ public class TestHomeViewmodel {
                         for (var i = 0; i < smallerMax; i++) {
                             var expectedItem = expectedList.get(i);
                             var actualItem = actualList.get(i);
-                            assertStudyguideEquals(actualItem, expectedItem);
+                            assertStudyguideEquals(expectedItem, actualItem);
                         }
                     });
         }
 
         @Test
         public void testWhenSearchCriteriaMatchesMultipleDescriptions() throws SQLException {
-            var studyguides = new StudyGuide[] { new StudyGuide(), new StudyGuide(), new StudyGuide() };
+            var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Vegan options", "vegan options", "Turkey" };
+            this.populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
-            for (var i = 0; i < studyguides.length; i++) {
-                var guide = studyguides[i];
-                var title = titles[i];
-                var description = descriptions[i];
-                guide.setTitle(title);
-                guide.setDescription(description);
-                var question = new Question("question");
-                question.setQuestionType(QuestionType.MULTIPLE_CHOICE);
-                question.setChoices(List.of("True", "False"));
-                question.setAnswers(List.of("True"));
-                guide.setQuestions(List.of(question));
-                viewmodel.toggleUploadStudyGuide(guide, true);
-            }
             viewmodel.getSearchProperty().set("vegan");
             viewmodel.searchForStudyguides();
 
-            List<DisplayableStudyGuide> expectedList = List.of(studyguides[0], studyguides[1]);
+            studyguides.forEach(sg -> sg.setCreatorUsername(SessionData.getLoggedInUsername()));
+            var expectedList = List.of(studyguides.get(0), studyguides.get(1));
             var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
 
             assertAll(
@@ -699,9 +638,28 @@ public class TestHomeViewmodel {
                         for (var i = 0; i < smallerMax; i++) {
                             var expectedItem = expectedList.get(i);
                             var actualItem = actualList.get(i);
-                            assertStudyguideEquals(actualItem, expectedItem);
+                            assertStudyguideEquals(expectedItem, actualItem);
                         }
                     });
+        }
+
+        private void populateStudyguidesWithFillerInformationAndUploadThem(List<StudyGuide> studyguides,
+                String[] titles, String[] descriptions) throws SQLException {
+            for (var i = 0; i < studyguides.size(); i++) {
+                var guide = studyguides.get(i);
+                var title = titles[i];
+                var description = descriptions[i];
+                guide.setTitle(title);
+                guide.setDescription(description);
+                guide.setIsFavorited(i % 2 == 0 ? true : false);
+                guide.setIsDownloaded(!guide.getIsFavorited());
+                var question = new Question("question");
+                question.setQuestionType(QuestionType.MULTIPLE_CHOICE);
+                question.setChoices(List.of("True", "False"));
+                question.setAnswers(List.of("True"));
+                guide.setQuestions(List.of(question));
+                viewmodel.toggleUploadStudyGuide(guide, true);
+            }
         }
     }
 
@@ -716,6 +674,7 @@ public class TestHomeViewmodel {
                 () -> assertEquals(obj1.getIsDownloaded(), obj2.getIsDownloaded()),
                 () -> assertEquals(obj1.getIsUploaded(), obj2.getIsUploaded()),
                 () -> assertEquals(obj1.getTitle(), obj2.getTitle()),
+                () -> assertEquals(obj1.getCreatorUsername(), obj2.getCreatorUsername()),
                 () -> assertEquals(obj1Questions, obj2Questions));
     }
 }
