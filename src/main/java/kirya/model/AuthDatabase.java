@@ -22,16 +22,18 @@ import kirya.utils.QuestionType;
 public abstract class AuthDatabase {
 
     protected Connection dbConnection;
-    private PreparedStatement getAccountWithUsername;
-    private PreparedStatement getAccountWithCredentials;
-    private PreparedStatement createAccount;
-    private PreparedStatement createStudyguide;
-    private PreparedStatement upsertStudyguideStatus;
-    private PreparedStatement createQuestion;
-    private PreparedStatement createChoice;
-    private PreparedStatement getStudyguideContainingSubstring;
-    private PreparedStatement transferStudyguideStats;
-    private PreparedStatement deleteStudyguide;
+    private final PreparedStatement getAccountWithUsername;
+    private final PreparedStatement getAccountWithCredentials;
+    private final PreparedStatement createAccount;
+    private final PreparedStatement createStudyguide;
+    private final PreparedStatement upsertStudyguideStatus;
+    private final PreparedStatement createQuestion;
+    private final PreparedStatement createChoice;
+    private final PreparedStatement getStudyguideContainingSubstring;
+    private final PreparedStatement transferStudyguideStats;
+    private final PreparedStatement deleteStudyguide;
+
+    public static final int GUIDES_PER_PAGE = 50;
 
     public AuthDatabase(Properties properties) throws SQLException {
         this.setupDatabase();
@@ -214,7 +216,8 @@ public abstract class AuthDatabase {
             this.deleteStudyguide(request);
         }
 
-        ((StudyGuide) request.studyguide).setId(newStudyguideId);
+        var editableGuide = (StudyGuide) request.studyguide;
+        editableGuide.setId(newStudyguideId);
         return true;
     }
 
@@ -329,10 +332,13 @@ public abstract class AuthDatabase {
             throw new IllegalArgumentException("search can't be null");
         }
 
+        var offset = request.pageNum * GUIDES_PER_PAGE;
         this.getStudyguideContainingSubstring.setString(1, request.username);
         this.getStudyguideContainingSubstring.setString(2, request.search);
         this.getStudyguideContainingSubstring.setString(3, request.search);
         this.getStudyguideContainingSubstring.setString(4, request.search);
+        this.getStudyguideContainingSubstring.setInt(5, offset);
+        this.getStudyguideContainingSubstring.setInt(6, GUIDES_PER_PAGE);
 
         var results = this.getStudyguideContainingSubstring.executeQuery();
         var fittingGuides = this.getStudyguidesFromResultSet(results);

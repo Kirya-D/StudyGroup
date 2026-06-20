@@ -18,6 +18,7 @@ import javafx.scene.control.Label;
 import javafx.scene.control.ScrollPane;
 import javafx.scene.control.TextField;
 import javafx.scene.control.ToggleButton;
+import javafx.scene.input.ScrollEvent;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
@@ -124,6 +125,13 @@ public class Home extends StackPane {
     }
 
     private void bindToViewmodel() {
+        this.searchScrollPane.addEventFilter(ScrollEvent.ANY, scrollEvent -> {
+            this.getMoreGuidesAtBottomOfDisplay();
+        });
+        this.searchScrollPane.vvalueProperty().addListener((_, _, _) -> {
+            this.getMoreGuidesAtBottomOfDisplay();
+        });
+
         this.searchTextField.textProperty().bindBidirectional(this.viewmodel.getSearchProperty());
 
         var buttonMapping = new HashMap<ToggleButton, ListProperty<DisplayableStudyGuide>>();
@@ -171,6 +179,19 @@ public class Home extends StackPane {
             prop.addListener((_, _, list) -> {
                 this.updateSearchedDisplay();
             });
+        }
+    }
+
+    private void getMoreGuidesAtBottomOfDisplay() {
+        var scrolledToBottom = this.searchScrollPane.getVvalue() == this.searchScrollPane.getVmax();
+        var haveNowhereToScroll = this.searchScrollPane.getViewportBounds().getHeight() <= this.searchScrollPane
+                .getHeight();
+        if (scrolledToBottom || haveNowhereToScroll) {
+            try {
+                this.viewmodel.attemptGetMoreResults();
+            } catch (SQLException err) {
+                this.alertUserOfError(err);
+            }
         }
     }
 

@@ -21,6 +21,9 @@ import kirya.utils.SessionData;
 public class HomeViewmodel {
 
     private final AuthDatabase database;
+    private String lastEnteredSearch;
+    private int uninterruptedSearchRequests;
+    private boolean allowMoreRequests;
 
     private final ListProperty<DisplayableStudyGuide> downloadedStudyGuidesProperty;
     private final ListProperty<DisplayableStudyGuide> favoritedStudyGuidesProperty;
@@ -35,6 +38,9 @@ public class HomeViewmodel {
      */
     public HomeViewmodel(AuthDatabase database) {
         this.database = database;
+        this.lastEnteredSearch = null;
+        this.uninterruptedSearchRequests = 0;
+        this.allowMoreRequests = true;
 
         this.downloadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.favoritedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
@@ -73,9 +79,14 @@ public class HomeViewmodel {
 
     /**
      * {@return a newly created study guide}
+     * 
+     * @throws IllegalArgumentException If {@link SessionData#getLoggedInUsername()}
+     *                                  == {@code null}
      */
     public DisplayableStudyGuide createNewStudyGuide() {
-        return new StudyGuide();
+        var newGuide = new StudyGuide();
+        newGuide.setCreatorUsername(SessionData.getLoggedInUsername());
+        return newGuide;
     }
 
     /**
@@ -206,14 +217,35 @@ public class HomeViewmodel {
         if (searchString == null || searchString.isBlank()) {
             return;
         }
+        this.uninterruptedSearchRequests = 0;
+        this.lastEnteredSearch = searchString;
 
         var searchRequest = new SearchRequest(SessionData.getLoggedInUsername(), searchString);
         var results = this.database.getStudyguidesContaining(searchRequest);
         this.searchedStudyGuidesProperty.setAll(results);
     }
 
+    /**
+     * Requests more results from the most recent search query from
+     * {@link HomeViewmodel#searchForStudyguides()} unless the most recent call to
+     * {@link HomeViewmodel#attemptGetMoreResults()} retrieved 0 results, in which
+     * case no more attempts are made until a new search is initiated.
+     * 
+     * @throws SQLException If a database error occurs
+     */
     public void attemptGetMoreResults() throws SQLException {
-        // TODO
+        if (this.lastEnteredSearch == null || !this.allowMoreRequests) {
+            return;
+        }
+        this.uninterruptedSearchRequests++;
+
+        var search = this.lastEnteredSearch;
+        var pageNum = this.uninterruptedSearchRequests;
+        var searchRequest = new SearchRequest(SessionData.getLoggedInUsername(), search, pageNum);
+        var results = this.database.getStudyguidesContaining(searchRequest);
+        this.searchedStudyGuidesProperty.addAll(results);
+
+        this.allowMoreRequests = results.size() > 0;
     }
 
     private StudyGuide getConcreteGuide(DisplayableStudyGuide studyGuide) {

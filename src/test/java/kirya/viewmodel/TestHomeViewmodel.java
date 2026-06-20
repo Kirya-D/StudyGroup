@@ -78,11 +78,21 @@ public class TestHomeViewmodel {
     public class TestCreateNewStudyGuide {
 
         @Test
+        public void throwsWhenNoLoggedInUser() {
+            assertThrows(IllegalArgumentException.class, () -> viewmodel.createNewStudyGuide());
+        }
+
+        @Test
         public void testWhenSuccessful() {
             var expectedType = DisplayableStudyGuide.class;
-            var actual = viewmodel.createNewStudyGuide();
+            SessionData.logInAs("testUser");
+            var actualGuide = viewmodel.createNewStudyGuide();
+            var expectedCreator = SessionData.getLoggedInUsername();
+            var actualCreator = actualGuide.getCreatorUsername();
 
-            assertInstanceOf(expectedType, actual);
+            assertAll(
+                    () -> assertEquals(expectedCreator, actualCreator),
+                    () -> assertInstanceOf(expectedType, actualGuide));
         }
     }
 
@@ -497,7 +507,7 @@ public class TestHomeViewmodel {
             var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetable", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
-            this.populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
+            populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
             viewmodel.getSearchProperty().set("Banana");
             viewmodel.searchForStudyguides();
@@ -513,7 +523,7 @@ public class TestHomeViewmodel {
             var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
-            this.populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
+            populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
             viewmodel.getSearchProperty().set("user");
             viewmodel.searchForStudyguides();
@@ -540,7 +550,7 @@ public class TestHomeViewmodel {
             var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
-            this.populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
+            populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
             viewmodel.getSearchProperty().set("veget");
             viewmodel.searchForStudyguides();
@@ -567,7 +577,7 @@ public class TestHomeViewmodel {
             var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Calculus 1", "Calculus 2", "Meat" };
             var descriptions = new String[] { "about c1", "about c2", "about meat" };
-            this.populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
+            populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
             viewmodel.getSearchProperty().set("calcu");
             viewmodel.searchForStudyguides();
@@ -594,7 +604,7 @@ public class TestHomeViewmodel {
             var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
-            this.populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
+            populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
             viewmodel.getSearchProperty().set("app");
             viewmodel.searchForStudyguides();
@@ -621,7 +631,7 @@ public class TestHomeViewmodel {
             var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Vegan options", "vegan options", "Turkey" };
-            this.populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
+            populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
             viewmodel.getSearchProperty().set("vegan");
             viewmodel.searchForStudyguides();
@@ -643,23 +653,162 @@ public class TestHomeViewmodel {
                     });
         }
 
-        private void populateStudyguidesWithFillerInformationAndUploadThem(List<StudyGuide> studyguides,
-                String[] titles, String[] descriptions) throws SQLException {
-            for (var i = 0; i < studyguides.size(); i++) {
-                var guide = studyguides.get(i);
-                var title = titles[i];
-                var description = descriptions[i];
-                guide.setTitle(title);
-                guide.setDescription(description);
-                guide.setIsFavorited(i % 2 == 0 ? true : false);
-                guide.setIsDownloaded(!guide.getIsFavorited());
-                var question = new Question("question");
-                question.setQuestionType(QuestionType.MULTIPLE_CHOICE);
-                question.setChoices(List.of("True", "False"));
-                question.setAnswers(List.of("True"));
-                guide.setQuestions(List.of(question));
-                viewmodel.toggleUploadStudyGuide(guide, true);
-            }
+        @Test
+        public void testWhenSearchCriteriaMatchesLessThanPageMaximum() throws SQLException {
+            var oneUnderMax = AuthDatabase.GUIDES_PER_PAGE - 1;
+            var studyguides = new ArrayList<StudyGuide>(Collections.nCopies(oneUnderMax, null));
+            studyguides.replaceAll(empty -> new StudyGuide());
+            var titles = Collections.nCopies(oneUnderMax, "Title").toArray(String[]::new);
+            var descriptions = Collections.nCopies(oneUnderMax, "Description").toArray(String[]::new);
+            populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
+
+            viewmodel.getSearchProperty().set("testUser");
+            viewmodel.searchForStudyguides();
+            var expectedList = studyguides;
+            var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
+
+            assertAll(
+                    () -> assertEquals(expectedList.size(), actualList.size()),
+                    () -> {
+                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
+                                : actualList.size();
+                        for (var i = 0; i < smallerMax; i++) {
+                            var expectedItem = expectedList.get(i);
+                            var actualItem = actualList.get(i);
+                            assertStudyguideEquals(expectedItem, actualItem);
+                        }
+                    });
+        }
+
+        @Test
+        public void testWhenSearchCriteriaMatchesPageMaximum() throws SQLException {
+            var studyguides = new ArrayList<StudyGuide>(Collections.nCopies(AuthDatabase.GUIDES_PER_PAGE, null));
+            studyguides.replaceAll(empty -> new StudyGuide());
+            var titles = Collections.nCopies(AuthDatabase.GUIDES_PER_PAGE, "Title").toArray(String[]::new);
+            var descriptions = Collections.nCopies(AuthDatabase.GUIDES_PER_PAGE, "Description").toArray(String[]::new);
+            populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
+
+            viewmodel.getSearchProperty().set("testUser");
+            viewmodel.searchForStudyguides();
+            var expectedList = studyguides;
+            var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
+
+            assertAll(
+                    () -> assertEquals(expectedList.size(), actualList.size()),
+                    () -> {
+                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
+                                : actualList.size();
+                        for (var i = 0; i < smallerMax; i++) {
+                            var expectedItem = expectedList.get(i);
+                            var actualItem = actualList.get(i);
+                            assertStudyguideEquals(expectedItem, actualItem);
+                        }
+                    });
+        }
+
+        @Test
+        public void testWhenSearchCriteriaMatchesMoreThanPageMaximum() throws SQLException {
+            var oneOverMax = AuthDatabase.GUIDES_PER_PAGE + 1;
+            var studyguides = new ArrayList<StudyGuide>(Collections.nCopies(oneOverMax, null));
+            studyguides.replaceAll(empty -> new StudyGuide());
+            var titles = Collections.nCopies(oneOverMax, "Title").toArray(String[]::new);
+            var descriptions = Collections.nCopies(oneOverMax, "Description").toArray(String[]::new);
+            populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
+
+            viewmodel.getSearchProperty().set("testUser");
+            viewmodel.searchForStudyguides();
+            var expectedList = studyguides.subList(0, AuthDatabase.GUIDES_PER_PAGE);
+            var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
+
+            assertAll(
+                    () -> assertEquals(expectedList.size(), actualList.size()),
+                    () -> {
+                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
+                                : actualList.size();
+                        for (var i = 0; i < smallerMax; i++) {
+                            var expectedItem = expectedList.get(i);
+                            var actualItem = actualList.get(i);
+                            assertStudyguideEquals(expectedItem, actualItem);
+                        }
+                    });
+        }
+    }
+
+    @Nested
+    public class TestAttemptGetMoreResults {
+
+        @BeforeEach
+        public void setup() {
+            SessionData.logInAs("testUser");
+        }
+
+        @Test
+        public void testWhenNoInitialSearch() throws SQLException {
+            viewmodel.getSearchProperty().set("testUser");
+            viewmodel.attemptGetMoreResults();
+
+            var expectedList = List.of();
+            var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
+
+            assertAll(
+                    () -> assertEquals(expectedList.size(), actualList.size()),
+                    () -> assertEquals(expectedList, actualList));
+        }
+
+        @Test
+        public void testWhenTotalResultsLessThanOnePage() throws SQLException {
+            var belowMax = AuthDatabase.GUIDES_PER_PAGE / 2;
+            var studyguides = new ArrayList<StudyGuide>(Collections.nCopies(belowMax, null));
+            studyguides.replaceAll(empty -> new StudyGuide());
+            var titles = Collections.nCopies(belowMax, "Title").toArray(String[]::new);
+            var descriptions = Collections.nCopies(belowMax, "Description").toArray(String[]::new);
+            populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
+
+            viewmodel.getSearchProperty().set("testUser");
+            viewmodel.searchForStudyguides();
+            viewmodel.attemptGetMoreResults();
+            var expectedList = studyguides;
+            var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
+
+            assertAll(
+                    () -> assertEquals(expectedList.size(), actualList.size()),
+                    () -> {
+                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
+                                : actualList.size();
+                        for (var i = 0; i < smallerMax; i++) {
+                            var expectedItem = expectedList.get(i);
+                            var actualItem = actualList.get(i);
+                            assertStudyguideEquals(expectedItem, actualItem);
+                        }
+                    });
+        }
+
+        @Test
+        public void testWhenTotalResultsGreaterThanOnePage() throws SQLException {
+            var aboveMax = AuthDatabase.GUIDES_PER_PAGE * 2;
+            var studyguides = new ArrayList<StudyGuide>(Collections.nCopies(aboveMax, null));
+            studyguides.replaceAll(empty -> new StudyGuide());
+            var titles = Collections.nCopies(aboveMax, "Title").toArray(String[]::new);
+            var descriptions = Collections.nCopies(aboveMax, "Description").toArray(String[]::new);
+            populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
+
+            viewmodel.getSearchProperty().set("testUser");
+            viewmodel.searchForStudyguides();
+            viewmodel.attemptGetMoreResults();
+            var expectedList = studyguides;
+            var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
+
+            assertAll(
+                    () -> assertEquals(expectedList.size(), actualList.size()),
+                    () -> {
+                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
+                                : actualList.size();
+                        for (var i = 0; i < smallerMax; i++) {
+                            var expectedItem = expectedList.get(i);
+                            var actualItem = actualList.get(i);
+                            assertStudyguideEquals(expectedItem, actualItem);
+                        }
+                    });
         }
     }
 
@@ -676,5 +825,25 @@ public class TestHomeViewmodel {
                 () -> assertEquals(obj1.getTitle(), obj2.getTitle()),
                 () -> assertEquals(obj1.getCreatorUsername(), obj2.getCreatorUsername()),
                 () -> assertEquals(obj1Questions, obj2Questions));
+    }
+
+    private void populateStudyguidesWithFillerInformationAndUploadThem(List<StudyGuide> studyguides,
+            String[] titles, String[] descriptions) throws SQLException {
+        for (var i = 0; i < studyguides.size(); i++) {
+            var guide = studyguides.get(i);
+            var title = titles[i];
+            var description = descriptions[i];
+            guide.setCreatorUsername(SessionData.getLoggedInUsername());
+            guide.setTitle(title);
+            guide.setDescription(description);
+            guide.setIsFavorited(i % 2 == 0 ? true : false);
+            guide.setIsDownloaded(!guide.getIsFavorited());
+            var question = new Question("question");
+            question.setQuestionType(QuestionType.MULTIPLE_CHOICE);
+            question.setChoices(List.of("True", "False"));
+            question.setAnswers(List.of("True"));
+            guide.setQuestions(List.of(question));
+            viewmodel.toggleUploadStudyGuide(guide, true);
+        }
     }
 }
