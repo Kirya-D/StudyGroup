@@ -19,6 +19,7 @@ import javafx.scene.layout.GridPane;
 import javafx.scene.paint.Color;
 import javafx.scene.text.Font;
 import kirya.utils.DisplayableStudyGuide;
+import kirya.utils.SessionData;
 import kirya.view.events.StudyGuideEvent;
 
 /**
@@ -86,6 +87,7 @@ public class StudyGuideOverview extends GridPane {
                 .bind(this.extendedUsernameBottomSeparator.visibleProperty());
 
         this.editButton.managedProperty().bind(this.editButton.visibleProperty());
+        this.uploadButton.managedProperty().bind(this.uploadButton.visibleProperty());
     }
 
     private void setTooltips() {
@@ -115,7 +117,7 @@ public class StudyGuideOverview extends GridPane {
     }
 
     private void refreshDisplay() {
-        this.titleByUsernameLabel.setText(this.displayableStudyGuide.getTitle());
+        this.titleByUsernameLabel.setText(this.displayableStudyGuide.toString());
         this.extendedUsernameAndTitleLabel.setText("");
         this.questionCountLabel.setText(this.displayableStudyGuide.getQuestions().size() + " questions");
         this.descriptionLabel.setText(this.displayableStudyGuide.getDescription());
@@ -128,17 +130,22 @@ public class StudyGuideOverview extends GridPane {
     }
 
     private void updateButtonsDisplay() {
+        var currentUser = SessionData.getLoggedInUsername();
+        var creatorUser = this.displayableStudyGuide.getCreatorUsername();
+
         var downloaded = this.displayableStudyGuide.getIsDownloaded();
         var favorited = this.displayableStudyGuide.getIsFavorited();
         var uploaded = this.displayableStudyGuide.getIsUploaded();
-        var isUserCreated = true;
+        var isCreatedByCurrentUser = creatorUser.equals(currentUser);
+
+        this.editButton.setVisible(isCreatedByCurrentUser);
+        this.uploadButton.setVisible(isCreatedByCurrentUser);
 
         var downloadButtonTextFill = downloaded ? Color.BLUE : Color.BLACK;
         var favoriteButtonTextFill = favorited ? Color.YELLOW : Color.BLACK;
         var uploadButtonTextFill = uploaded ? Color.BLUE : Color.BLACK;
 
         this.downloadButton.setTextFill(downloadButtonTextFill);
-        this.editButton.setVisible(isUserCreated);
         this.favoriteButton.setTextFill(favoriteButtonTextFill);
         this.uploadButton.setTextFill(uploadButtonTextFill);
 

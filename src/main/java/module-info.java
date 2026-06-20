@@ -14,6 +14,7 @@ module kirya {
 
     exports kirya;
     exports kirya.model;
+    exports kirya.model.request;
     exports kirya.utils;
     exports kirya.viewmodel;
 }

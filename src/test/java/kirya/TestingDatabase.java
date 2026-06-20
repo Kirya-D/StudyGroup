@@ -6,27 +6,26 @@ import java.io.IOException;
 import java.sql.DriverManager;
 import java.sql.SQLException;
 import java.util.ArrayList;
-import java.util.Properties;
 
-import kirya.model.AuthDatabase;
+import io.github.cdimascio.dotenv.Dotenv;
+import kirya.model.RemoteDatabase;
 
-public class TestingDatabase extends AuthDatabase {
+public class TestingDatabase extends RemoteDatabase {
 
     private static final String SETUP_FILEPATH = TestingDatabase.class.getResource("testingdatabase.sql").getPath()
             .replaceFirst("/", "");
 
     public TestingDatabase() throws SQLException, IOException {
-        var properties = new Properties();
-        var propertyResource = TestingDatabase.class.getResourceAsStream("testingauthqueries.properties");
-        properties.load(propertyResource);
-        super(properties);
+        super();
     }
 
     /**
      * {@inheritDoc}
      */
     protected void setupDatabase() throws SQLException {
-        this.dbConnection = DriverManager.getConnection("jdbc:sqlite:");
+        var env = Dotenv.load();
+        var url = env.get("TESTING_DB_URL");
+        this.dbConnection = DriverManager.getConnection(url);
         var commands = new ArrayList<String>();
         try (var reader = new BufferedReader(new FileReader(SETUP_FILEPATH))) {
             var queryBuilder = new StringBuilder();
@@ -46,6 +45,24 @@ public class TestingDatabase extends AuthDatabase {
         for (var cmd : commands) {
             statement.addBatch(cmd);
         }
-        statement.executeBatch();
+        try {
+            statement.executeBatch();
+        } catch (SQLException err) {
+            this.clearDatabase();
+            this.setupDatabase();
+        }
+    }
+
+    private void clearDatabase() throws SQLException {
+        var statement = this.dbConnection.createStatement();
+        var stringBuilder = new StringBuilder();
+
+        stringBuilder.append("DROP TABLE Choice;");
+        stringBuilder.append("DROP TABLE Question;");
+        stringBuilder.append("DROP TABLE AccountStudyguideStatus;");
+        stringBuilder.append("DROP TABLE Studyguide;");
+        stringBuilder.append("DROP TABLE Account;");
+
+        statement.execute(stringBuilder.toString());
     }
 }

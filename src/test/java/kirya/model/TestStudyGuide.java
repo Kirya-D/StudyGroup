@@ -33,6 +33,8 @@ public class TestStudyGuide {
             var actualFavorited = studyguide.getIsFavorited();
             var expectedUploaded = false;
             var actualUploaded = studyguide.getIsUploaded();
+            var expectedUsername = "";
+            var actualUsername = studyguide.getCreatorUsername();
             var expectedTitle = "";
             var actualTitle = studyguide.getTitle();
             var expectedDescription = "";
@@ -45,6 +47,7 @@ public class TestStudyGuide {
                     () -> assertEquals(expectedDownloaded, actualDownloaded),
                     () -> assertEquals(expectedFavorited, actualFavorited),
                     () -> assertEquals(expectedUploaded, actualUploaded),
+                    () -> assertEquals(expectedUsername, actualUsername),
                     () -> assertEquals(expectedTitle, actualTitle),
                     () -> assertEquals(expectedDescription, actualDescription),
                     () -> assertEquals(expectedQuestions, actualQuestions));
@@ -128,6 +131,28 @@ public class TestStudyGuide {
             var actual = studyguide.getIsUploaded();
 
             assertEquals(expected, actual);
+        }
+    }
+
+    @Nested
+    public class TestSetCreatorUsername {
+
+        @Test
+        public void testWhenSuccessful() {
+            var validUser = "Valid username";
+            studyguide.setCreatorUsername(validUser);
+
+            var expected = validUser;
+            var actual = studyguide.getCreatorUsername();
+
+            assertEquals(expected, actual);
+        }
+
+        @Test
+        public void throwsWhenNull() {
+            assertThrows(IllegalArgumentException.class, () -> {
+                studyguide.setCreatorUsername(null);
+            });
         }
     }
 

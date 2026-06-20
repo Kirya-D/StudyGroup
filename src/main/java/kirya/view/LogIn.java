@@ -3,8 +3,6 @@ package kirya.view;
 import java.io.IOException;
 import java.sql.SQLException;
 
-import javafx.beans.property.BooleanProperty;
-import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
@@ -35,7 +33,6 @@ public class LogIn extends GridPane {
     @FXML
     private PasswordField passwordField;
 
-    private BooleanProperty loggedInProperty = new SimpleBooleanProperty(false);
     private LogInViewmodel viewmodel;
 
     /**
@@ -50,13 +47,6 @@ public class LogIn extends GridPane {
         } catch (IOException e) {
             e.printStackTrace();
         }
-    }
-
-    /**
-     * {@return the logged in {@link BooleanProperty}}
-     */
-    public BooleanProperty LoggedInProperty() {
-        return this.loggedInProperty;
     }
 
     /**

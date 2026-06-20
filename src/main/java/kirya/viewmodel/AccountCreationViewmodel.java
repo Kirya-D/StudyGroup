@@ -7,6 +7,7 @@ import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import kirya.model.AuthDatabase;
+import kirya.model.request.CredentialsRequest;
 
 /**
  * Viewmodel of the AccountCreation view class
@@ -37,9 +38,9 @@ public class AccountCreationViewmodel {
      */
     public AccountCreationViewmodel(AuthDatabase database) {
         this.database = database;
-        this.usernameFinalizedProperty = new SimpleBooleanProperty();
-        this.usernameProperty = new SimpleStringProperty();
-        this.passwordProperty = new SimpleStringProperty();
+        this.usernameFinalizedProperty = new SimpleBooleanProperty(false);
+        this.usernameProperty = new SimpleStringProperty("");
+        this.passwordProperty = new SimpleStringProperty("");
         this.usernameIssueProperty = new SimpleStringProperty(REQUIRED_FIELD);
         this.passwordIssueProperty = new SimpleStringProperty(REQUIRED_FIELD);
 
@@ -54,7 +55,8 @@ public class AccountCreationViewmodel {
             var currentText = this.usernameProperty.get();
             var usernameIsTaken = false;
             try {
-                usernameIsTaken = this.database.hasAccountWithUsername(currentText);
+                var usernameRequest = new CredentialsRequest(currentText);
+                usernameIsTaken = this.database.hasAccountWithUsername(usernameRequest);
             } catch (SQLException err) {
                 usernameIsTaken = true;
             }
@@ -123,7 +125,9 @@ public class AccountCreationViewmodel {
     public void attemptCreateAccount() throws SQLException {
         var accountUsername = this.usernameProperty.get();
         var accountPassword = this.passwordProperty.get();
-        this.database.attemptCreateAccount(accountUsername, accountPassword);
+
+        var credentialRequest = new CredentialsRequest(accountUsername, accountPassword);
+        this.database.attemptCreateAccount(credentialRequest);
 
         this.usernameProperty.set("");
         this.usernameProperty.set(accountUsername);

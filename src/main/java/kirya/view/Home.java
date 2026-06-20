@@ -4,20 +4,29 @@ import java.io.IOException;
 import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
+import javafx.beans.property.ListProperty;
+import javafx.event.Event;
 import javafx.fxml.FXML;
 import javafx.fxml.FXMLLoader;
-import javafx.scene.Node;
 import javafx.scene.control.Alert;
 import javafx.scene.control.Alert.AlertType;
-import javafx.scene.control.ButtonType;
 import javafx.scene.control.Label;
+import javafx.scene.control.ScrollPane;
+import javafx.scene.control.TextField;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.input.ScrollEvent;
+import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.StackPane;
 import javafx.scene.layout.TilePane;
-import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
+import javafx.scene.shape.Shape;
 import kirya.utils.DisplayText;
 import kirya.utils.DisplayableStudyGuide;
+import kirya.utils.SessionData;
 import kirya.view.events.StudyGuideEvent;
 import kirya.viewmodel.HomeViewmodel;
 
@@ -27,26 +36,36 @@ import kirya.viewmodel.HomeViewmodel;
 public class Home extends StackPane {
 
     @FXML
-    private VBox homeVBox;
+    private BorderPane homeBorderPane;
     @FXML
-    private Label favoritedStudyGuidesToggleLabel;
+    private ToggleButton allToggleButton;
     @FXML
-    private TilePane favoritedStudyGuidesTilePane;
+    private ToggleButton favoritedToggleButton;
     @FXML
-    private Label downloadedStudyGuidesToggleLabel;
+    private ToggleButton downloadedToggleButton;
     @FXML
-    private TilePane downloadedStudyGuidesTilePane;
+    private ToggleButton uploadedToggleButton;
     @FXML
-    private StudyGuideEditor studyGuideEditor;
+    private Label headerLabel;
     @FXML
-    private StudyGuideViewer studyGuideViewer;
+    private TilePane quickAccessStudyguideTilePane;
+    @FXML
+    private BorderPane searchingBorderPane;
+    @FXML
+    private TextField searchTextField;
+    @FXML
+    private ScrollPane searchScrollPane;
+    @FXML
+    private TilePane searchedStudyguideTilePane;
 
-    private final String deletionHeader = "You''re about to delete the study guide \"{0}\"";
-    private final String deletionContent = "This action is irreversible, are you sure you want to PERMANENTLY DELETE \"{0}\"?";
-    private final String cancelEditHeader = "You're about to discard your changes";
-    private final String cancelEditContent = "You have unsaved changes that you will lose if you continue!";
+    private static final String HEADER_STRING = "{0}''s Dashboard";
+    private static final String DELETION_HEADER = "You are about to delete the study guide \"{0}\"";
+    private static final String DELETION_CONTENT = "This action is irreversible, are you sure you want to PERMANENTLY DELETE \"{0}\"?";
+    private static final String DELIST_HEADER = "You are about to remove the study guide \"{0}\" from the cloud";
+    private static final String DELIST_CONTENT = "This will remove your study guide from search results, are you sure you want to delist \"{0}\"?";
     private final NodeGroup nodeGroup = new NodeGroup();
     private HomeViewmodel viewmodel;
+    private ToggleButton currentlyToggled;
 
     /**
      * Initializes a new Home component.
@@ -64,39 +83,116 @@ public class Home extends StackPane {
     }
 
     private void initialize() {
-        this.nodeGroup.addNodes(List.of(this.homeVBox, this.studyGuideEditor, this.studyGuideViewer));
+        this.nodeGroup.addNodes(List.of(this.homeBorderPane, this.searchingBorderPane));
 
-        var tilepanes = new Node[] { this.favoritedStudyGuidesTilePane, this.downloadedStudyGuidesTilePane };
-        for (var tilepane : tilepanes) {
-            tilepane.managedProperty().bind(tilepane.visibleProperty());
+        this.visibleProperty().addListener((_, _, visible) -> {
+            if (!visible) {
+                return;
+            }
+            var header = MessageFormat.format(HEADER_STRING, SessionData.getLoggedInUsername());
+            this.headerLabel.setText(header);
+            this.updateDashboardDisplay();
+            this.updateSearchedDisplay();
+        });
+
+        var prefColumnWidth = 480;
+        for (var tilepane : new TilePane[] { this.quickAccessStudyguideTilePane, this.searchedStudyguideTilePane }) {
+            tilepane.widthProperty().addListener((_, _, newWidth) -> {
+                var numChildren = tilepane.getChildren().size();
+                var desiredColumns = Math.max(1, (newWidth.intValue() / prefColumnWidth));
+                var actualColumns = Math.min(numChildren, desiredColumns);
+                actualColumns = actualColumns == 0 ? 1 : actualColumns;
+                var newPrefWidth = newWidth.intValue() / actualColumns;
+
+                tilepane.setPrefTileWidth(newPrefWidth);
+            });
         }
+    }
+
+    /**
+     * Propogates any changes made to the studyguide to the underlying data source
+     * 
+     * @param studyGuide the studyguide to save changes for
+     */
+    public void saveChangesToStudyGuide(DisplayableStudyGuide studyGuide) {
+        this.viewmodel.saveChangesToStudyGuide(studyGuide);
     }
 
     public void setViewmodel(HomeViewmodel viewmodel) {
         this.viewmodel = viewmodel;
-        this.bindToViewmodel();
         this.addEventListeners();
+        this.bindToViewmodel();
     }
 
     private void bindToViewmodel() {
-        this.viewmodel.getFavoritedStudyGuidesProperty().addListener((_, _, newList) -> {
-            this.refreshBothStudyGuidePanes();
+        this.searchScrollPane.addEventFilter(ScrollEvent.ANY, scrollEvent -> {
+            this.getMoreGuidesAtBottomOfDisplay();
         });
-        this.viewmodel.getDownloadedStudyGuidesProperty().addListener((_, _, newList) -> {
-            this.refreshBothStudyGuidePanes();
+        this.searchScrollPane.vvalueProperty().addListener((_, _, _) -> {
+            this.getMoreGuidesAtBottomOfDisplay();
         });
-        this.viewmodel.getUploadedStudyGuidesProperty().addListener((_, _, newList) -> {
-            this.refreshBothStudyGuidePanes();
-        });
+
+        this.searchTextField.textProperty().bindBidirectional(this.viewmodel.getSearchProperty());
+
+        var buttonMapping = new HashMap<ToggleButton, ListProperty<DisplayableStudyGuide>>();
+
+        var favoritedGuidesProperty = this.viewmodel.getFavoritedStudyGuidesProperty();
+        var downloadedGuidesProperty = this.viewmodel.getDownloadedStudyGuidesProperty();
+        var uploadedGuidesProperty = this.viewmodel.getUploadedStudyGuidesProperty();
+
+        buttonMapping.put(this.favoritedToggleButton, favoritedGuidesProperty);
+        buttonMapping.put(this.downloadedToggleButton, downloadedGuidesProperty);
+        buttonMapping.put(this.uploadedToggleButton, uploadedGuidesProperty);
+
+        var buttons = new ToggleButton[] { this.allToggleButton, this.favoritedToggleButton,
+                this.downloadedToggleButton, this.uploadedToggleButton };
+
+        for (var toggleButton : buttons) {
+            toggleButton.selectedProperty().addListener((_, _, toggled) -> {
+                if (!toggled) {
+                    return;
+                }
+
+                this.currentlyToggled = toggleButton;
+                var associatedList = buttonMapping.get(toggleButton);
+                if (associatedList != null) {
+                    this.refreshTilePane(this.quickAccessStudyguideTilePane, associatedList);
+                } else {
+                    var allContent = new HashSet<DisplayableStudyGuide>();
+
+                    allContent.addAll(this.viewmodel.getFavoritedStudyGuidesProperty());
+                    allContent.addAll(this.viewmodel.getDownloadedStudyGuidesProperty());
+                    allContent.addAll(this.viewmodel.getUploadedStudyGuidesProperty());
+
+                    this.refreshTilePane(this.quickAccessStudyguideTilePane, List.copyOf(allContent));
+                }
+            });
+        }
+
+        this.allToggleButton.setSelected(false);
+        this.allToggleButton.setSelected(true);
+
+        var allProps = new ArrayList<ListProperty<DisplayableStudyGuide>>();
+        allProps.addAll(buttonMapping.values());
+        allProps.add(this.viewmodel.getSearchedStudyGuidesProperty());
+        for (var prop : allProps) {
+            prop.addListener((_, _, list) -> {
+                this.updateSearchedDisplay();
+            });
+        }
     }
 
-    private void refreshBothStudyGuidePanes() {
-        var favoritesPane = this.favoritedStudyGuidesTilePane;
-        var favoritesContent = this.viewmodel.getFavoritedStudyGuidesProperty().get();
-        var downloadPane = this.downloadedStudyGuidesTilePane;
-        var downloadContent = this.viewmodel.getDownloadedStudyGuidesProperty().get();
-        this.refreshTilePane(downloadPane, downloadContent);
-        this.refreshTilePane(favoritesPane, favoritesContent);
+    private void getMoreGuidesAtBottomOfDisplay() {
+        var scrolledToBottom = this.searchScrollPane.getVvalue() == this.searchScrollPane.getVmax();
+        var haveNowhereToScroll = this.searchScrollPane.getViewportBounds().getHeight() <= this.searchScrollPane
+                .getHeight();
+        if (scrolledToBottom || haveNowhereToScroll) {
+            try {
+                this.viewmodel.attemptGetMoreResults();
+            } catch (SQLException err) {
+                this.alertUserOfError(err);
+            }
+        }
     }
 
     private void refreshTilePane(TilePane pane, List<DisplayableStudyGuide> content) {
@@ -124,37 +220,37 @@ public class Home extends StackPane {
     }
 
     private void addEventListeners() {
-        this.addEventHandler(StudyGuideEvent.VIEW, handler -> this.viewStudyGuideHandler(handler));
-        this.addEventHandler(StudyGuideEvent.CLOSE, handler -> this.homeVBox.setVisible(true));
-        this.addEventHandler(StudyGuideEvent.DOWNLOAD, handler -> this.downloadStudyGuideHandler(handler));
-        this.addEventHandler(StudyGuideEvent.FAVORITE, handler -> this.favoriteStudyGuideHandler(handler));
-        this.addEventHandler(StudyGuideEvent.UPLOAD, handler -> this.uploadStudyGuideHandler(handler));
-        this.addEventHandler(StudyGuideEvent.FINISH_EDIT, handler -> this.finishEditStudyGuideHandler(handler));
-        this.addEventHandler(StudyGuideEvent.START_EDIT, handler -> {
-            var studyGuide = handler.getStudyGuide();
-            this.startEditingStudyGuide(studyGuide);
+        this.addEventHandler(StudyGuideEvent.DOWNLOAD, handler -> {
+            this.downloadStudyGuideHandler(handler);
+            this.updateDashboardDisplay();
         });
-    }
-
-    private void viewStudyGuideHandler(StudyGuideEvent handler) {
-        var guide = handler.getStudyGuide();
-        this.studyGuideViewer.setStudyGuide(guide);
-        this.studyGuideViewer.setVisible(true);
+        this.addEventHandler(StudyGuideEvent.FAVORITE, handler -> {
+            this.favoriteStudyGuideHandler(handler);
+            this.updateDashboardDisplay();
+        });
+        this.addEventHandler(StudyGuideEvent.UPLOAD, handler -> {
+            this.uploadStudyGuideHandler(handler);
+            this.updateDashboardDisplay();
+        });
     }
 
     private void downloadStudyGuideHandler(StudyGuideEvent handler) {
         var guide = handler.getStudyGuide();
         var downloading = !guide.getIsDownloaded();
-        Runnable resultingAction = () -> this.viewmodel.toggleDownloadStudyGuide(guide, true);
+        Runnable resultingAction = () -> this.viewmodel.toggleDownloadStudyGuide(guide, downloading);
+
         if (!downloading) {
-            var header = MessageFormat.format(this.deletionHeader, guide);
-            var content = MessageFormat.format(this.deletionContent, guide);
-            var delete = this.confirmUserOfAction(guide, header, content);
-            if (delete) {
-                resultingAction = () -> this.viewmodel.toggleDownloadStudyGuide(guide, false);
+            var header = MessageFormat.format(DELETION_HEADER, guide);
+            var content = MessageFormat.format(DELETION_CONTENT, guide);
+            var delete = ConfirmationDialog.show(DisplayText.ARE_YOU_SURE, header, content);
+            if (!delete) {
+                resultingAction = null;
             }
         }
-        resultingAction.run();
+
+        if (resultingAction != null) {
+            resultingAction.run();
+        }
     }
 
     private void favoriteStudyGuideHandler(StudyGuideEvent handler) {
@@ -164,26 +260,38 @@ public class Home extends StackPane {
     }
 
     private void uploadStudyGuideHandler(StudyGuideEvent handler) {
-        var studyGuide = handler.getStudyGuide();
-        var newUploadState = !studyGuide.getIsUploaded();
-        try {
-            this.viewmodel.toggleUploadStudyGuide(studyGuide, newUploadState);
-        } catch (SQLException err) {
-            this.alertUserOfError(err);
-            System.out.println(err);
+        var guide = handler.getStudyGuide();
+        var uploading = !guide.getIsUploaded();
+        Runnable resultingAction = () -> {
+            try {
+                this.viewmodel.toggleUploadStudyGuide(guide, uploading);
+            } catch (SQLException err) {
+                this.alertUserOfError(err);
+            }
+        };
+
+        if (!uploading) {
+            var header = MessageFormat.format(DELIST_HEADER, guide);
+            var content = MessageFormat.format(DELIST_CONTENT, guide);
+            var delist = ConfirmationDialog.show(DisplayText.ARE_YOU_SURE, header, content);
+            if (!delist) {
+                resultingAction = null;
+            }
+        }
+
+        if (resultingAction != null) {
+            resultingAction.run();
         }
     }
 
-    private void finishEditStudyGuideHandler(StudyGuideEvent handler) {
-        var studyGuide = handler.getStudyGuide();
-        if (handler.getSavedChanges() && studyGuide != null) {
-            this.viewmodel.saveChangesToStudyGuide(studyGuide);
-            this.refreshBothStudyGuidePanes();
-            this.homeVBox.setVisible(true);
-        } else {
-            var confirmed = this.confirmUserOfAction(studyGuide, this.cancelEditHeader, this.cancelEditContent);
-            this.homeVBox.setVisible(confirmed);
-        }
+    private void updateDashboardDisplay() {
+        this.currentlyToggled.setSelected(false);
+        this.currentlyToggled.setSelected(true);
+    }
+
+    private void updateSearchedDisplay() {
+        var updatedList = this.viewmodel.getSearchedStudyGuidesProperty().get();
+        this.refreshTilePane(this.searchedStudyguideTilePane, updatedList);
     }
 
     private void alertUserOfError(Exception err) {
@@ -194,48 +302,52 @@ public class Home extends StackPane {
         alert.showAndWait();
     }
 
-    private boolean confirmUserOfAction(DisplayableStudyGuide studyGuide, String header, String content) {
-        var proceedWithAction = false;
-
-        var alert = new Alert(AlertType.CONFIRMATION);
-        alert.setTitle("Are you sure?");
-        alert.setHeaderText(header);
-        alert.setContentText(content);
-        var optional = alert.showAndWait();
-
-        if (optional.isPresent() && optional.get() == ButtonType.OK) {
-            proceedWithAction = true;
+    @FXML
+    private void onInteractableElementEntered(Event handler) {
+        var source = handler.getSource();
+        if (source instanceof Label label) {
+            if (label.getGraphic() instanceof Shape shape) {
+                shape.setStroke(Color.BLACK);
+            }
         }
+    }
 
-        return proceedWithAction;
+    @FXML
+    private void onInteractableElementExited(Event handler) {
+        var source = handler.getSource();
+        if (source instanceof Label label) {
+            if (label.getGraphic() instanceof Shape shape) {
+                shape.setStroke(Color.TRANSPARENT);
+            }
+        }
     }
 
     @FXML
     private void onCreateNewStudyGuideClick() {
         var studyGuide = this.viewmodel.createNewStudyGuide();
-        this.startEditingStudyGuide(studyGuide);
-    }
-
-    private void startEditingStudyGuide(DisplayableStudyGuide studyGuide) {
-        this.studyGuideEditor.setStudyGuide(studyGuide);
-        this.studyGuideEditor.setVisible(true);
+        this.fireEvent(new StudyGuideEvent(studyGuide, StudyGuideEvent.START_EDIT));
     }
 
     @FXML
-    private void onFavoritedStudyGuidesDropdownClick() {
-        this.toggleDropdown(this.favoritedStudyGuidesTilePane, this.favoritedStudyGuidesToggleLabel);
+    private void onSearchButtonClick() {
+        this.searchingBorderPane.setVisible(true);
     }
 
     @FXML
-    private void onDownloadedStudyGuidesDropdownClick() {
-        this.toggleDropdown(this.downloadedStudyGuidesTilePane, this.downloadedStudyGuidesToggleLabel);
+    private void onSearchEntered() {
+        try {
+            this.viewmodel.searchForStudyguides();
+        } catch (SQLException err) {
+            var alert = new Alert(AlertType.ERROR);
+            alert.setHeaderText("Database error");
+            alert.setContentText(err.getMessage());
+            alert.showAndWait();
+        }
     }
 
-    private void toggleDropdown(TilePane toToggle, Label label) {
-        var currentlyVisible = toToggle.isVisible();
-        var newLabelText = currentlyVisible ? DisplayText.TRIANGLE_DOWN : DisplayText.TRIANGLE_UP;
-
-        label.setText(newLabelText);
-        toToggle.setVisible(!currentlyVisible);
+    @FXML
+    private void onBackButtonClick() {
+        this.updateDashboardDisplay();
+        this.homeBorderPane.setVisible(true);
     }
 }
