@@ -24,7 +24,7 @@ public class RemoteDatabase extends AuthDatabase {
 
     @Override
     protected void setupDatabase() throws SQLException {
-        var env = Dotenv.load();
+        var env = Dotenv.configure().directory("../").load();
         var url = env.get("DB_URL");
         this.dbConnection = DriverManager.getConnection(url);
     }

@@ -23,7 +23,7 @@ public class TestingDatabase extends RemoteDatabase {
      * {@inheritDoc}
      */
     protected void setupDatabase() throws SQLException {
-        var env = Dotenv.load();
+        var env = Dotenv.configure().directory("../").load();
         var url = env.get("TESTING_DB_URL");
         this.dbConnection = DriverManager.getConnection(url);
         var commands = new ArrayList<String>();
