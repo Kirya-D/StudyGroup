@@ -1,0 +1,21 @@
+{
+  "name": "backend",
+  "version": "0.1-SNAPSHOT",
+  "description": "",
+  "main": "src/main/App.js",
+  "scripts": {
+    "start": "node --env-file=.env src/main/App.js",
+    "test": "node --env-file=.env --experimental-vm-modules node_modules/jest/bin/jest.js"
+  },
+  "keywords": [],
+  "author": "Kirya Duncan II",
+  "license": "ISC",
+  "type": "module",
+  "dependencies": {
+    "express": "^5.2.1",
+    "mssql": "^12.5.5"
+  },
+  "devDependencies": {
+    "jest": "^30.4.2"
+  }
+}

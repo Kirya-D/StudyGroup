@@ -1,3 +1,28 @@
+IF OBJECT_ID('Choice', 'U') IS NOT NULL
+BEGIN
+    DROP TABLE Choice;
+END
+
+IF OBJECT_ID('Question', 'U') IS NOT NULL
+BEGIN
+    DROP TABLE Question;
+END
+
+IF OBJECT_ID('AccountStudyguideStatus', 'U') IS NOT NULL
+BEGIN
+    DROP TABLE AccountStudyguideStatus;
+END
+
+IF OBJECT_ID('Studyguide', 'U') IS NOT NULL
+BEGIN
+    DROP TABLE Studyguide;
+END
+
+IF OBJECT_ID('Account', 'U') IS NOT NULL
+BEGIN
+    DROP TABLE Account;
+END
+
 CREATE TABLE Account (
     id INT IDENTITY(1, 1),
     username NVARCHAR(32) UNIQUE NOT NULL,

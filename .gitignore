@@ -1,4 +1,5 @@
 backend/node_modules
+backend/coverage
 docs/src
 frontend/target
 .env
