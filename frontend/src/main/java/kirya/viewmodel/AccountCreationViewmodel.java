@@ -1,13 +1,12 @@
 package kirya.viewmodel;
 
-import java.sql.SQLException;
+import java.io.IOException;
 
 import javafx.beans.property.BooleanProperty;
 import javafx.beans.property.SimpleBooleanProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import kirya.model.AuthDatabase;
-import kirya.model.request.CredentialsRequest;
+import kirya.model.Server;
 
 /**
  * Viewmodel of the AccountCreation view class
@@ -24,7 +23,7 @@ public class AccountCreationViewmodel {
             + " characters long";
     public static final String INVALID_PASSWORD_LENGTH = "Must be " + MIN_PASSWORD_LENGTH + "-" + MAX_FIELD_LENGTH
             + " characters long";
-    private AuthDatabase database;
+    private Server server;
     private BooleanProperty usernameFinalizedProperty;
     private StringProperty usernameProperty;
     private StringProperty passwordProperty;
@@ -34,10 +33,10 @@ public class AccountCreationViewmodel {
     /**
      * Initializes a new AccountCreationViewmodel.
      * 
-     * @param database the authentication database to rely on
+     * @param server the authentication server to rely on
      */
-    public AccountCreationViewmodel(AuthDatabase database) {
-        this.database = database;
+    public AccountCreationViewmodel(Server server) {
+        this.server = server;
         this.usernameFinalizedProperty = new SimpleBooleanProperty(false);
         this.usernameProperty = new SimpleStringProperty("");
         this.passwordProperty = new SimpleStringProperty("");
@@ -55,9 +54,10 @@ public class AccountCreationViewmodel {
             var currentText = this.usernameProperty.get();
             var usernameIsTaken = false;
             try {
-                var usernameRequest = new CredentialsRequest(currentText);
-                usernameIsTaken = this.database.hasAccountWithUsername(usernameRequest);
-            } catch (SQLException err) {
+                if (!currentText.isEmpty())
+                    usernameIsTaken = this.server.isUsernameTaken(currentText);
+            } catch (IOException | InterruptedException err) {
+                System.out.println(err);
                 usernameIsTaken = true;
             }
 
@@ -67,7 +67,7 @@ public class AccountCreationViewmodel {
             }
         });
         this.usernameProperty.addListener((_, oldText, newText) -> {
-            var empty = this.fieldIsEmpty(oldText, newText);
+            var empty = newText.isBlank();
             var tooShort = this.textIsInvalidLength(newText, MIN_USERNAME_LENGTH);
             if (empty) {
                 this.usernameIssueProperty.set(REQUIRED_FIELD);
@@ -78,7 +78,7 @@ public class AccountCreationViewmodel {
             }
         });
         this.passwordProperty.addListener((_, oldText, newText) -> {
-            var empty = this.fieldIsEmpty(oldText, newText);
+            var empty = newText.isEmpty();
             var tooShort = this.textIsInvalidLength(newText, MIN_PASSWORD_LENGTH);
             if (empty) {
                 this.passwordIssueProperty.set(REQUIRED_FIELD);
@@ -88,20 +88,6 @@ public class AccountCreationViewmodel {
                 this.passwordIssueProperty.set(VALID_FIELD);
             }
         });
-    }
-
-    private boolean fieldIsEmpty(String oldText, String newText) {
-        var fieldIsEmpty = false;
-
-        if (oldText != null) {
-            var wasntEmpty = !oldText.isEmpty();
-            var isEmpty = newText.isEmpty();
-            if (wasntEmpty && isEmpty) {
-                fieldIsEmpty = true;
-            }
-        }
-
-        return fieldIsEmpty;
     }
 
     private boolean textIsInvalidLength(String text, int minimumLength) {
@@ -119,15 +105,12 @@ public class AccountCreationViewmodel {
 
     /**
      * Attempts to create a new account
-     * 
-     * @throws SQLException
      */
-    public void attemptCreateAccount() throws SQLException {
+    public void attemptCreateAccount() throws IOException, InterruptedException {
         var accountUsername = this.usernameProperty.get();
         var accountPassword = this.passwordProperty.get();
 
-        var credentialRequest = new CredentialsRequest(accountUsername, accountPassword);
-        this.database.attemptCreateAccount(credentialRequest);
+        this.server.createAccount(accountUsername, accountPassword);
 
         this.usernameProperty.set("");
         this.usernameProperty.set(accountUsername);

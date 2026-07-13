@@ -14,23 +14,24 @@ import kirya.utils.DisplayableStudyGuide;
  */
 public class StudyGuide extends DisplayableStudyGuide {
 
-    private Integer id;
-    private boolean isDownloaded;
-    private boolean isFavorited;
-    private boolean isUploaded;
+    private String id;
+    private boolean downloaded;
+    private boolean favorited;
+    private boolean uploaded;
     private String creatorUsername;
     private String title;
     private String description;
     private final Set<Question> questions;
+    private int questionCount;
 
     /**
      * Initializes a StudyGuide with default state.
      * <p>
-     * Postcondition: {@link StudyGuide#getIsDownloaded()} == false
+     * Postcondition: {@link StudyGuide#getDownloaded()} == false
      * <p>
-     * Postcondition: {@link StudyGuide#getIsFavorited()} == false
+     * Postcondition: {@link StudyGuide#getFavorited()} == false
      * <p>
-     * Postcondition: {@link StudyGuide#getIsUploaded()} == false
+     * Postcondition: {@link StudyGuide#getUploaded()} == false
      * <p>
      * Postcondition: {@link StudyGuide#getCreatorUsername()} == ""
      * <p>
@@ -40,16 +41,19 @@ public class StudyGuide extends DisplayableStudyGuide {
      * <p>
      * Postcondition: {@link StudyGuide#getQuestions()} ==
      * {@link Collections#emptyList()}
+     * <p>
+     * Postcondition: {@link StudyGuide#getQuestionCount()} == 0
      */
     public StudyGuide() {
         this.id = null;
-        this.isDownloaded = false;
-        this.isFavorited = false;
-        this.isUploaded = false;
+        this.downloaded = false;
+        this.favorited = false;
+        this.uploaded = false;
         this.creatorUsername = "";
         this.title = "";
         this.description = "";
         this.questions = new LinkedHashSet<>();
+        this.questionCount = 0;
     }
 
     /**
@@ -57,7 +61,7 @@ public class StudyGuide extends DisplayableStudyGuide {
      * 
      * @param id the id of the studyguide
      */
-    public StudyGuide(int id) {
+    public StudyGuide(String id) {
         this();
         this.id = id;
     }
@@ -67,7 +71,7 @@ public class StudyGuide extends DisplayableStudyGuide {
      * 
      * @param id the new id
      */
-    public void setId(Integer id) {
+    public void setId(String id) {
         this.id = id;
     }
 
@@ -76,8 +80,8 @@ public class StudyGuide extends DisplayableStudyGuide {
      * 
      * @param downloaded bool for downloaded state
      */
-    public void setIsDownloaded(boolean downloaded) {
-        this.isDownloaded = downloaded;
+    public void setDownloaded(boolean downloaded) {
+        this.downloaded = downloaded;
     }
 
     /**
@@ -85,8 +89,8 @@ public class StudyGuide extends DisplayableStudyGuide {
      * 
      * @param favorited The new favorited state
      */
-    public void setIsFavorited(boolean favorited) {
-        this.isFavorited = favorited;
+    public void setFavorited(boolean favorited) {
+        this.favorited = favorited;
     }
 
     /**
@@ -94,8 +98,8 @@ public class StudyGuide extends DisplayableStudyGuide {
      * 
      * @param uploaded The new uploaded state
      */
-    public void setIsUploaded(boolean uploaded) {
-        this.isUploaded = uploaded;
+    public void setUploaded(boolean uploaded) {
+        this.uploaded = uploaded;
     }
 
     /**
@@ -157,8 +161,17 @@ public class StudyGuide extends DisplayableStudyGuide {
         this.questions.addAll(questions);
     }
 
+    /**
+     * Sets the question count.
+     * 
+     * @param count The new question count
+     */
+    public void setQuestionCount(int count) {
+        this.questionCount = count;
+    }
+
     @Override
-    public Integer getId() {
+    public String getId() {
         return this.id;
     }
 
@@ -183,17 +196,22 @@ public class StudyGuide extends DisplayableStudyGuide {
     }
 
     @Override
-    public boolean getIsDownloaded() {
-        return this.isDownloaded;
+    public boolean getDownloaded() {
+        return this.downloaded;
     }
 
     @Override
-    public boolean getIsFavorited() {
-        return this.isFavorited;
+    public boolean getFavorited() {
+        return this.favorited;
     }
 
     @Override
-    public boolean getIsUploaded() {
-        return this.isUploaded;
+    public boolean getUploaded() {
+        return this.uploaded;
+    }
+
+    @Override
+    public int getQuestionCount() {
+        return this.questionCount;
     }
 }

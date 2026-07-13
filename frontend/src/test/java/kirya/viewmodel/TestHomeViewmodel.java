@@ -12,41 +12,29 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
-import java.util.Comparator;
 import java.util.List;
 
-import org.junit.jupiter.api.AfterEach;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
 import javafx.beans.property.ListProperty;
 import javafx.beans.property.StringProperty;
-import kirya.TestingDatabase;
-import kirya.model.AuthDatabase;
 import kirya.model.Question;
+import kirya.model.ServerConnection;
 import kirya.model.StudyGuide;
-import kirya.model.request.SearchRequest;
-import kirya.utils.DisplayableQuestion;
 import kirya.utils.DisplayableStudyGuide;
 import kirya.utils.QuestionType;
-import kirya.utils.SessionData;
 
 public class TestHomeViewmodel {
 
-    public AuthDatabase db;
+    public MockServer mockServer;
     public HomeViewmodel viewmodel;
 
     @BeforeEach
-    public void setup() throws SQLException, IOException {
-        SessionData.logOut();
-        this.db = new TestingDatabase();
-        this.viewmodel = new HomeViewmodel(db);
-    }
-
-    @AfterEach
-    public void teardown() {
-        SessionData.logOut();
+    public void setup() throws IOException, InterruptedException {
+        this.mockServer = new MockServer();
+        this.viewmodel = new HomeViewmodel(this.mockServer);
     }
 
     @Nested
@@ -78,21 +66,11 @@ public class TestHomeViewmodel {
     public class TestCreateNewStudyGuide {
 
         @Test
-        public void throwsWhenNoLoggedInUser() {
-            assertThrows(IllegalArgumentException.class, () -> viewmodel.createNewStudyGuide());
-        }
-
-        @Test
-        public void testWhenSuccessful() {
+        public void testWhenSuccessful() throws IOException, InterruptedException {
             var expectedType = DisplayableStudyGuide.class;
-            SessionData.logInAs("testUser");
             var actualGuide = viewmodel.createNewStudyGuide();
-            var expectedCreator = SessionData.getLoggedInUsername();
-            var actualCreator = actualGuide.getCreatorUsername();
 
-            assertAll(
-                    () -> assertEquals(expectedCreator, actualCreator),
-                    () -> assertInstanceOf(expectedType, actualGuide));
+            assertInstanceOf(expectedType, actualGuide);
         }
     }
 
@@ -292,7 +270,7 @@ public class TestHomeViewmodel {
             viewmodel.toggleFavoriteStudyGuide(this.studyGuide, true);
 
             var expectedFavorited = true;
-            var actualFavorited = this.studyGuide.getIsFavorited();
+            var actualFavorited = this.studyGuide.getFavorited();
 
             assertAll("Member checks",
                     () -> assertEquals(expectedFavorited, actualFavorited),
@@ -304,7 +282,7 @@ public class TestHomeViewmodel {
             viewmodel.toggleFavoriteStudyGuide(this.studyGuide, false);
 
             var expectedFavorited = false;
-            var actualFavorited = this.studyGuide.getIsFavorited();
+            var actualFavorited = this.studyGuide.getFavorited();
 
             assertAll("Member checks",
                     () -> assertEquals(expectedFavorited, actualFavorited),
@@ -353,13 +331,15 @@ public class TestHomeViewmodel {
     @Nested
     public class TestToggleUploadStudyGuide {
 
+        private final String testUsername = "testUser";
+        private final String testPassword = "testPassword";
         StudyGuide studyGuide;
 
         @BeforeEach
-        public void setup() {
-            SessionData.logInAs("testUser");
+        public void setup() throws IOException, InterruptedException {
+            mockServer.createAccount(testUsername, testPassword);
+            mockServer.login(testUsername, testPassword);
             this.studyGuide = new StudyGuide();
-            this.studyGuide.setCreatorUsername(SessionData.getLoggedInUsername());
             this.studyGuide.setTitle("Test Studyguide");
             this.studyGuide.setDescription("Test description");
             var questions = new ArrayList<Question>();
@@ -377,35 +357,27 @@ public class TestHomeViewmodel {
         }
 
         @Test
-        public void throwsWhenNoLoggedInAccount() throws SQLException {
-            SessionData.logOut();
-
-            assertThrows(IllegalArgumentException.class, () -> {
-                viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
-            });
+        public void throwsWhenNotLoggedIn() throws IOException, InterruptedException {
+            mockServer.logout();
+            assertThrows(IOException.class, () -> viewmodel.toggleUploadStudyGuide(this.studyGuide, true));
         }
 
         @Test
-        public void testSucceedsWhenLoggedInAccount() throws SQLException {
+        public void testSucceedsWhenLoggedIn() throws IOException, InterruptedException {
             viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
-            var actualUploaded = this.studyGuide.getIsUploaded();
-            var searchRequest = new SearchRequest(SessionData.getLoggedInUsername(), this.studyGuide.getTitle());
-            var matchingGuides = db.getStudyguidesContaining(searchRequest);
-            var uploadedStudyguide = matchingGuides.getFirst() instanceof StudyGuide concreteSg
-                    ? concreteSg
-                    : null;
+            var actualUploaded = this.studyGuide.getUploaded();
+            var actualUploadedCollection = viewmodel.getUploadedStudyGuidesProperty().get();
 
             assertAll("Member checks",
                     () -> assertTrue(actualUploaded),
-                    () -> assertTrue(viewmodel.getUploadedStudyGuidesProperty().contains(this.studyGuide)),
-                    () -> assertStudyguideEquals(this.studyGuide, uploadedStudyguide));
+                    () -> assertTrue(actualUploadedCollection.contains(this.studyGuide)));
         }
 
         @Test
-        public void testWhenStudyguideIsAlreadyUploaded() throws SQLException {
+        public void testWhenStudyguideIsAlreadyUploaded() throws IOException, InterruptedException {
             viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
             viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
-            var actualUploaded = this.studyGuide.getIsUploaded();
+            var actualUploaded = this.studyGuide.getUploaded();
 
             assertAll("Member checks",
                     () -> assertTrue(actualUploaded),
@@ -413,11 +385,12 @@ public class TestHomeViewmodel {
         }
 
         @Test
-        public void testWhenToggleIsFalse() throws SQLException {
+        public void testWhenToggleIsFalse() throws IOException, InterruptedException {
+            viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
             viewmodel.toggleUploadStudyGuide(this.studyGuide, false);
 
             var expectedUploaded = false;
-            var actualUploaded = this.studyGuide.getIsUploaded();
+            var actualUploaded = this.studyGuide.getUploaded();
 
             assertAll("Member checks",
                     () -> assertEquals(expectedUploaded, actualUploaded),
@@ -425,7 +398,7 @@ public class TestHomeViewmodel {
         }
 
         @Test
-        public void testToggleTrueWhenOtherStudyGuidesAreAlreadyUploaded() throws SQLException {
+        public void testToggleTrueWhenOtherStudyGuidesAreAlreadyUploaded() throws IOException, InterruptedException {
             viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
             viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
             viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
@@ -444,7 +417,8 @@ public class TestHomeViewmodel {
         }
 
         @Test
-        public void testRemovingUploadedStudyguideWhenOtherStudyguidesAreAlreadyUploaded() throws SQLException {
+        public void testToggleFalseWhenOtherStudyguidesAreAlreadyUploaded()
+                throws IOException, InterruptedException {
             viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
             viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
             viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
@@ -460,20 +434,15 @@ public class TestHomeViewmodel {
         }
 
         @Test
-        public void testCantRemoveUploadedStudyGuideThatIsNotYours() throws SQLException {
-            viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
-            viewmodel.toggleUploadStudyGuide(new StudyGuide(), true);
+        public void throwsWhenToggleFalseOnStudyGuideThatIsNotYours() throws IOException, InterruptedException {
             viewmodel.toggleUploadStudyGuide(this.studyGuide, true);
-            SessionData.logInAs("Random username");
+            String otherUsername = testUsername + "1";
+            String otherPassword = testPassword + "1";
+            mockServer.logout();
+            mockServer.createAccount(otherUsername, otherPassword);
+            mockServer.login(otherUsername, otherPassword);
 
-            viewmodel.toggleUploadStudyGuide(this.studyGuide, false);
-            var uploadedCollection = viewmodel.getUploadedStudyGuidesProperty().get();
-            var expectedCount = 3;
-            var actualCount = uploadedCollection.size();
-
-            assertAll("collection check",
-                    () -> assertTrue(uploadedCollection.contains(this.studyGuide)),
-                    () -> assertEquals(expectedCount, actualCount));
+            assertThrows(IOException.class, () -> viewmodel.toggleUploadStudyGuide(this.studyGuide, false));
         }
 
         @Test
@@ -487,13 +456,17 @@ public class TestHomeViewmodel {
     @Nested
     public class TestSearchForStudyguides {
 
+        private final String testUsername = "testUser";
+        private final String testPassword = "testPassword";
+
         @BeforeEach
-        public void setup() {
-            SessionData.logInAs("testUser");
+        public void setup() throws IOException, InterruptedException {
+            mockServer.createAccount(testUsername, testPassword);
+            mockServer.login(testUsername, testPassword);
         }
 
         @Test
-        public void testWhenNoStudyguidesUploaded() throws SQLException {
+        public void testWhenNoStudyguidesUploaded() throws IOException, InterruptedException {
             viewmodel.searchForStudyguides();
 
             var expected = Collections.emptyList();
@@ -503,7 +476,8 @@ public class TestHomeViewmodel {
         }
 
         @Test
-        public void testWhenSearchCriteriaDoesNotMatchAnyStudyguide() throws SQLException {
+        public void testWhenSearchCriteriaDoesNotMatchAnyStudyguide()
+                throws SQLException, IOException, InterruptedException {
             var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetable", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
@@ -519,34 +493,7 @@ public class TestHomeViewmodel {
         }
 
         @Test
-        public void testWhenSearchCriteriaMatchesUsername() throws SQLException {
-            var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
-            var titles = new String[] { "Fruit", "Vegetables", "Meat" };
-            var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
-            populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
-
-            viewmodel.getSearchProperty().set("user");
-            viewmodel.searchForStudyguides();
-
-            studyguides.forEach(sg -> sg.setCreatorUsername(SessionData.getLoggedInUsername()));
-            var expectedList = studyguides;
-            var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
-
-            assertAll(
-                    () -> assertEquals(expectedList.size(), actualList.size()),
-                    () -> {
-                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
-                                : actualList.size();
-                        for (var i = 0; i < smallerMax; i++) {
-                            var expectedItem = expectedList.get(i);
-                            var actualItem = actualList.get(i);
-                            assertStudyguideEquals(expectedItem, actualItem);
-                        }
-                    });
-        }
-
-        @Test
-        public void testWhenSearchCriteriaMatchesOneTitle() throws SQLException {
+        public void testWhenSearchCriteriaMatchesOneTitle() throws SQLException, IOException, InterruptedException {
             var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
@@ -555,25 +502,18 @@ public class TestHomeViewmodel {
             viewmodel.getSearchProperty().set("veget");
             viewmodel.searchForStudyguides();
 
-            studyguides.forEach(sg -> sg.setCreatorUsername(SessionData.getLoggedInUsername()));
             var expectedList = List.of(studyguides.get(1));
             var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
 
             assertAll(
                     () -> assertEquals(expectedList.size(), actualList.size()),
-                    () -> {
-                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
-                                : actualList.size();
-                        for (var i = 0; i < smallerMax; i++) {
-                            var expectedItem = expectedList.get(i);
-                            var actualItem = actualList.get(i);
-                            assertStudyguideEquals(expectedItem, actualItem);
-                        }
-                    });
+                    () -> assertTrue(expectedList.containsAll(actualList)),
+                    () -> assertTrue(actualList.containsAll(expectedList)));
         }
 
         @Test
-        public void testWhenSearchCriteriaMatchesMultipleTitles() throws SQLException {
+        public void testWhenSearchCriteriaMatchesMultipleTitles()
+                throws SQLException, IOException, InterruptedException {
             var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Calculus 1", "Calculus 2", "Meat" };
             var descriptions = new String[] { "about c1", "about c2", "about meat" };
@@ -582,25 +522,18 @@ public class TestHomeViewmodel {
             viewmodel.getSearchProperty().set("calcu");
             viewmodel.searchForStudyguides();
 
-            studyguides.forEach(sg -> sg.setCreatorUsername(SessionData.getLoggedInUsername()));
             var expectedList = List.of(studyguides.get(0), studyguides.get(1));
             var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
 
             assertAll(
                     () -> assertEquals(expectedList.size(), actualList.size()),
-                    () -> {
-                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
-                                : actualList.size();
-                        for (var i = 0; i < smallerMax; i++) {
-                            var expectedItem = expectedList.get(i);
-                            var actualItem = actualList.get(i);
-                            assertStudyguideEquals(expectedItem, actualItem);
-                        }
-                    });
+                    () -> assertTrue(expectedList.containsAll(actualList)),
+                    () -> assertTrue(actualList.containsAll(expectedList)));
         }
 
         @Test
-        public void testWhenSearchCriteriaMatchesOneDescription() throws SQLException {
+        public void testWhenSearchCriteriaMatchesOneDescription()
+                throws SQLException, IOException, InterruptedException {
             var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Apple", "Broccoli", "Turkey" };
@@ -609,25 +542,18 @@ public class TestHomeViewmodel {
             viewmodel.getSearchProperty().set("app");
             viewmodel.searchForStudyguides();
 
-            studyguides.forEach(sg -> sg.setCreatorUsername(SessionData.getLoggedInUsername()));
             var expectedList = List.of(studyguides.getFirst());
             var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
 
             assertAll(
                     () -> assertEquals(expectedList.size(), actualList.size()),
-                    () -> {
-                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
-                                : actualList.size();
-                        for (var i = 0; i < smallerMax; i++) {
-                            var expectedItem = expectedList.get(i);
-                            var actualItem = actualList.get(i);
-                            assertStudyguideEquals(expectedItem, actualItem);
-                        }
-                    });
+                    () -> assertTrue(expectedList.containsAll(actualList)),
+                    () -> assertTrue(actualList.containsAll(expectedList)));
         }
 
         @Test
-        public void testWhenSearchCriteriaMatchesMultipleDescriptions() throws SQLException {
+        public void testWhenSearchCriteriaMatchesMultipleDescriptions()
+                throws SQLException, IOException, InterruptedException {
             var studyguides = Arrays.asList(new StudyGuide(), new StudyGuide(), new StudyGuide());
             var titles = new String[] { "Fruit", "Vegetables", "Meat" };
             var descriptions = new String[] { "Vegan options", "vegan options", "Turkey" };
@@ -636,114 +562,91 @@ public class TestHomeViewmodel {
             viewmodel.getSearchProperty().set("vegan");
             viewmodel.searchForStudyguides();
 
-            studyguides.forEach(sg -> sg.setCreatorUsername(SessionData.getLoggedInUsername()));
             var expectedList = List.of(studyguides.get(0), studyguides.get(1));
             var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
 
             assertAll(
                     () -> assertEquals(expectedList.size(), actualList.size()),
-                    () -> {
-                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
-                                : actualList.size();
-                        for (var i = 0; i < smallerMax; i++) {
-                            var expectedItem = expectedList.get(i);
-                            var actualItem = actualList.get(i);
-                            assertStudyguideEquals(expectedItem, actualItem);
-                        }
-                    });
+                    () -> assertTrue(expectedList.containsAll(actualList)),
+                    () -> assertTrue(actualList.containsAll(expectedList)));
         }
 
         @Test
-        public void testWhenSearchCriteriaMatchesLessThanPageMaximum() throws SQLException {
-            var oneUnderMax = AuthDatabase.GUIDES_PER_PAGE - 1;
+        public void testWhenSearchCriteriaMatchesLessThanPageMaximum()
+                throws SQLException, IOException, InterruptedException {
+            var oneUnderMax = ServerConnection.GUIDES_PER_PAGE - 1;
             var studyguides = new ArrayList<StudyGuide>(Collections.nCopies(oneUnderMax, null));
             studyguides.replaceAll(empty -> new StudyGuide());
             var titles = Collections.nCopies(oneUnderMax, "Title").toArray(String[]::new);
             var descriptions = Collections.nCopies(oneUnderMax, "Description").toArray(String[]::new);
             populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
-            viewmodel.getSearchProperty().set("testUser");
+            viewmodel.getSearchProperty().set("Title");
             viewmodel.searchForStudyguides();
             var expectedList = studyguides;
             var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
 
             assertAll(
                     () -> assertEquals(expectedList.size(), actualList.size()),
-                    () -> {
-                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
-                                : actualList.size();
-                        for (var i = 0; i < smallerMax; i++) {
-                            var expectedItem = expectedList.get(i);
-                            var actualItem = actualList.get(i);
-                            assertStudyguideEquals(expectedItem, actualItem);
-                        }
-                    });
+                    () -> assertTrue(expectedList.containsAll(actualList)),
+                    () -> assertTrue(actualList.containsAll(expectedList)));
         }
 
         @Test
-        public void testWhenSearchCriteriaMatchesPageMaximum() throws SQLException {
-            var studyguides = new ArrayList<StudyGuide>(Collections.nCopies(AuthDatabase.GUIDES_PER_PAGE, null));
+        public void testWhenSearchCriteriaMatchesPageMaximum() throws SQLException, IOException, InterruptedException {
+            var studyguides = new ArrayList<StudyGuide>(Collections.nCopies(ServerConnection.GUIDES_PER_PAGE, null));
             studyguides.replaceAll(empty -> new StudyGuide());
-            var titles = Collections.nCopies(AuthDatabase.GUIDES_PER_PAGE, "Title").toArray(String[]::new);
-            var descriptions = Collections.nCopies(AuthDatabase.GUIDES_PER_PAGE, "Description").toArray(String[]::new);
+            var titles = Collections.nCopies(ServerConnection.GUIDES_PER_PAGE, "Title").toArray(String[]::new);
+            var descriptions = Collections.nCopies(ServerConnection.GUIDES_PER_PAGE, "Description")
+                    .toArray(String[]::new);
             populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
-            viewmodel.getSearchProperty().set("testUser");
+            viewmodel.getSearchProperty().set("Title");
             viewmodel.searchForStudyguides();
             var expectedList = studyguides;
             var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
 
             assertAll(
                     () -> assertEquals(expectedList.size(), actualList.size()),
-                    () -> {
-                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
-                                : actualList.size();
-                        for (var i = 0; i < smallerMax; i++) {
-                            var expectedItem = expectedList.get(i);
-                            var actualItem = actualList.get(i);
-                            assertStudyguideEquals(expectedItem, actualItem);
-                        }
-                    });
+                    () -> assertTrue(expectedList.containsAll(actualList)),
+                    () -> assertTrue(actualList.containsAll(expectedList)));
         }
 
         @Test
-        public void testWhenSearchCriteriaMatchesMoreThanPageMaximum() throws SQLException {
-            var oneOverMax = AuthDatabase.GUIDES_PER_PAGE + 1;
+        public void testWhenSearchCriteriaMatchesMoreThanPageMaximum()
+                throws SQLException, IOException, InterruptedException {
+            var oneOverMax = ServerConnection.GUIDES_PER_PAGE + 1;
             var studyguides = new ArrayList<StudyGuide>(Collections.nCopies(oneOverMax, null));
             studyguides.replaceAll(empty -> new StudyGuide());
             var titles = Collections.nCopies(oneOverMax, "Title").toArray(String[]::new);
             var descriptions = Collections.nCopies(oneOverMax, "Description").toArray(String[]::new);
             populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
-            viewmodel.getSearchProperty().set("testUser");
+            viewmodel.getSearchProperty().set("Title");
             viewmodel.searchForStudyguides();
-            var expectedList = studyguides.subList(0, AuthDatabase.GUIDES_PER_PAGE);
+            var expectedResultSize = ServerConnection.GUIDES_PER_PAGE;
             var actualList = viewmodel.getSearchedStudyGuidesProperty().get();
 
             assertAll(
-                    () -> assertEquals(expectedList.size(), actualList.size()),
-                    () -> {
-                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
-                                : actualList.size();
-                        for (var i = 0; i < smallerMax; i++) {
-                            var expectedItem = expectedList.get(i);
-                            var actualItem = actualList.get(i);
-                            assertStudyguideEquals(expectedItem, actualItem);
-                        }
-                    });
+                    () -> assertEquals(expectedResultSize, actualList.size()),
+                    () -> assertTrue(studyguides.containsAll(actualList)));
         }
     }
 
     @Nested
     public class TestAttemptGetMoreResults {
 
+        private final String testUsername = "testUser";
+        private final String testPassword = "testPassword";
+
         @BeforeEach
-        public void setup() {
-            SessionData.logInAs("testUser");
+        public void setup() throws IOException, InterruptedException {
+            mockServer.createAccount(testUsername, testPassword);
+            mockServer.login(testUsername, testPassword);
         }
 
         @Test
-        public void testWhenNoInitialSearch() throws SQLException {
+        public void testWhenNoInitialSearch() throws IOException, InterruptedException {
             viewmodel.getSearchProperty().set("testUser");
             viewmodel.attemptGetMoreResults();
 
@@ -756,15 +659,15 @@ public class TestHomeViewmodel {
         }
 
         @Test
-        public void testWhenTotalResultsLessThanOnePage() throws SQLException {
-            var belowMax = AuthDatabase.GUIDES_PER_PAGE / 2;
+        public void testWhenTotalResultsLessThanOnePage() throws SQLException, IOException, InterruptedException {
+            var belowMax = ServerConnection.GUIDES_PER_PAGE / 2;
             var studyguides = new ArrayList<StudyGuide>(Collections.nCopies(belowMax, null));
             studyguides.replaceAll(empty -> new StudyGuide());
             var titles = Collections.nCopies(belowMax, "Title").toArray(String[]::new);
             var descriptions = Collections.nCopies(belowMax, "Description").toArray(String[]::new);
             populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
-            viewmodel.getSearchProperty().set("testUser");
+            viewmodel.getSearchProperty().set("Title");
             viewmodel.searchForStudyguides();
             viewmodel.attemptGetMoreResults();
             var expectedList = studyguides;
@@ -772,27 +675,20 @@ public class TestHomeViewmodel {
 
             assertAll(
                     () -> assertEquals(expectedList.size(), actualList.size()),
-                    () -> {
-                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
-                                : actualList.size();
-                        for (var i = 0; i < smallerMax; i++) {
-                            var expectedItem = expectedList.get(i);
-                            var actualItem = actualList.get(i);
-                            assertStudyguideEquals(expectedItem, actualItem);
-                        }
-                    });
+                    () -> assertTrue(expectedList.containsAll(actualList)),
+                    () -> assertTrue(actualList.containsAll(expectedList)));
         }
 
         @Test
-        public void testWhenTotalResultsGreaterThanOnePage() throws SQLException {
-            var aboveMax = AuthDatabase.GUIDES_PER_PAGE * 2;
+        public void testWhenTotalResultsGreaterThanOnePage() throws SQLException, InterruptedException, IOException {
+            var aboveMax = ServerConnection.GUIDES_PER_PAGE * 2;
             var studyguides = new ArrayList<StudyGuide>(Collections.nCopies(aboveMax, null));
             studyguides.replaceAll(empty -> new StudyGuide());
             var titles = Collections.nCopies(aboveMax, "Title").toArray(String[]::new);
             var descriptions = Collections.nCopies(aboveMax, "Description").toArray(String[]::new);
             populateStudyguidesWithFillerInformationAndUploadThem(studyguides, titles, descriptions);
 
-            viewmodel.getSearchProperty().set("testUser");
+            viewmodel.getSearchProperty().set("Title");
             viewmodel.searchForStudyguides();
             viewmodel.attemptGetMoreResults();
             var expectedList = studyguides;
@@ -800,44 +696,21 @@ public class TestHomeViewmodel {
 
             assertAll(
                     () -> assertEquals(expectedList.size(), actualList.size()),
-                    () -> {
-                        var smallerMax = expectedList.size() < actualList.size() ? expectedList.size()
-                                : actualList.size();
-                        for (var i = 0; i < smallerMax; i++) {
-                            var expectedItem = expectedList.get(i);
-                            var actualItem = actualList.get(i);
-                            assertStudyguideEquals(expectedItem, actualItem);
-                        }
-                    });
+                    () -> assertTrue(expectedList.containsAll(actualList)),
+                    () -> assertTrue(actualList.containsAll(expectedList)));
         }
     }
 
-    private void assertStudyguideEquals(DisplayableStudyGuide obj1, DisplayableStudyGuide obj2) {
-        var obj1Questions = new ArrayList<>(obj1.getQuestions());
-        var obj2Questions = new ArrayList<>(obj2.getQuestions());
-        obj1Questions.sort(Comparator.comparing(DisplayableQuestion::getQuestion));
-        obj2Questions.sort(Comparator.comparing(DisplayableQuestion::getQuestion));
-
-        assertAll(
-                () -> assertEquals(obj1.getIsFavorited(), obj2.getIsFavorited()),
-                () -> assertEquals(obj1.getIsDownloaded(), obj2.getIsDownloaded()),
-                () -> assertEquals(obj1.getIsUploaded(), obj2.getIsUploaded()),
-                () -> assertEquals(obj1.getTitle(), obj2.getTitle()),
-                () -> assertEquals(obj1.getCreatorUsername(), obj2.getCreatorUsername()),
-                () -> assertEquals(obj1Questions, obj2Questions));
-    }
-
     private void populateStudyguidesWithFillerInformationAndUploadThem(List<StudyGuide> studyguides,
-            String[] titles, String[] descriptions) throws SQLException {
+            String[] titles, String[] descriptions) throws IOException, InterruptedException {
         for (var i = 0; i < studyguides.size(); i++) {
             var guide = studyguides.get(i);
             var title = titles[i];
             var description = descriptions[i];
-            guide.setCreatorUsername(SessionData.getLoggedInUsername());
             guide.setTitle(title);
             guide.setDescription(description);
-            guide.setIsFavorited(i % 2 == 0 ? true : false);
-            guide.setIsDownloaded(!guide.getIsFavorited());
+            guide.setFavorited(i % 2 == 0 ? true : false);
+            guide.setDownloaded(!guide.getFavorited());
             var question = new Question("question");
             question.setQuestionType(QuestionType.MULTIPLE_CHOICE);
             question.setChoices(List.of("True", "False"));

@@ -2,27 +2,26 @@ package kirya.viewmodel;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import kirya.TestingDatabase;
-import kirya.model.AuthDatabase;
-import kirya.model.request.CredentialsRequest;
+import kirya.utils.SessionData;
 
 public class TestLogInViewmodel {
 
-    private AuthDatabase localDb;
-    private LogInViewmodel viewmodel;
+    public MockServer mockServer;
+    public LogInViewmodel viewmodel;
 
     @BeforeEach
-    public void setup() throws SQLException, IOException {
-        this.localDb = new TestingDatabase();
-        this.viewmodel = new LogInViewmodel(this.localDb);
+    public void setup() throws IOException, InterruptedException {
+        SessionData.logOut();
+        this.mockServer = new MockServer();
+        this.viewmodel = new LogInViewmodel(this.mockServer);
     }
 
     @Nested
@@ -49,157 +48,100 @@ public class TestLogInViewmodel {
     public class TestAttemptLogIn {
 
         @Test
-        public void testSuccessfulWhenOneRegisteredAccount() throws SQLException {
+        public void testSuccessfulWhenOneRegisteredAccount() throws IOException, InterruptedException {
             var workingUsername = "Testing";
             var workingPassword = "Password123";
-            var credentialRequest = new CredentialsRequest(workingUsername, workingPassword);
-            localDb.attemptCreateAccount(credentialRequest);
+            mockServer.createAccount(workingUsername, workingPassword);
             viewmodel.getUsernameProperty().set(workingUsername);
             viewmodel.getPasswordProperty().set(workingPassword);
+            viewmodel.attemptLogIn();
 
-            var expectedSuccess = true;
-            var expectedIncorrectFieldText = "";
-            var actualSuccess = viewmodel.attemptLogIn();
-            var actualIncorrectFieldText = viewmodel.getIncorrectFieldProperty().get();
+            var actualLoggedInUsername = mockServer.getLoggedInUser();
 
-            assertAll("member check",
-                    () -> assertEquals(expectedIncorrectFieldText, actualIncorrectFieldText),
-                    () -> assertEquals(expectedSuccess, actualSuccess));
+            assertEquals(workingUsername, actualLoggedInUsername);
         }
 
         @Test
-        public void testSuccessfulWhenMultipleRegisteredAccounts() throws SQLException {
+        public void testSuccessfulWhenMultipleRegisteredAccounts() throws IOException, InterruptedException {
             var workingUsername = "Testing";
             var workingPassword = "Password123";
 
-            var credentialRequestVar1 = new CredentialsRequest("Username1", workingPassword + "alteration");
-            var workingCredentialRequest = new CredentialsRequest(workingUsername, workingPassword);
-            var credentialRequestVar2 = new CredentialsRequest("Username4", workingPassword + "boo");
-            var credentialRequestVar3 = new CredentialsRequest("Username27", workingPassword + "another boo");
-
-            localDb.attemptCreateAccount(credentialRequestVar1);
-            localDb.attemptCreateAccount(workingCredentialRequest);
-            localDb.attemptCreateAccount(credentialRequestVar2);
-            localDb.attemptCreateAccount(credentialRequestVar3);
+            mockServer.createAccount(workingUsername, workingPassword);
+            for (int i = 0; i < 4; i++) {
+                mockServer.createAccount(workingUsername + i, workingPassword + i);
+            }
             viewmodel.getUsernameProperty().set(workingUsername);
             viewmodel.getPasswordProperty().set(workingPassword);
+            viewmodel.attemptLogIn();
 
-            var expectedSuccess = true;
-            var expectedIncorrectFieldText = "";
-            var actualSuccess = viewmodel.attemptLogIn();
-            var actualIncorrectFieldText = viewmodel.getIncorrectFieldProperty().get();
+            var actualLoggedInUsername = mockServer.getLoggedInUser();
 
-            assertAll("member check",
-                    () -> assertEquals(expectedIncorrectFieldText, actualIncorrectFieldText),
-                    () -> assertEquals(expectedSuccess, actualSuccess));
+            assertEquals(workingUsername, actualLoggedInUsername);
         }
 
         @Test
-        public void testFailureWhenUsernameDoesNotMatch() throws SQLException {
+        public void throwsWhenUsernameDoesNotMatch() throws IOException, InterruptedException {
             var workingUsername = "Testing";
             var notWorkingUsername = "Testing1";
             var workingPassword = "Password123";
-            var credentialRequest = new CredentialsRequest(workingUsername, workingPassword);
 
-            localDb.attemptCreateAccount(credentialRequest);
+            mockServer.createAccount(workingUsername, workingPassword);
             viewmodel.getUsernameProperty().set(notWorkingUsername);
             viewmodel.getPasswordProperty().set(workingPassword);
 
-            var expectedSuccess = false;
-            var expectedIncorrectFieldText = LogInViewmodel.INCORRECT_CREDENTIALS;
-            var actualSuccess = viewmodel.attemptLogIn();
-            var actualIncorrectFieldText = viewmodel.getIncorrectFieldProperty().get();
-
-            assertAll("member check",
-                    () -> assertEquals(expectedIncorrectFieldText, actualIncorrectFieldText),
-                    () -> assertEquals(expectedSuccess, actualSuccess));
+            assertThrows(IOException.class, () -> viewmodel.attemptLogIn());
         }
 
         @Test
-        public void testFailureWhenPasswordDoesNotMatch() throws SQLException {
+        public void throwsWhenPasswordDoesNotMatch() throws IOException, InterruptedException {
             var workingUsername = "Testing";
             var workingPassword = "Password123";
             var notWorkingPassword = "Password456";
-            var credentialRequest = new CredentialsRequest(workingUsername, workingPassword);
 
-            localDb.attemptCreateAccount(credentialRequest);
+            mockServer.createAccount(workingUsername, workingPassword);
             viewmodel.getUsernameProperty().set(workingUsername);
             viewmodel.getPasswordProperty().set(notWorkingPassword);
 
-            var expectedSuccess = false;
-            var expectedIncorrectFieldText = LogInViewmodel.INCORRECT_CREDENTIALS;
-            var actualSuccess = viewmodel.attemptLogIn();
-            var actualIncorrectFieldText = viewmodel.getIncorrectFieldProperty().get();
-
-            assertAll("member check",
-                    () -> assertEquals(expectedIncorrectFieldText, actualIncorrectFieldText),
-                    () -> assertEquals(expectedSuccess, actualSuccess));
+            assertThrows(IOException.class, () -> viewmodel.attemptLogIn());
         }
 
         @Test
-        public void testFailureWhenNoRegisteredAccounts() throws SQLException {
+        public void throwsWhenNoRegisteredAccounts() throws IOException, InterruptedException {
             var workingUsername = "Testing";
             var workingPassword = "Password123";
             viewmodel.getUsernameProperty().set(workingUsername);
             viewmodel.getPasswordProperty().set(workingPassword);
 
-            var expectedSuccess = false;
-            var expectedIncorrectFieldText = LogInViewmodel.INCORRECT_CREDENTIALS;
-            var actualSuccess = viewmodel.attemptLogIn();
-            var actualIncorrectFieldText = viewmodel.getIncorrectFieldProperty().get();
-
-            assertAll("member check",
-                    () -> assertEquals(expectedIncorrectFieldText, actualIncorrectFieldText),
-                    () -> assertEquals(expectedSuccess, actualSuccess));
+            assertThrows(IOException.class, () -> viewmodel.attemptLogIn());
         }
 
         @Test
-        public void testFailureWhenOneRegisteredAccounts() throws SQLException {
-            var workingUsername = "Testing";
-            var workingPassword = "Password123";
-            var nonWorkingUsername = "Testing1";
-            var credentialRequest = new CredentialsRequest(workingUsername, workingPassword);
-
-            localDb.attemptCreateAccount(credentialRequest);
-            viewmodel.getUsernameProperty().set(nonWorkingUsername);
-            viewmodel.getPasswordProperty().set(workingPassword);
-
-            var expectedSuccess = false;
-            var expectedIncorrectFieldText = LogInViewmodel.INCORRECT_CREDENTIALS;
-            var actualSuccess = viewmodel.attemptLogIn();
-            var actualIncorrectFieldText = viewmodel.getIncorrectFieldProperty().get();
-
-            assertAll("member check",
-                    () -> assertEquals(expectedIncorrectFieldText, actualIncorrectFieldText),
-                    () -> assertEquals(expectedSuccess, actualSuccess));
-        }
-
-        @Test
-        public void testFailureWhenMultipleRegisteredAccounts() throws SQLException {
+        public void throwsWhenOneRegisteredAccountDoesNotMatchCredentials() throws IOException, InterruptedException {
             var workingUsername = "Testing";
             var workingPassword = "Password123";
             var nonWorkingUsername = "Testing1";
 
-            var credentialRequestVar1 = new CredentialsRequest("Username1", workingPassword + "alteration");
-            var workingCredentialRequest = new CredentialsRequest(workingUsername, workingPassword);
-            var credentialRequestVar2 = new CredentialsRequest("Username4", workingPassword + "boo");
-            var credentialRequestVar3 = new CredentialsRequest("Username27", workingPassword + "another boo");
-
-            localDb.attemptCreateAccount(credentialRequestVar1);
-            localDb.attemptCreateAccount(workingCredentialRequest);
-            localDb.attemptCreateAccount(credentialRequestVar2);
-            localDb.attemptCreateAccount(credentialRequestVar3);
+            mockServer.createAccount(workingUsername, workingPassword);
             viewmodel.getUsernameProperty().set(nonWorkingUsername);
             viewmodel.getPasswordProperty().set(workingPassword);
 
-            var expectedSuccess = false;
-            var expectedIncorrectFieldText = LogInViewmodel.INCORRECT_CREDENTIALS;
-            var actualSuccess = viewmodel.attemptLogIn();
-            var actualIncorrectFieldText = viewmodel.getIncorrectFieldProperty().get();
+            assertThrows(IOException.class, () -> viewmodel.attemptLogIn());
+        }
 
-            assertAll("member check",
-                    () -> assertEquals(expectedIncorrectFieldText, actualIncorrectFieldText),
-                    () -> assertEquals(expectedSuccess, actualSuccess));
+        @Test
+        public void throwsWhenMultipleRegisteredAccounts() throws IOException, InterruptedException {
+            var workingUsername = "Testing";
+            var workingPassword = "Password123";
+            var nonWorkingUsername = "Testing1";
+
+            mockServer.createAccount(workingUsername, workingPassword);
+            for (int i = 0; i < 3; i++) {
+                mockServer.createAccount(workingUsername + i, workingPassword + i);
+            }
+            viewmodel.getUsernameProperty().set(nonWorkingUsername);
+            viewmodel.getPasswordProperty().set(workingPassword);
+
+            assertThrows(IOException.class, () -> viewmodel.attemptLogIn());
         }
     }
 }

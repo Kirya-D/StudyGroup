@@ -1,7 +1,6 @@
 package kirya.view;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
@@ -112,9 +111,9 @@ public class AccountCreation extends GridPane {
             this.usernameTextField.setText("");
             this.passwordField.setText("");
             this.onLoginHyperlinkClick();
-        } catch (SQLException err) {
+        } catch (IOException | InterruptedException err) {
             var alert = new Alert(AlertType.ERROR);
-            alert.setHeaderText("Database error");
+            alert.setHeaderText("Server error");
             alert.setContentText(err.getMessage());
             alert.showAndWait();
         }

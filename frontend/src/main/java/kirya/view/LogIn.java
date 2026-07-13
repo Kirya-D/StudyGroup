@@ -1,7 +1,6 @@
 package kirya.view;
 
 import java.io.IOException;
-import java.sql.SQLException;
 
 import javafx.beans.property.StringProperty;
 import javafx.fxml.FXML;
@@ -99,20 +98,15 @@ public class LogIn extends GridPane {
 
     @FXML
     private void onLogInButtonClick() {
-        var success = false;
-
         try {
-            success = this.viewmodel.attemptLogIn();
-        } catch (SQLException err) {
-            var alert = new Alert(AlertType.ERROR);
-            alert.setHeaderText("Database error");
-            alert.setContentText(err.getMessage());
-            alert.showAndWait();
-        }
-
-        if (success) {
+            this.viewmodel.attemptLogIn();
             var pageRequestEvent = new PageRequestEvent(Page.HOME);
             this.fireEvent(pageRequestEvent);
+        } catch (IOException | InterruptedException err) {
+            var alert = new Alert(AlertType.ERROR);
+            alert.setHeaderText("Server error");
+            alert.setContentText(err.getMessage());
+            alert.showAndWait();
         }
     }
 

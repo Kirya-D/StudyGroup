@@ -3,54 +3,32 @@ import { Primitives } from "./utils/Primitives.js"
 
 class Studyguide {
 
-    /**
-     * @type {int}
-     */
+    /** @type {string} */
     #id
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     #title
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     #description
-    /**
-     * @type {Set<Question>}
-     */
+    /** @type {Set<Question>} */
     #questions
-    /**
-     * @type {int}
-     */
+    /** @type {number} */
     #questionCount
-    /**
-     * @type {int}
-     */
+    /** @type {string} */
     #creatorId
 
     /**
-     * @returns -1
-     */
-    #placeholderId() {
-        return -1
-    }
-
-    /**
-     * Initialize a new studyguide object with an id, title, description, and creatorId.
+     * Initialize a new studyguide object with an id, title, description, creatorId, and question count.
      * 
-     * @param {int} id The id. default null
+     * @param {string} id The id.
      * @param {string} title The title
      * @param {string} description The password
      * @param {Set<Question>} questions The questions
-     * @param {int} questionCount The number of questions. default 0
-     * @param {int} id The creator's account id
+     * @param {string} creatorId The creator's account id
+     * @param {number} questionCount The number of questions. default 0
      */
-    constructor({ id = null, title, description, questions, questionCount = 0, creatorId }) {
-        if (id == null) {
-            id = this.#placeholderId()
-        }
-        if (!Number.isInteger(id)) {
-            throw new TypeError("id must be an integer")
+    constructor(id, title, description, questions, creatorId, questionCount = 0) {
+        if (typeof id !== Primitives.STRING) {
+            throw new TypeError("id must be a string")
         }
         if (typeof title !== Primitives.STRING) {
             throw new TypeError("title must be a string")
@@ -61,7 +39,7 @@ class Studyguide {
         if (!(questions instanceof Set)) {
             throw new TypeError("questions must be a Question set")
         }
-        var allQuestionsValid = true
+        let allQuestionsValid = true
         questions.forEach(question => {
             if (!(question instanceof Question)) {
                 allQuestionsValid = false
@@ -70,11 +48,11 @@ class Studyguide {
         if (!allQuestionsValid) {
             throw new TypeError("all questions must be a Question object")
         }
-        if (!Number.isInteger(questionCount)) {
-            throw new TypeError("questionCount must be an integer")
+        if (typeof creatorId !== Primitives.STRING) {
+            throw new TypeError("creatorId must be a string")
         }
-        if (!Number.isInteger(creatorId)) {
-            throw new TypeError("creatorId must be an integer")
+        if (!Number.isInteger(questionCount)) {
+            throw new TypeError("questionCount must be an int")
         }
 
         this.#id = id

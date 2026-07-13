@@ -133,9 +133,9 @@ public class StudyGuideOverview extends GridPane {
         var currentUser = SessionData.getLoggedInUsername();
         var creatorUser = this.displayableStudyGuide.getCreatorUsername();
 
-        var downloaded = this.displayableStudyGuide.getIsDownloaded();
-        var favorited = this.displayableStudyGuide.getIsFavorited();
-        var uploaded = this.displayableStudyGuide.getIsUploaded();
+        var downloaded = this.displayableStudyGuide.getDownloaded();
+        var favorited = this.displayableStudyGuide.getFavorited();
+        var uploaded = this.displayableStudyGuide.getUploaded();
         var isCreatedByCurrentUser = creatorUser.equals(currentUser);
 
         this.editButton.setVisible(isCreatedByCurrentUser);

@@ -1,5 +1,6 @@
 package kirya.viewmodel;
 
+import java.io.IOException;
 import java.sql.SQLException;
 import java.util.function.Consumer;
 
@@ -8,19 +9,16 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
-import kirya.model.AuthDatabase;
+import kirya.model.Server;
 import kirya.model.StudyGuide;
-import kirya.model.request.SearchRequest;
-import kirya.model.request.UpdateRequest;
 import kirya.utils.DisplayableStudyGuide;
-import kirya.utils.SessionData;
 
 /**
  * Viewmodel of the Home view class
  */
 public class HomeViewmodel {
 
-    private final AuthDatabase database;
+    private final Server server;
     private String lastEnteredSearch;
     private int uninterruptedSearchRequests;
     private boolean allowMoreRequests;
@@ -34,10 +32,10 @@ public class HomeViewmodel {
     /**
      * Initializes a new HomeViewmodel.
      * 
-     * @param database the authentication database to rely on
+     * @param server the authentication server to rely on
      */
-    public HomeViewmodel(AuthDatabase database) {
-        this.database = database;
+    public HomeViewmodel(Server server) {
+        this.server = server;
         this.lastEnteredSearch = null;
         this.uninterruptedSearchRequests = 0;
         this.allowMoreRequests = true;
@@ -79,13 +77,9 @@ public class HomeViewmodel {
 
     /**
      * {@return a newly created study guide}
-     * 
-     * @throws IllegalArgumentException If {@link SessionData#getLoggedInUsername()}
-     *                                  == {@code null}
      */
     public DisplayableStudyGuide createNewStudyGuide() {
         var newGuide = new StudyGuide();
-        newGuide.setCreatorUsername(SessionData.getLoggedInUsername());
         return newGuide;
     }
 
@@ -125,7 +119,7 @@ public class HomeViewmodel {
             throw new IllegalArgumentException("studyGuide can't be null");
         }
 
-        Consumer<Boolean> setMethod = b -> concreteGuide.setIsDownloaded(b);
+        Consumer<Boolean> setMethod = b -> concreteGuide.setDownloaded(b);
         var collection = this.downloadedStudyGuidesProperty;
         this.toggleStudyGuideMember(concreteGuide, setMethod, download, collection);
     }
@@ -147,7 +141,7 @@ public class HomeViewmodel {
             throw new IllegalArgumentException("studyGuide can't be null");
         }
 
-        Consumer<Boolean> setMethod = b -> concreteGuide.setIsFavorited(b);
+        Consumer<Boolean> setMethod = b -> concreteGuide.setFavorited(b);
         var collection = this.favoritedStudyGuidesProperty;
         this.toggleStudyGuideMember(concreteGuide, setMethod, favorite, collection);
     }
@@ -163,32 +157,25 @@ public class HomeViewmodel {
      * @throws IllegalArgumentException If {@code studyGuide} == null
      * @throws IllegalArgumentException If there is no currently logged-in user
      *                                  (user == null)
-     * @throws SQLException             If database error occurs
+     * @throws SQLException             If server error occurs
      * 
      */
-    public void toggleUploadStudyGuide(DisplayableStudyGuide studyGuide, boolean upload) throws SQLException {
+    public void toggleUploadStudyGuide(DisplayableStudyGuide studyGuide, boolean upload)
+            throws IOException, InterruptedException {
         var concreteGuide = this.getConcreteGuide(studyGuide);
         if (concreteGuide == null) {
             throw new IllegalArgumentException("studyGuide can't be null");
         }
 
-        var loggedUsername = SessionData.getLoggedInUsername();
-        var success = false;
-        var uploadRequest = new UpdateRequest(loggedUsername, studyGuide);
         if (upload) {
-            success = this.database.editStudyguide(uploadRequest);
+            this.server.uploadStudyguide(studyGuide);
         } else {
-            var guideId = concreteGuide.getId();
-            if (guideId != null) {
-                success = this.database.deleteStudyguide(uploadRequest);
-            }
+            this.server.deleteStudyguide(studyGuide);
         }
 
-        if (success) {
-            Consumer<Boolean> setMethod = b -> concreteGuide.setIsUploaded(b);
-            var collection = this.uploadedStudyGuidesProperty;
-            this.toggleStudyGuideMember(concreteGuide, setMethod, upload, collection);
-        }
+        Consumer<Boolean> setMethod = b -> concreteGuide.setUploaded(b);
+        var collection = this.uploadedStudyGuidesProperty;
+        this.toggleStudyGuideMember(concreteGuide, setMethod, upload, collection);
     }
 
     private void toggleStudyGuideMember(StudyGuide studyGuide, Consumer<Boolean> setMethod, boolean toggle,
@@ -210,9 +197,9 @@ public class HomeViewmodel {
      * Searches for study guides that contains
      * {@link HomeViewmodel#getSearchProperty()}'s value
      * 
-     * @throws SQLException If a database error occurs
+     * @throws SQLException If a server error occurs
      */
-    public void searchForStudyguides() throws SQLException {
+    public void searchForStudyguides() throws IOException, InterruptedException {
         var searchString = this.searchProperty.get();
         if (searchString == null || searchString.isBlank()) {
             return;
@@ -220,8 +207,7 @@ public class HomeViewmodel {
         this.uninterruptedSearchRequests = 0;
         this.lastEnteredSearch = searchString;
 
-        var searchRequest = new SearchRequest(SessionData.getLoggedInUsername(), searchString);
-        var results = this.database.getStudyguidesContaining(searchRequest);
+        var results = this.server.searchForStudyguides(searchString, 0, 50);
         this.searchedStudyGuidesProperty.setAll(results);
     }
 
@@ -231,9 +217,11 @@ public class HomeViewmodel {
      * {@link HomeViewmodel#attemptGetMoreResults()} retrieved 0 results, in which
      * case no more attempts are made until a new search is initiated.
      * 
-     * @throws SQLException If a database error occurs
+     * @throws IOException          If a server error occurs or server request
+     *                              results in failure
+     * @throws InterruptedException If a server error occurs
      */
-    public void attemptGetMoreResults() throws SQLException {
+    public void attemptGetMoreResults() throws IOException, InterruptedException {
         if (this.lastEnteredSearch == null || !this.allowMoreRequests) {
             return;
         }
@@ -241,8 +229,7 @@ public class HomeViewmodel {
 
         var search = this.lastEnteredSearch;
         var pageNum = this.uninterruptedSearchRequests;
-        var searchRequest = new SearchRequest(SessionData.getLoggedInUsername(), search, pageNum);
-        var results = this.database.getStudyguidesContaining(searchRequest);
+        var results = this.server.searchForStudyguides(search, pageNum, 50);
         this.searchedStudyGuidesProperty.addAll(results);
 
         this.allowMoreRequests = results.size() > 0;

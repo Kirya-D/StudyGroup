@@ -25,14 +25,14 @@ public class TestStudyGuide {
     @Nested
     public class TestConstructor {
 
-        private void expectedDefaultParameters(StudyGuide studyguide, Integer expectedId) {
+        private void expectedDefaultParameters(StudyGuide studyguide, String expectedId) {
             var actualId = studyguide.getId();
             var expectedDownloaded = false;
-            var actualDownloaded = studyguide.getIsDownloaded();
+            var actualDownloaded = studyguide.getDownloaded();
             var expectedFavorited = false;
-            var actualFavorited = studyguide.getIsFavorited();
+            var actualFavorited = studyguide.getFavorited();
             var expectedUploaded = false;
-            var actualUploaded = studyguide.getIsUploaded();
+            var actualUploaded = studyguide.getUploaded();
             var expectedUsername = "";
             var actualUsername = studyguide.getCreatorUsername();
             var expectedTitle = "";
@@ -41,6 +41,8 @@ public class TestStudyGuide {
             var actualDescription = studyguide.getDescription();
             var expectedQuestions = List.of();
             var actualQuestions = studyguide.getQuestions();
+            var expectedQuestionCount = 0;
+            var actualQuestionCount = studyguide.getQuestionCount();
 
             assertAll("Members",
                     () -> assertEquals(expectedId, actualId),
@@ -50,7 +52,8 @@ public class TestStudyGuide {
                     () -> assertEquals(expectedUsername, actualUsername),
                     () -> assertEquals(expectedTitle, actualTitle),
                     () -> assertEquals(expectedDescription, actualDescription),
-                    () -> assertEquals(expectedQuestions, actualQuestions));
+                    () -> assertEquals(expectedQuestions, actualQuestions),
+                    () -> assertEquals(expectedQuestionCount, actualQuestionCount));
         }
 
         @Test
@@ -61,7 +64,7 @@ public class TestStudyGuide {
 
         @Test
         public void testOneParameterValues() {
-            var expectedId = 24;
+            var expectedId = "24";
             var paremeterStudyguide = new StudyGuide(expectedId);
             this.expectedDefaultParameters(paremeterStudyguide, expectedId);
         }
@@ -71,7 +74,7 @@ public class TestStudyGuide {
     public class TestSetId {
         @Test
         public void testWhenNotNull() {
-            var expected = 25;
+            var expected = "25";
             studyguide.setId(expected);
 
             var actual = studyguide.getId();
@@ -95,10 +98,10 @@ public class TestStudyGuide {
         @Test
         public void testWhenSuccessful() {
             var downloaded = true;
-            studyguide.setIsDownloaded(downloaded);
+            studyguide.setDownloaded(downloaded);
 
             var expected = downloaded;
-            var actual = studyguide.getIsDownloaded();
+            var actual = studyguide.getDownloaded();
 
             assertEquals(expected, actual);
         }
@@ -110,10 +113,10 @@ public class TestStudyGuide {
         @Test
         public void testWhenSuccessful() {
             var favorited = true;
-            studyguide.setIsFavorited(favorited);
+            studyguide.setFavorited(favorited);
 
             var expected = favorited;
-            var actual = studyguide.getIsFavorited();
+            var actual = studyguide.getFavorited();
 
             assertEquals(expected, actual);
         }
@@ -125,10 +128,10 @@ public class TestStudyGuide {
         @Test
         public void testWhenSuccessful() {
             var favorited = true;
-            studyguide.setIsUploaded(favorited);
+            studyguide.setUploaded(favorited);
 
             var expected = favorited;
-            var actual = studyguide.getIsUploaded();
+            var actual = studyguide.getUploaded();
 
             assertEquals(expected, actual);
         }
@@ -259,6 +262,20 @@ public class TestStudyGuide {
             assertThrows(IllegalArgumentException.class, () -> {
                 studyguide.setQuestions(Collections.emptyList());
             });
+        }
+    }
+
+    @Nested
+    public class TestSetQuestionCount {
+
+        @Test
+        public void testWhenSuccessful() {
+            var expectedCount = 5;
+            studyguide.setQuestionCount(expectedCount);
+
+            var actualCount = studyguide.getQuestionCount();
+
+            assertEquals(expectedCount, actualCount);
         }
     }
 }

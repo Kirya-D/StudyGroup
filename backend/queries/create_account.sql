@@ -1,4 +1,4 @@
 INSERT INTO
-    Account (username, password)
+    Account (id, username, password)
 VALUES
-    (@username, @password)
+    (@uuid, @username, @password)

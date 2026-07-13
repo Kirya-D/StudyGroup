@@ -2,47 +2,27 @@ import { Primitives } from "./utils/Primitives.js"
 
 class Account {
 
-    /**
-     * @returns -1
-     */
-    #placeholderId() {
-        return -1
-    }
-
-    /**
-     * @type {int}
-     */
+    /** @type {string} */
     #id
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     #username
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     #password
-    /**
-     * @type {Set<int>}
-     */
+    /** @type {Set<string>} */
     #favoritedStudyguides
-    /**
-     * @type {Set<int>}
-     */
+    /** @type {Set<string>} */
     #downloadedStudyguides
 
     /**
      * Initialize a new account object with an id, username, and password.
      * 
-     * @param {int | null} id The id
+     * @param {string} id The id
      * @param {string} username The username
      * @param {string} password The password
      */
-    constructor({ id = null, username, password }) {
-        if (id == null) {
-            id = this.#placeholderId()
-        }
-        if (!Number.isInteger(id)) {
-            throw new TypeError("id must be an integer")
+    constructor(id, username, password) {
+        if (typeof id !== Primitives.STRING) {
+            throw new TypeError("id must be a string")
         }
         if (typeof username !== Primitives.STRING) {
             throw new TypeError("username must be a string")
@@ -80,48 +60,48 @@ class Account {
 
     /**
      * Adds the id to the favorited studyguides
-     * @param {int} id The id of the studyguide
-     * @throws {TypeError} If id is not an integer 
+     * @param {string} id The id of the studyguide
+     * @throws {TypeError} If id is not a string
      */
     favorite(id) {
-        if (!Number.isInteger(id)) {
-            throw new TypeError("id must be an int")
+        if (typeof id !== Primitives.STRING) {
+            throw new TypeError("id must be a string")
         }
         this.#favoritedStudyguides.add(id)
     }
 
     /**
      * Removes the id from the favorited studyguides
-     * @param {int} id The id of the studyguide
-     * @throws {TypeError} If id is not an integer 
+     * @param {string} id The id of the studyguide
+     * @throws {TypeError} If id is not a string
      */
     unfavorite(id) {
-        if (!Number.isInteger(id)) {
-            throw new TypeError("id must be an int")
+        if (typeof id !== Primitives.STRING) {
+            throw new TypeError("id must be a string")
         }
         this.#favoritedStudyguides.delete(id)
     }
 
     /**
      * Adds the id to the downloaded studyguides
-     * @param {int} id The id of the studyguide
-     * @throws {TypeError} If id is not an integer 
+     * @param {string} id The id of the studyguide
+     * @throws {TypeError} If id is not a string
      */
     download(id) {
-        if (!Number.isInteger(id)) {
-            throw new TypeError("id must be an int")
+        if (typeof id !== Primitives.STRING) {
+            throw new TypeError("id must be a string")
         }
         this.#downloadedStudyguides.add(id)
     }
 
     /**
      * Removes the id from the downloaded studyguides
-     * @param {int} id The id of the studyguide
-     * @throws {TypeError} If id is not an integer 
+     * @param {string} id The id of the studyguide
+     * @throws {TypeError} If id is not a string
      */
     undownload(id) {
-        if (!Number.isInteger(id)) {
-            throw new TypeError("id must be an int")
+        if (typeof id !== Primitives.STRING) {
+            throw new TypeError("id must be a string")
         }
         this.#downloadedStudyguides.delete(id)
     }

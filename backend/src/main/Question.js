@@ -2,13 +2,9 @@ import { Choice } from "./Choice.js"
 import { Primitives } from "./utils/Primitives.js"
 
 class Question {
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     #text
-    /**
-     * @type {Set<Choice>}
-     */
+    /** @type {Set<Choice>} */
     #choices
 
     /**
@@ -24,7 +20,7 @@ class Question {
         if (!(choices instanceof Set)) {
             throw new TypeError("choices must be a Choice set")
         }
-        var allChoicesValid = true
+        let allChoicesValid = true
         choices.forEach(choice => {
             if (!(choice instanceof Choice)) {
                 allChoicesValid = false

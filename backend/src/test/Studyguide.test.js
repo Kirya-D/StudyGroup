@@ -3,7 +3,7 @@ import { Choice } from "../main/Choice.js"
 import { Question } from "../main/Question.js"
 import { Studyguide } from "../main/Studyguide.js"
 
-const validId = -1
+const validId = "1"
 const validTitle = "Studyguide"
 const validDescription = "Description"
 const validQuestions = new Set([
@@ -17,52 +17,27 @@ const validQuestions = new Set([
     )
 ])
 const validQuestionCount = 0
-const validCreatorId = 1
-
-const validStudyguideParams = {
-    id: validId,
-    title: validTitle,
-    description: validDescription,
-    questions: validQuestions,
-    questionCount: validQuestionCount,
-    questionCount: validQuestionCount,
-    creatorId: validCreatorId
-}
+const validCreatorId = "1"
 
 describe("Studyguide", () => {
 
     describe("Constructor", () => {
 
         test.each([
+            [1.2],
+            [1],
+            [true],
             [null],
             [undefined]
-        ])("When id is null/undefined", (id) => {
-            const studyguide = new Studyguide({
-                id: id,
-                title: validTitle,
-                description: validDescription,
-                questions: validQuestions,
-                questionCount: validQuestionCount,
-                creatorId: validCreatorId
-            })
-
-            expect(studyguide.id()).toBe(-1)
-        })
-
-        test.each([
-            [1.2],
-            ["1"],
-            [new Object("1")],
-            [true]
-        ])("Throws when id isn't an int", (id) => {
-            expect(() => new Studyguide({
-                id: id,
-                title: validTitle,
-                description: validDescription,
-                questions: validQuestions,
-                questionCount: validQuestionCount,
-                creatorId: validCreatorId
-            })).toThrow("id must be an integer")
+        ])("Throws when id isn't a string", (id) => {
+            expect(() => new Studyguide(
+                id,
+                validTitle,
+                validDescription,
+                validQuestions,
+                validQuestionCount,
+                validCreatorId
+            )).toThrow("id must be a string")
         })
 
         test.each([
@@ -73,14 +48,14 @@ describe("Studyguide", () => {
             [undefined],
             [null]
         ])("Throws when title isn't a string", (title) => {
-            expect(() => new Studyguide({
-                id: validId,
-                title: title,
-                description: validDescription,
-                questions: validQuestions,
-                questionCount: validQuestionCount,
-                creatorId: validCreatorId
-            })).toThrow("title must be a string")
+            expect(() => new Studyguide(
+                validId,
+                title,
+                validDescription,
+                validQuestions,
+                validQuestionCount,
+                validCreatorId
+            )).toThrow("title must be a string")
         })
 
         test.each([
@@ -91,14 +66,14 @@ describe("Studyguide", () => {
             [undefined],
             [null]
         ])("Throws when description isn't a string", (description) => {
-            expect(() => new Studyguide({
-                id: validId,
-                title: validTitle,
-                description: description,
-                questions: validQuestions,
-                questionCount: validQuestionCount,
-                creatorId: validCreatorId
-            })).toThrow("description must be a string")
+            expect(() => new Studyguide(
+                validId,
+                validTitle,
+                description,
+                validQuestions,
+                validQuestionCount,
+                validCreatorId
+            )).toThrow("description must be a string")
         })
 
         test.each([
@@ -110,13 +85,13 @@ describe("Studyguide", () => {
             [true],
             [new Object()]
         ])("Throws when questions isn't a Question set", (questions) => {
-            expect(() => new Studyguide({
-                id: validId,
-                title: validTitle,
-                description: validDescription,
-                questions: questions,
-                creatorId: validCreatorId
-            })).toThrow("questions must be a Question set")
+            expect(() => new Studyguide(
+                validId,
+                validTitle,
+                validDescription,
+                questions,
+                validCreatorId
+            )).toThrow("questions must be a Question set")
         })
 
         test.each([
@@ -125,13 +100,13 @@ describe("Studyguide", () => {
             [new Set([{}])],
             [new Set([true])]
         ])("Throws when all questions aren't Question objects", (questions) => {
-            expect(() => new Studyguide({
-                id: validId,
-                title: validTitle,
-                description: validDescription,
-                questions: questions,
-                creatorId: validCreatorId
-            })).toThrow("all questions must be a Question object")
+            expect(() => new Studyguide(
+                validId,
+                validTitle,
+                validDescription,
+                questions,
+                validCreatorId
+            )).toThrow("all questions must be a Question object")
         })
 
         test.each([
@@ -141,43 +116,42 @@ describe("Studyguide", () => {
             [new Object("1")],
             [true]
         ])("Throws when questionCount isn't an int", (questionCount) => {
-            expect(() => new Studyguide({
-                id: validId,
-                title: validTitle,
-                description: validDescription,
-                questions: validQuestions,
-                questionCount: questionCount,
-                creatorId: validCreatorId
-            })).toThrow("questionCount must be an integer")
+            expect(() => new Studyguide(
+                validId,
+                validTitle,
+                validDescription,
+                validQuestions,
+                validCreatorId,
+                questionCount
+            )).toThrow("questionCount must be an int")
         })
 
         test.each([
             [undefined],
             [null],
             [1.2],
-            ["1"],
-            [new Object("1")],
+            [1],
             [true]
         ])("Throws when creatorId isn't an int", (creatorId) => {
-            expect(() => new Studyguide({
-                id: validId,
-                title: validTitle,
-                description: validDescription,
-                questions: validQuestions,
-                questionCount: validQuestionCount,
-                creatorId: creatorId
-            })).toThrow("creatorId must be an integer")
+            expect(() => new Studyguide(
+                validId,
+                validTitle,
+                validDescription,
+                validQuestions,
+                validQuestionCount,
+                creatorId
+            )).toThrow("creatorId must be a string")
         })
 
         test("When Successful", () => {
-            const studyguide = new Studyguide(validStudyguideParams)
+            const studyguide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId, validQuestionCount)
 
             expect(studyguide.id()).toBe(validId)
             expect(studyguide.title()).toBe(validTitle)
             expect(studyguide.description()).toBe(validDescription)
             expect(studyguide.questions()).toBe(validQuestions)
-            expect(studyguide.questionCount()).toBe(validQuestions.size)
             expect(studyguide.creatorId()).toBe(validCreatorId)
+            expect(studyguide.questionCount()).toBe(validQuestions.size)
         })
     })
 })

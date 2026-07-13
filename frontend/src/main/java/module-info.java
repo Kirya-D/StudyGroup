@@ -6,6 +6,7 @@ module kirya {
     requires javafx.fxml;
     requires tools.jackson.databind;
     requires java.sql;
+    requires java.net.http;
     requires io.github.cdimascio.dotenv.java;
     requires com.microsoft.sqlserver.jdbc;
 
@@ -14,7 +15,6 @@ module kirya {
 
     exports kirya;
     exports kirya.model;
-    exports kirya.model.request;
     exports kirya.utils;
     exports kirya.viewmodel;
 }

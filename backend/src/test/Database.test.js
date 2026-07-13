@@ -8,16 +8,15 @@ import { Question } from "../main/Question.js";
 import { Studyguide } from "../main/Studyguide.js";
 
 const dbConfig = process.env.TESTING_DB_URL
-const defaultStudyguideParams = {
-    title: "studyguide",
-    description: "description",
-    questions: new Set([
-        new Question("Question", new Set([
-            new Choice("Choice", true)
-        ]))
-    ]),
-    creatorId: 1
-}
+const validId = "1"
+const validTitle = "studyguide"
+const validDescription = "description"
+const validQuestions = new Set([
+    new Question("Question", new Set([
+        new Choice("Choice", true)
+    ]))
+])
+const validCreatorId = "1"
 const setupPath = path.join("src/test/", "database_setup.sql")
 const setupQuery = filesystem.readFileSync(setupPath, "utf-8")
 const database = new Database()
@@ -47,17 +46,18 @@ describe("Database", () => {
             const onlyAccount = accounts.at(0)
 
             expect(accounts.length).toBe(1)
-            expect(onlyAccount.id()).toBe(1)
+            expect(onlyAccount.id()).toBe("1")
             expect(onlyAccount.username()).toBe("testUser")
             expect(onlyAccount.password()).toBe("password")
         })
 
         test("When Multiple Accounts in Database", async () => {
-            const accounts = [new Account({id: 2, username: "testUser1", password: "password1"}), new Account({id: 3, username: "testUser2", password: "password2"})]
+            const accounts = [new Account("2", "testUser1", "password1"), new Account("3", "testUser2", "password2")]
             accounts.forEach(async (account) => {
+                const id = account.id()
                 const user = account.username()
                 const pass = account.password()
-                await database.createAccount(user, pass)
+                await database.createAccount(id, user, pass)
             })
             
             const accountSet = await database.getAllAccounts()
@@ -65,14 +65,14 @@ describe("Database", () => {
 
             expect(retrievedAccounts.length).toBe(3)
             retrievedAccounts.forEach((account, index) => {
-                var expectedId = index + 1
-                var expectedUsername = "testUser"
-                var expectedPassword = "password"
+                let expectedId = index + 1
+                let expectedUsername = "testUser"
+                let expectedPassword = "password"
                 if (index != 0) {
                     expectedUsername = `${expectedUsername}${index}`
                     expectedPassword = `${expectedPassword}${index}`
                 }
-                expect(account.id()).toBe(expectedId)
+                expect(account.id()).toBe(expectedId.toString())
                 expect(account.username()).toBe(expectedUsername)
                 expect(account.password()).toBe(expectedPassword)
             })
@@ -84,7 +84,7 @@ describe("Database", () => {
             [true, false],
             [true, true]
         ])("When Account Has One Studyguide with Status'", async (favorited, downloaded) => {
-            const guide = new Studyguide(defaultStudyguideParams)
+            const guide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
             await database.upsertStudyguide(guide, favorited, downloaded)
 
             const accounts = Array.from(await database.getAllAccounts())
@@ -105,8 +105,8 @@ describe("Database", () => {
             [false, true, false, true],
             [true, true, true, true],
         ])("When Account Has Multiple Studyguides with Status'", async (favorited1, downloaded1, favorited2, downloaded2) => {
-            const guide1 = new Studyguide(defaultStudyguideParams)
-            const guide2 = new Studyguide(defaultStudyguideParams)
+            const guide1 = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
+            const guide2 = new Studyguide("2", validTitle, validDescription, validQuestions, validCreatorId)
             await database.upsertStudyguide(guide1, favorited1, downloaded1)
             await database.upsertStudyguide(guide2, favorited2, downloaded2)
 
@@ -126,14 +126,8 @@ describe("Database", () => {
             [true, false],
             [true, true]
         ])("When Account Has Studyguides with Status' By Other Creator", async (favorited, downloaded) => {
-            const otherGuideParams = {
-                title:"Title",
-                description:"Description",
-                questions: new Set(),
-                creatorId: 2
-            }
-            const guide = new Studyguide(otherGuideParams)
-            await database.createAccount("fillerUser", "fillerPassword")
+            const guide = new Studyguide(validId, validTitle, validDescription, validQuestions, "2")
+            await database.createAccount("2", "fillerUser", "fillerPassword")
             await database.upsertStudyguide(guide, favorited, downloaded)
 
             const accounts = Array.from(await database.getAllAccounts())
@@ -142,7 +136,7 @@ describe("Database", () => {
 
             expect(accounts.length).toBe(2)
             accounts.forEach(account => {
-                if (account.id() == 2) {
+                if (account.id() == "2") {
                     expect(account.favoritedStudyguides().size).toBe(expectedFavoritesCount)
                     expect(account.downloadedStudyguides().size).toBe(expectedDownloadsCount)
                 }
@@ -195,7 +189,7 @@ describe("Database", () => {
         })
         
         test("When one studyguide matches criteria", async () => {
-            const guide = new Studyguide(defaultStudyguideParams)
+            const guide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
 
             await database.upsertStudyguide(guide)
             const guides = await database.getStudyguidesWithSubstring("testUser", page)
@@ -204,9 +198,9 @@ describe("Database", () => {
         })
         
         test("When multiple studyguides matches criteria", async () => {
-            const guide1 = new Studyguide(defaultStudyguideParams)
-            const guide2 = new Studyguide(defaultStudyguideParams)
-            const guide3 = new Studyguide(defaultStudyguideParams)
+            const guide1 = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
+            const guide2 = new Studyguide("2", validTitle, validDescription, validQuestions, validCreatorId)
+            const guide3 = new Studyguide("3", validTitle, validDescription, validQuestions, validCreatorId)
 
             await database.upsertStudyguide(guide1)
             await database.upsertStudyguide(guide2)
@@ -219,7 +213,7 @@ describe("Database", () => {
         test("When more studyguides than maxResultCount matches criteria", async () => {
             const maxResultCount = 50
             for (let i = 0; i < maxResultCount + 5; i++) {
-                const guide = new Studyguide(defaultStudyguideParams)
+                const guide = new Studyguide(`${i}`, validTitle, validDescription, validQuestions, validCreatorId)
                 await database.upsertStudyguide(guide)
             }
 
@@ -232,7 +226,7 @@ describe("Database", () => {
             page = 1
             const maxResultCount = 50
             for (let i = 0; i < maxResultCount + 5; i++) {
-                const guide = new Studyguide(defaultStudyguideParams)
+                const guide = new Studyguide(`${i}`, validTitle, validDescription, validQuestions, validCreatorId)
                 await database.upsertStudyguide(guide)
             }
 
@@ -250,9 +244,22 @@ describe("Database", () => {
             [15.25],
             [undefined],
             [true]
-        ])("Throws when username isn't a string", async (username) => {
+        ])("Throws when id isn't a string", async (id) => {
+            const username = "validUsername"
             const password = "validPassword"
-            await expect(database.createAccount(username, password)).rejects.toThrow("username must be a string")
+            await expect(database.createAccount(id, username, password)).rejects.toThrow("uuid must be a string")
+        })
+
+        test.each([
+            [null],
+            [10],
+            [15.25],
+            [undefined],
+            [true]
+        ])("Throws when username isn't a string", async (username) => {
+            const id = "id"
+            const password = "validPassword"
+            await expect(database.createAccount(id, username, password)).rejects.toThrow("username must be a string")
         })
 
         test.each([
@@ -262,8 +269,9 @@ describe("Database", () => {
             [undefined],
             [true]
         ])("Throws when password isn't a string", async (password) => {
+            const id = "id"
             const username = "validUsername"
-            await expect(database.createAccount(username, password)).rejects.toThrow("password must be a string")
+            await expect(database.createAccount(id, username, password)).rejects.toThrow("password must be a string")
         })
     })
 
@@ -288,7 +296,7 @@ describe("Database", () => {
             [null],
             [new String("String Object")]
         ])("Throws when favorited isn't a boolean", async (favorited) => {
-            const guide = new Studyguide(defaultStudyguideParams)
+            const guide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
             await expect(database.upsertStudyguide(guide, favorited)).rejects.toThrow("favorited must be an int")
         })
 
@@ -298,13 +306,13 @@ describe("Database", () => {
             [null],
             [new String("String Object")]
         ])("Throws when downloaded isn't a boolean", async (downloaded) => {
-            const guide = new Studyguide(defaultStudyguideParams)
+            const guide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
             const favorited = false
             await expect(database.upsertStudyguide(guide, favorited, downloaded)).rejects.toThrow("downloaded must be an int")
         })
 
         test("Test when one insert", async () => {
-            const guide = new Studyguide(defaultStudyguideParams)
+            const guide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
             const testingUsername = "testUser"
 
             const returnedId = await database.upsertStudyguide(guide)
@@ -317,9 +325,9 @@ describe("Database", () => {
         })
 
         test("Test when multiple inserts", async () => {
-            const guide1 = new Studyguide(defaultStudyguideParams)
-            const guide2 = new Studyguide(defaultStudyguideParams)
-            const guide3 = new Studyguide(defaultStudyguideParams)
+            const guide1 = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
+            const guide2 = new Studyguide("2", validTitle, validDescription, validQuestions, validCreatorId)
+            const guide3 = new Studyguide("3", validTitle, validDescription, validQuestions, validCreatorId)
             const testingUsername = "testUser"
 
             const returnedId1 = await database.upsertStudyguide(guide1)
@@ -338,14 +346,14 @@ describe("Database", () => {
         })
 
         test("Test when one update", async () => {
-            const originalGuide = new Studyguide(defaultStudyguideParams)
-            const updatedGuide = new Studyguide({
-                id: 1,
-                title: "Better title",
-                description: "Longer and more descriptive description",
-                questions: new Set(),
-                creatorId: 1
-            })
+            const originalGuide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
+            const updatedGuide = new Studyguide(
+                "1",
+                "Better title",
+                "Longer and more descriptive description",
+                new Set(),
+                "1"
+            )
             const testingUsername = "testUser"
 
             const insertedId = await database.upsertStudyguide(originalGuide)
@@ -361,21 +369,21 @@ describe("Database", () => {
         })
 
         test("Test when multiple updates", async () => {
-            const originalGuide = new Studyguide(defaultStudyguideParams)
-            const updatedGuide = new Studyguide({
-                id: 1,
-                title: "Better title",
-                description: "Longer and more descriptive description",
-                questions: new Set(),
-                creatorId: 1
-            })
-            const secondUpdatedGuide = new Studyguide({
-                id: 1,
-                title: "Different title",
-                description: "Shorter desc",
-                questions: new Set(),
-                creatorId: 1
-            })
+            const originalGuide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
+            const updatedGuide = new Studyguide(
+                "1",
+                "Better title",
+                "Longer and more descriptive description",
+                new Set(),
+                "1"
+            )
+            const secondUpdatedGuide = new Studyguide(
+                "1",
+                "Different title",
+                "Shorter desc",
+                new Set(),
+                "1"
+            )
             const testingUsername = "testUser"
 
             const insertedId = await database.upsertStudyguide(originalGuide)
@@ -400,32 +408,32 @@ describe("Database", () => {
             [null],
             [undefined],
             [22.23],
-            ["fifty-two"],
+            [52],
             [true]
-        ])("Throws when studyguideId isn't an int", async (studyguideId) => {
-            await expect(database.deleteStudyguide(studyguideId, 1)).rejects.toThrow("studyguideId must be an int")
+        ])("Throws when studyguideId isn't a string", async (studyguideId) => {
+            await expect(database.deleteStudyguide(studyguideId, "1")).rejects.toThrow("studyguideId must be a string")
         })
 
         test.each([
             [null],
             [undefined],
             [22.23],
-            ["fifty-two"]
-        ])("Throws when accountId isn't an int", async (accountId) => {
-            await expect(database.deleteStudyguide(1, accountId)).rejects.toThrow("accountId must be an int")
+            [52]
+        ])("Throws when accountId isn't a string", async (accountId) => {
+            await expect(database.deleteStudyguide("1", accountId)).rejects.toThrow("accountId must be a string")
         })
 
         test("Test when no studyguides to delete", async () => {
-            await database.deleteStudyguide(1, 1)
+            await database.deleteStudyguide("1", "1")
             const guides = await database.getStudyguidesWithSubstring("testUser", page)
             
             expect(guides.size).toBe(0)
         })
 
         test("Test when studyguide isn't by account with accountId", async () => {
-            const guide = new Studyguide(defaultStudyguideParams)
-            const guideId = 1
-            const accountId = 2
+            const guide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
+            const guideId = "1"
+            const accountId = "2"
 
             await database.upsertStudyguide(guide)
             await database.deleteStudyguide(guideId, accountId)
@@ -436,9 +444,9 @@ describe("Database", () => {
         })
 
         test("Test when studyguide is by account with accountId", async () => {
-            const guide = new Studyguide(defaultStudyguideParams)
-            const guideId = 1
-            const accountId = 1
+            const guide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
+            const guideId = "1"
+            const accountId = "1"
 
             await database.upsertStudyguide(guide)
             await database.deleteStudyguide(guideId, accountId)
@@ -449,33 +457,31 @@ describe("Database", () => {
     })
 
     describe("UpsertStudyguideStatus", () => {
+        const validAccountId = "1"
+        const validStudyguideId = "1"
+        const validFavorited = false
+        const validDownloaded = false
 
         test.each([
             [null],
             [undefined],
             [22.23],
-            ["fifty-two"],
+            [20],
             [true]
-        ])("Throws when accountId isn't an int", async (accountId) => {
-            const studyguideId = 1
-            const favorited = false
-            const downloaded = false
-            await expect(database.upsertStudyguideStatus(accountId, studyguideId, favorited, downloaded))
-                .rejects.toThrow("accountId must be an int")
+        ])("Throws when accountId isn't a string", async (accountId) => {
+            await expect(database.upsertStudyguideStatus(accountId, validStudyguideId, validFavorited, validDownloaded))
+                .rejects.toThrow("accountId must be a string")
         })
 
         test.each([
             [null],
             [undefined],
             [22.23],
-            ["fifty-two"],
+            [20],
             [true]
-        ])("Throws when studyguideId isn't an int", async (studyguideId) => {
-            const accountId = 1
-            const favorited = false
-            const downloaded = false
-            await expect(database.upsertStudyguideStatus(accountId, studyguideId, favorited, downloaded))
-                .rejects.toThrow("studyguideId must be an int")
+        ])("Throws when studyguideId isn't a string", async (studyguideId) => {
+            await expect(database.upsertStudyguideStatus(validAccountId, studyguideId, validFavorited, validDownloaded))
+                .rejects.toThrow("studyguideId must be a string")
         })
 
         test.each([
@@ -485,10 +491,7 @@ describe("Database", () => {
             [1],
             ["fifty-two"]
         ])("Throws when favorited isn't a boolean", async (favorited) => {
-            const accountId = 1
-            const studyguideId = 1
-            const downloaded = false
-            await expect(database.upsertStudyguideStatus(accountId, studyguideId, favorited, downloaded))
+            await expect(database.upsertStudyguideStatus(validAccountId, validStudyguideId, favorited, validDownloaded))
                 .rejects.toThrow("favorited must be an int")
         })
 
@@ -499,10 +502,7 @@ describe("Database", () => {
             [1],
             ["fifty-two"]
         ])("Throws when downloaded isn't a boolean", async (downloaded) => {
-            const accountId = 1
-            const studyguideId = 1
-            const favorited = false
-            await expect(database.upsertStudyguideStatus(accountId, studyguideId, favorited, downloaded))
+            await expect(database.upsertStudyguideStatus(validAccountId, validStudyguideId, validFavorited, downloaded))
                 .rejects.toThrow("downloaded must be an int")
         })
     })

@@ -2,13 +2,9 @@ import { Primitives } from "./utils/Primitives.js"
 
 class Choice {
 
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     #text
-    /**
-     * @type {boolean}
-     */
+    /** @type {boolean} */
     #isAnswer
 
     /**

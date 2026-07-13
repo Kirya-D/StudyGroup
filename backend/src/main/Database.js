@@ -19,20 +19,18 @@ function getQueryFromFile(filename) {
     return filecontents
 }
 
-const CREATE_ACCOUNT = getQueryFromFile("create_account.sql") // IMPLEMENTED FUNCTION FOR THIS QUERY
-const CREATE_CHOICE = getQueryFromFile("create_choice.sql") // IMPLEMENTED FUNCTION FOR THIS QUERY
-const CREATE_QUESTION = getQueryFromFile("create_question.sql") // IMPLEMENTED FUNCTION FOR THIS QUERY
-const DELETE_STUDYGUIDE = getQueryFromFile("delete_studyguide.sql") // IMPLEMENTED FUNCTION FOR THIS QUERY
-const GET_ALL_ACCOUNTS = getQueryFromFile("get_all_accounts.sql") // IMPLEMENTED FUNCTION FOR THIS QUERY
-const GET_STUDYGUIDES_WITH_SUBSTRING = getQueryFromFile("get_studyguides_with_substring.sql") // IMPLEMENTED FUNCTION FOR THIS QUERY
-const UPSERT_STUDYGUIDE_STATUS = getQueryFromFile("upsert_studyguide_status.sql") // IMPLEMENTED FUNCTION FOR THIS QUERY
-const UPSERT_STUDYGUIDE = getQueryFromFile("upsert_studyguide.sql") // IMPLEMENTED FUNCTION FOR THIS QUERY
+const CREATE_ACCOUNT = getQueryFromFile("create_account.sql")
+const CREATE_CHOICE = getQueryFromFile("create_choice.sql")
+const CREATE_QUESTION = getQueryFromFile("create_question.sql")
+const DELETE_STUDYGUIDE = getQueryFromFile("delete_studyguide.sql")
+const GET_ALL_ACCOUNTS = getQueryFromFile("get_all_accounts.sql")
+const GET_STUDYGUIDES_WITH_SUBSTRING = getQueryFromFile("get_studyguides_with_substring.sql")
+const UPSERT_STUDYGUIDE_STATUS = getQueryFromFile("upsert_studyguide_status.sql")
+const UPSERT_STUDYGUIDE = getQueryFromFile("upsert_studyguide.sql")
 
 class Database {
 
-    /**
-     * @type {mssql.ConnectionPool | null}
-     */
+    /** @type {mssql.ConnectionPool | null} */
     #pool
     
     /**
@@ -56,19 +54,15 @@ class Database {
      * Returns all accounts in the database
      */
     async getAllAccounts() {
-        /**
-         * @type {Map<int, Account>}
-         */
+        /** @type {Map<string, Account>} */
         const accounts = new Map()
         const results = await this.#pool.query(GET_ALL_ACCOUNTS)
 
         results.recordsets[0].forEach(accountInfo => {
-            const accountParams = {
-                id: accountInfo.id,
-                username: accountInfo.username,
-                password: accountInfo.password
-            }
-            const newAccount = new Account(accountParams)
+            const id = accountInfo.id
+            const username = accountInfo.username
+            const password = accountInfo.password
+            const newAccount = new Account(id, username, password)
             accounts.set(newAccount.id(), newAccount)
         })
         results.recordsets[1].forEach(statusInfo => {
@@ -87,8 +81,8 @@ class Database {
      * Returns a set of studyguides matching the search criteria.
      * 
      * @param {string} search The search criteria
-     * @param {int} pageNum The offset multiplier for the result index
-     * @param {int} maxResultCount The max number of results to return. Defaults to 50
+     * @param {number} pageNum The offset multiplier for the result index
+     * @param {number} maxResultCount The max number of results to return. Defaults to 50
      * 
      * @throws {TypeError} If search is not a string or pageNum/maxResultCount are not ints
      */
@@ -102,9 +96,7 @@ class Database {
         if (!Number.isInteger(maxResultCount)) {
             throw new TypeError("maxResultCount must be an int")
         }
-        /**
-         * @type {Set<Studyguide>}
-         */
+        /** @type {Set<Studyguide>} */
         const studyguides = new Set()
         const preppedSearch = this.#prepareSearchText(search)
         const result = await this.#pool.request()
@@ -114,15 +106,13 @@ class Database {
             .query(GET_STUDYGUIDES_WITH_SUBSTRING)
         
         result.recordset.forEach(guideInfo => {
-            const guideParams = {
-                id: guideInfo.id,
-                title: guideInfo.title,
-                description: guideInfo.description,
-                questions: new Set(),
-                questionCount: guideInfo.questionCount,
-                creatorId: guideInfo.creatorId
-            }
-            const newGuide = new Studyguide(guideParams)
+            const id = guideInfo.id
+            const title = guideInfo.title
+            const description = guideInfo.description
+            const questions = new Set()
+            const creatorId = guideInfo.creatorId
+            const questionCount = guideInfo.questionCount
+            const newGuide = new Studyguide(id, title, description, questions, creatorId, questionCount)
             studyguides.add(newGuide)
         })
 
@@ -149,12 +139,16 @@ class Database {
     /**
      * Create an account with the given credentials
      * 
+     * @param {string} uuid The uuid
      * @param {string} username The username
      * @param {string} password The password
      * 
-     * @throws {TypeError} If username or password are not strings
+     * @throws {TypeError} If uuid, username, or password are not strings
      */
-    async createAccount(username, password) {
+    async createAccount(uuid, username, password) {
+        if (typeof uuid !== Primitives.STRING) {
+            throw new TypeError("uuid must be a string")
+        }
         if (typeof username !== Primitives.STRING) {
             throw new TypeError("username must be a string")
         }
@@ -163,6 +157,7 @@ class Database {
         }
 
         await this.#pool.request()
+            .input("uuid", mssql.NVarChar(36), uuid)
             .input("username", mssql.NVarChar(32), username)
             .input("password", mssql.NVarChar(32), password)
             .query(CREATE_ACCOUNT)
@@ -176,7 +171,7 @@ class Database {
      * @param {boolean} favorited If the account has the studyguide favorited. default false
      * @param {boolean} downloaded If the account has the studyguide downloaded. default false
      * 
-     * @returns {int} The id of the studyguide as stored in the database
+     * @returns The id of the studyguide as stored in the database
      * 
      * @throws {TypeError} 
      * - If studyguide isn't a Studyguide object
@@ -194,16 +189,14 @@ class Database {
         }
 
         const result = await this.#pool.request()
-            .input("studyguideId", mssql.Int(), studyguide.id())
+            .input("studyguideId", mssql.NVarChar(36), studyguide.id())
             .input("title", mssql.NVarChar(255), studyguide.title())
             .input("description", mssql.NVarChar(255), studyguide.description())
-            .input("accountId", mssql.Int(), studyguide.creatorId())
-            .output("newStudyguideId", mssql.Int())
+            .input("accountId", mssql.NVarChar(36), studyguide.creatorId())
+            .output("newStudyguideId", mssql.NVarChar(36))
             .query(UPSERT_STUDYGUIDE)
 
-        /**
-         * @type {int}
-         */
+        /** @type {string} */
         const actualStudyguideId = result.output.newStudyguideId;
 
         for (const question of studyguide.questions()) {
@@ -221,31 +214,29 @@ class Database {
 
     /**
      * @param {Question} question The question to add to the database
-     * @param {int} studyguideId The id of the studyguide it is a part of
+     * @param {number} studyguideId The id of the studyguide it is a part of
      */
     async #createQuestion(question, studyguideId) {
         const questionResult = await this.#pool.request()
                 .input("text", mssql.NVarChar(255), question.text())
-                .input("studyguideId", mssql.Int(), studyguideId)
-                .output("newId", mssql.Int())
+                .input("studyguideId", mssql.NVarChar(36), studyguideId)
+                .output("newId", mssql.NVarChar(36))
                 .query(CREATE_QUESTION)
             
-        /**
-         * @type {int}
-         */
+        /** @type {number} */
         const questionId = questionResult.output.newId
         return questionId
     }
 
     /**
      * @param {Choice} choice The choice to add to the database
-     * @param {int} questionId The id of the question it is a part of
+     * @param {number} questionId The id of the question it is a part of
      */
     async #createChoice(choice, questionId) {
         await this.#pool.request()
             .input("text", mssql.NVarChar(255), choice.text())
             .input("isAnswer", mssql.Bit(), choice.isAnswer())
-            .input("questionId", mssql.Int(), questionId)
+            .input("questionId", mssql.NVarChar(36), questionId)
             .query(CREATE_CHOICE)
     }
 
@@ -253,30 +244,30 @@ class Database {
      * Deletes the studyguide associated with studyguideId
      * from the database if the given accountId is the creator's.
      * 
-     * @param {int} studyguideId The id of the studyguide to delete
-     * @param {int} accountId The id of the account attempting to delete
+     * @param {string} studyguideId The id of the studyguide to delete
+     * @param {string} accountId The id of the account attempting to delete
      * 
      * @throws {TypeError} If studyguideId or accountId are not ints
      */
     async deleteStudyguide(studyguideId, accountId) {
-        if (!Number.isInteger(studyguideId)) {
-            throw new TypeError("studyguideId must be an int")
+        if (typeof studyguideId !== Primitives.STRING) {
+            throw new TypeError("studyguideId must be a string")
         }
-        if (!Number.isInteger(accountId)) {
-            throw new TypeError("accountId must be an int")
+        if (typeof accountId !== Primitives.STRING) {
+            throw new TypeError("accountId must be a string")
         }
 
         await this.#pool.request()
-            .input("id", mssql.Int(), studyguideId)
-            .input("creatorId", mssql.Int(), accountId)
+            .input("id", mssql.NVarChar(36), studyguideId)
+            .input("creatorId", mssql.NVarChar(36), accountId)
             .query(DELETE_STUDYGUIDE)
     }
 
     /**
      * Upsert the status of the studyguide for the given account
      * 
-     * @param {int} accountId The account id
-     * @param {int} studyguideId The studyguide id 
+     * @param {string} accountId The account id
+     * @param {string} studyguideId The studyguide id 
      * @param {boolean} favorited If the account has the studyguide favorited
      * @param {boolean} downloaded If the account has the studyguide downloaded
      * 
@@ -285,11 +276,11 @@ class Database {
      * - If favorited or downloaded are not booleans
      */
     async upsertStudyguideStatus(accountId, studyguideId, favorited, downloaded) {
-        if (!Number.isInteger(accountId)) {
-            throw new TypeError("accountId must be an int")
+        if (typeof accountId !== Primitives.STRING) {
+            throw new TypeError("accountId must be a string")
         }
-        if (!Number.isInteger(studyguideId)) {
-            throw new TypeError("studyguideId must be an int")
+        if (typeof studyguideId !== Primitives.STRING) {
+            throw new TypeError("studyguideId must be a string")
         }
         if (typeof favorited !== Primitives.BOOLEAN) {
             throw new TypeError("favorited must be an int")
@@ -299,8 +290,8 @@ class Database {
         }
 
         await this.#pool.request()
-            .input("accountId", mssql.Int(), accountId)
-            .input("studyguideId", mssql.Int(), studyguideId)
+            .input("accountId", mssql.NVarChar(36), accountId)
+            .input("studyguideId", mssql.NVarChar(36), studyguideId)
             .input("favorited", mssql.Bit(), favorited)
             .input("downloaded", mssql.Bit(), downloaded)
             .query(UPSERT_STUDYGUIDE_STATUS)

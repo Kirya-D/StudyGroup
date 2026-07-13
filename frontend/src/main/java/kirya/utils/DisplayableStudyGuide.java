@@ -10,7 +10,7 @@ public abstract class DisplayableStudyGuide {
     /**
      * {@return the id}
      */
-    public abstract Integer getId();
+    public abstract String getId();
 
     /**
      * {@return the username of the account that created this studyguide}
@@ -30,22 +30,27 @@ public abstract class DisplayableStudyGuide {
     /**
      * {@return the downloaded status}
      */
-    public abstract boolean getIsDownloaded();
+    public abstract boolean getDownloaded();
 
     /**
      * {@return The favorited status}
      */
-    public abstract boolean getIsFavorited();
+    public abstract boolean getFavorited();
 
     /**
      * {@return The uploaded status}
      */
-    public abstract boolean getIsUploaded();
+    public abstract boolean getUploaded();
 
     /**
      * {@return the questions}
      */
     public abstract Collection<DisplayableQuestion> getQuestions();
+
+    /**
+     * {@return the number of questions}
+     */
+    public abstract int getQuestionCount();
 
     @Override
     public String toString() {

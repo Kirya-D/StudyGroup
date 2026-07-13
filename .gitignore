@@ -3,3 +3,4 @@ backend/coverage
 docs/src
 frontend/target
 .env
+.vscode

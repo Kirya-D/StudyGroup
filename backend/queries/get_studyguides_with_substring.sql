@@ -15,8 +15,7 @@ FROM
 LEFT JOIN Account creatorAccount
     ON Studyguide.idAccount = creatorAccount.id
 WHERE
-    creatorAccount.username LIKE @search
-    OR Studyguide.title LIKE @search
+    Studyguide.title LIKE @search
     OR Studyguide.description LIKE @search
 ORDER BY
     Studyguide.id

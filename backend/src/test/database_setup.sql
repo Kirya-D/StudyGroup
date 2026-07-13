@@ -24,7 +24,7 @@ BEGIN
 END
 
 CREATE TABLE Account (
-    id INT IDENTITY(1, 1),
+    id NVARCHAR(36) NOT NULL,
     username NVARCHAR(32) UNIQUE NOT NULL,
     password NVARCHAR(32) NOT NULL
 
@@ -33,10 +33,10 @@ CREATE TABLE Account (
 );
 
 CREATE TABLE Studyguide (
-    id INT IDENTITY(1, 1),
+    id NVARCHAR(36) NOT NULL,
     title NVARCHAR(255) NOT NULL,
     description NVARCHAR(255) NOT NULL,
-    idAccount INT DEFAULT NULL,
+    idAccount NVARCHAR(36) DEFAULT NULL,
 
 
     CONSTRAINT pkey_studyguide PRIMARY KEY (id),
@@ -45,8 +45,8 @@ CREATE TABLE Studyguide (
 );
 
 CREATE TABLE AccountStudyguideStatus (
-    idAccount INT NOT NULL,
-    idStudyguide INT NOT NULL,
+    idAccount NVARCHAR(36) NOT NULL,
+    idStudyguide NVARCHAR(36) NOT NULL,
     favorited BIT NOT NULL DEFAULT (0),
     downloaded BIT NOT NULL DEFAULT (0),
 
@@ -60,7 +60,7 @@ CREATE TABLE AccountStudyguideStatus (
 CREATE TABLE Question (
     id INT IDENTITY(1, 1),
     text NVARCHAR(255) NOT NULL,
-    idStudyguide INT NOT NULL,
+    idStudyguide NVARCHAR(36) NOT NULL,
 
     CONSTRAINT pkey_question PRIMARY KEY (id),
     CONSTRAINT fkey_question_studyguide FOREIGN KEY (idStudyguide) REFERENCES Studyguide(id)
@@ -80,5 +80,5 @@ CREATE TABLE Choice (
         ON UPDATE CASCADE
 );
 
-INSERT INTO Account (username, password)
-    VALUES ('testUser', 'password');
+INSERT INTO Account (id, username, password)
+    VALUES ('1', 'testUser', 'password');

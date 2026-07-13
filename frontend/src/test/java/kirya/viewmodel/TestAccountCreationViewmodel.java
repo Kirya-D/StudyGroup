@@ -4,25 +4,27 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.util.Collections;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
 
-import kirya.TestingDatabase;
+import kirya.utils.SessionData;
 
 public class TestAccountCreationViewmodel {
 
-    private AccountCreationViewmodel viewmodel;
+    public MockServer mockServer;
+    public AccountCreationViewmodel viewmodel;
 
     @BeforeEach
-    public void setup() throws SQLException, IOException {
-        var localDb = new TestingDatabase();
-        this.viewmodel = new AccountCreationViewmodel(localDb);
+    public void setup() throws IOException, InterruptedException {
+        SessionData.logOut();
+        this.mockServer = new MockServer();
+        this.viewmodel = new AccountCreationViewmodel(this.mockServer);
     }
 
     @Nested
@@ -54,16 +56,30 @@ public class TestAccountCreationViewmodel {
     public class TestAttemptCreateAccount {
 
         @Test
-        public void throwsWhenUsernameNotAvailable() throws SQLException {
+        public void throwsWhenUsernameNotAvailable() throws IOException, InterruptedException {
             var takenUsername = "TakenUsername";
             viewmodel.getUsernameProperty().set(takenUsername);
             viewmodel.getPasswordProperty().set("password32");
 
             viewmodel.attemptCreateAccount();
 
-            assertThrows(SQLException.class, () -> {
+            assertThrows(IOException.class, () -> {
                 viewmodel.attemptCreateAccount();
             });
+        }
+
+        @Test
+        public void testWhenSuccessful() throws IOException, InterruptedException {
+            var username = "ValidUsername";
+            var password = "ValidPassword";
+            viewmodel.getUsernameProperty().set(username);
+            viewmodel.getPasswordProperty().set(password);
+
+            viewmodel.attemptCreateAccount();
+
+            var usernameIsNowTaken = mockServer.isUsernameTaken(username);
+
+            assertTrue(usernameIsNowTaken);
         }
     }
 
@@ -104,7 +120,7 @@ public class TestAccountCreationViewmodel {
         }
 
         @Test
-        public void testWhenNotAvailable() throws SQLException {
+        public void testWhenNotAvailable() throws IOException, InterruptedException {
             var takenUsername = "takenUsername";
             viewmodel.getUsernameFinalizedProperty().set(false);
             viewmodel.getUsernameProperty().set(takenUsername);

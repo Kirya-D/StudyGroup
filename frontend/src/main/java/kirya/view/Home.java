@@ -1,7 +1,6 @@
 package kirya.view;
 
 import java.io.IOException;
-import java.sql.SQLException;
 import java.text.MessageFormat;
 import java.util.ArrayList;
 import java.util.HashMap;
@@ -189,7 +188,7 @@ public class Home extends StackPane {
         if (scrolledToBottom || haveNowhereToScroll) {
             try {
                 this.viewmodel.attemptGetMoreResults();
-            } catch (SQLException err) {
+            } catch (IOException | InterruptedException err) {
                 this.alertUserOfError(err);
             }
         }
@@ -236,7 +235,7 @@ public class Home extends StackPane {
 
     private void downloadStudyGuideHandler(StudyGuideEvent handler) {
         var guide = handler.getStudyGuide();
-        var downloading = !guide.getIsDownloaded();
+        var downloading = !guide.getDownloaded();
         Runnable resultingAction = () -> this.viewmodel.toggleDownloadStudyGuide(guide, downloading);
 
         if (!downloading) {
@@ -255,17 +254,17 @@ public class Home extends StackPane {
 
     private void favoriteStudyGuideHandler(StudyGuideEvent handler) {
         var guide = handler.getStudyGuide();
-        var oppositeIsFavorited = !guide.getIsFavorited();
+        var oppositeIsFavorited = !guide.getFavorited();
         this.viewmodel.toggleFavoriteStudyGuide(guide, oppositeIsFavorited);
     }
 
     private void uploadStudyGuideHandler(StudyGuideEvent handler) {
         var guide = handler.getStudyGuide();
-        var uploading = !guide.getIsUploaded();
+        var uploading = !guide.getUploaded();
         Runnable resultingAction = () -> {
             try {
                 this.viewmodel.toggleUploadStudyGuide(guide, uploading);
-            } catch (SQLException err) {
+            } catch (IOException | InterruptedException err) {
                 this.alertUserOfError(err);
             }
         };
@@ -337,7 +336,7 @@ public class Home extends StackPane {
     private void onSearchEntered() {
         try {
             this.viewmodel.searchForStudyguides();
-        } catch (SQLException err) {
+        } catch (IOException | InterruptedException err) {
             var alert = new Alert(AlertType.ERROR);
             alert.setHeaderText("Database error");
             alert.setContentText(err.getMessage());

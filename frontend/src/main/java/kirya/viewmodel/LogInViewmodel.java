@@ -1,17 +1,16 @@
 package kirya.viewmodel;
 
-import java.sql.SQLException;
+import java.io.IOException;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
-import kirya.model.AuthDatabase;
-import kirya.model.request.CredentialsRequest;
+import kirya.model.Server;
 import kirya.utils.SessionData;
 
 public class LogInViewmodel {
 
     public static final String INCORRECT_CREDENTIALS = "Username or Password is incorrect";
-    private AuthDatabase database;
+    private Server server;
     private StringProperty usernameProperty;
     private StringProperty passwordProperty;
     private StringProperty incorrectFieldProperty;
@@ -19,10 +18,10 @@ public class LogInViewmodel {
     /**
      * Initializes a new LogInViewmodel.
      * 
-     * @param database the authentication database to rely on
+     * @param server the authentication server to rely on
      */
-    public LogInViewmodel(AuthDatabase database) {
-        this.database = database;
+    public LogInViewmodel(Server server) {
+        this.server = server;
         this.usernameProperty = new SimpleStringProperty("");
         this.passwordProperty = new SimpleStringProperty("");
         this.incorrectFieldProperty = new SimpleStringProperty("");
@@ -34,20 +33,15 @@ public class LogInViewmodel {
      * {@code false}.
      * 
      * @return {@code true} if successful, otherwise {@code false}
-     * @throws SQLException
+     * @throws IOException
+     * @throws InterruptedException
      */
-    public boolean attemptLogIn() throws SQLException {
+    public void attemptLogIn() throws IOException, InterruptedException {
         var accountUsername = this.usernameProperty.get();
         var accountPassword = this.passwordProperty.get();
 
-        var credentialRequest = new CredentialsRequest(accountUsername, accountPassword);
-        var success = this.database.hasAccountWithCredentials(credentialRequest);
-        if (success) {
-            SessionData.logInAs(accountUsername);
-        }
-        var propertyText = success ? "" : INCORRECT_CREDENTIALS;
-        this.incorrectFieldProperty.set(propertyText);
-        return success;
+        this.server.login(accountUsername, accountPassword);
+        SessionData.logInAs(accountUsername);
     }
 
     /**

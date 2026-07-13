@@ -2,7 +2,7 @@ module.exports = {
   collectCoverage: true, 
 
   collectCoverageFrom: [
-    'src/main/*.js',
+    'src/main/**/*.js',
   ],
 
   coverageReporters: ['lcov', 'text'], 

@@ -3,21 +3,13 @@
  * The return values given by typeof when used on primitive types 
  */
 const Primitives = {
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     STRING: typeof "string",
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     NUMBER: typeof 10,
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     BOOLEAN: typeof true,
-    /**
-     * @type {string}
-     */
+    /** @type {string} */
     UNDEFINED: typeof undefined
 }
     

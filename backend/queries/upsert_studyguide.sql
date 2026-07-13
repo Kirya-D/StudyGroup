@@ -15,9 +15,9 @@ MERGE Studyguide AS target
         
     WHEN NOT MATCHED THEN
         INSERT
-            (title, description, idAccount)
+            (id, title, description, idAccount)
         VALUES
-            (source.title, source.description, source.accountId)
+            (source.id, source.title, source.description, source.accountId)
 
 OUTPUT
     CASE $action
