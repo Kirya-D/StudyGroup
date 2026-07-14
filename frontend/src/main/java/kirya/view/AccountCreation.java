@@ -64,6 +64,7 @@ public class AccountCreation extends GridPane {
 
     private void bindToViewmodel() {
         this.viewmodel.getUsernameFinalizedProperty().bind(this.usernameTextField.focusedProperty().not());
+        this.viewmodel.getPasswordFinalizedProperty().bind(this.passwordField.focusedProperty().not());
         this.usernameTextField.textProperty().bindBidirectional(this.viewmodel.getUsernameProperty());
         this.passwordField.textProperty().bindBidirectional(this.viewmodel.getPasswordProperty());
 
@@ -89,15 +90,15 @@ public class AccountCreation extends GridPane {
 
     private Node createWarningLabel(StringProperty textProperty) {
         var warningColor = Color.RED;
-        var circle = new Circle(5, warningColor);
+        var circle = new Circle(7, warningColor);
         var exclamationMark = new Text("!");
         var stackPane = new StackPane(circle, exclamationMark);
         var label = new Label();
         var hbox = new HBox(stackPane, label);
 
-        circle.radiusProperty().bind(label.heightProperty().divide(2.5));
         label.textProperty().bind(textProperty);
         label.setTextFill(warningColor);
+        label.wrapTextProperty().set(true);
         hbox.setSpacing(5);
         hbox.managedProperty().bind(hbox.visibleProperty());
 
