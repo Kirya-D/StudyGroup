@@ -36,12 +36,19 @@ public class LogInViewmodel {
      * @throws IOException
      * @throws InterruptedException
      */
-    public void attemptLogIn() throws IOException, InterruptedException {
+    public boolean attemptLogIn() throws IOException, InterruptedException {
         var accountUsername = this.usernameProperty.get();
         var accountPassword = this.passwordProperty.get();
 
-        this.server.login(accountUsername, accountPassword);
-        SessionData.logInAs(accountUsername);
+        boolean loggedIn = this.server.login(accountUsername, accountPassword);
+        if (!loggedIn) {
+            this.incorrectFieldProperty.set(INCORRECT_CREDENTIALS);
+        } else {
+            this.incorrectFieldProperty.set("");
+            SessionData.logInAs(accountUsername);
+        }
+
+        return loggedIn;
     }
 
     /**

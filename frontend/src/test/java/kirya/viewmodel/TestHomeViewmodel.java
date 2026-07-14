@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
@@ -25,6 +26,7 @@ import kirya.model.ServerConnection;
 import kirya.model.StudyGuide;
 import kirya.utils.DisplayableStudyGuide;
 import kirya.utils.QuestionType;
+import kirya.utils.SessionData;
 
 public class TestHomeViewmodel {
 
@@ -325,6 +327,29 @@ public class TestHomeViewmodel {
             assertThrows(IllegalArgumentException.class, () -> {
                 viewmodel.toggleFavoriteStudyGuide(null, true);
             });
+        }
+    }
+
+    @Nested
+    public class TestLogout {
+
+        @Test
+        public void testWhenNoLoggedInUser() throws IOException, InterruptedException {
+            viewmodel.logOut();
+
+            String loggedUsername = SessionData.getLoggedInUsername();
+
+            assertNull(loggedUsername);
+        }
+
+        @Test
+        public void testWhenUserIsLoggedIn() throws IOException, InterruptedException {
+            SessionData.logInAs("LoggedUsername");
+            viewmodel.logOut();
+
+            String loggedUsername = SessionData.getLoggedInUsername();
+
+            assertNull(loggedUsername);
         }
     }
 

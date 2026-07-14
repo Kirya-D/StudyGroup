@@ -21,7 +21,7 @@ public class MockServer implements Server {
     private Map<String, DisplayableStudyGuide> guides = new HashMap<>();
 
     public String getLoggedInUser() {
-        return loggedInUser.getKey();
+        return this.loggedInUser != null ? loggedInUser.getKey() : null;
     }
 
     @Override
@@ -38,12 +38,12 @@ public class MockServer implements Server {
     }
 
     @Override
-    public void login(String username, String password) throws IOException, InterruptedException {
-        if (!accounts.containsKey(username) || !accounts.get(username).equals(password)) {
-            throw new IOException("Invalid username or password");
-        }
+    public boolean login(String username, String password) throws IOException, InterruptedException {
+        var successful = accounts.containsKey(username) && accounts.get(username).equals(password);
 
-        loggedInUser = Map.entry(username, password);
+        this.loggedInUser = successful ? Map.entry(username, password) : null;
+
+        return successful;
     }
 
     @Override

@@ -26,6 +26,8 @@ import javafx.scene.shape.Shape;
 import kirya.utils.DisplayText;
 import kirya.utils.DisplayableStudyGuide;
 import kirya.utils.SessionData;
+import kirya.view.enums.Page;
+import kirya.view.events.PageRequestEvent;
 import kirya.view.events.StudyGuideEvent;
 import kirya.viewmodel.HomeViewmodel;
 
@@ -57,7 +59,7 @@ public class Home extends StackPane {
     @FXML
     private TilePane searchedStudyguideTilePane;
 
-    private static final String HEADER_STRING = "{0}''s Dashboard";
+    private static final String HEADER_STRING = "{0} Dashboard";
     private static final String DELETION_HEADER = "You are about to delete the study guide \"{0}\"";
     private static final String DELETION_CONTENT = "This action is irreversible, are you sure you want to PERMANENTLY DELETE \"{0}\"?";
     private static final String DELIST_HEADER = "You are about to remove the study guide \"{0}\" from the cloud";
@@ -88,7 +90,9 @@ public class Home extends StackPane {
             if (!visible) {
                 return;
             }
-            var header = MessageFormat.format(HEADER_STRING, SessionData.getLoggedInUsername());
+            var username = SessionData.getLoggedInUsername();
+            var possessiveUsername = username.endsWith("s") ? username + "'" : username + "'s";
+            var header = MessageFormat.format(HEADER_STRING, possessiveUsername);
             this.headerLabel.setText(header);
             this.updateDashboardDisplay();
             this.updateSearchedDisplay();
@@ -293,14 +297,6 @@ public class Home extends StackPane {
         this.refreshTilePane(this.searchedStudyguideTilePane, updatedList);
     }
 
-    private void alertUserOfError(Exception err) {
-        var alert = new Alert(AlertType.ERROR);
-        alert.setTitle(err.getClass().getName());
-        alert.setContentText(err.getMessage());
-
-        alert.showAndWait();
-    }
-
     @FXML
     private void onInteractableElementEntered(Event handler) {
         var source = handler.getSource();
@@ -322,6 +318,17 @@ public class Home extends StackPane {
     }
 
     @FXML
+    private void onLogOutClick() {
+        try {
+            this.viewmodel.logOut();
+            var pageRequestEvent = new PageRequestEvent(Page.LOGIN);
+            this.fireEvent(pageRequestEvent);
+        } catch (IOException | InterruptedException err) {
+            this.alertUserOfError(err);
+        }
+    }
+
+    @FXML
     private void onCreateNewStudyGuideClick() {
         var studyGuide = this.viewmodel.createNewStudyGuide();
         this.fireEvent(new StudyGuideEvent(studyGuide, StudyGuideEvent.START_EDIT));
@@ -337,10 +344,7 @@ public class Home extends StackPane {
         try {
             this.viewmodel.searchForStudyguides();
         } catch (IOException | InterruptedException err) {
-            var alert = new Alert(AlertType.ERROR);
-            alert.setHeaderText("Database error");
-            alert.setContentText(err.getMessage());
-            alert.showAndWait();
+            this.alertUserOfError(err);
         }
     }
 
@@ -348,5 +352,13 @@ public class Home extends StackPane {
     private void onBackButtonClick() {
         this.updateDashboardDisplay();
         this.homeBorderPane.setVisible(true);
+    }
+
+    private void alertUserOfError(Exception err) {
+        var alert = new Alert(AlertType.ERROR);
+        alert.setTitle(err.getClass().getName());
+        alert.setContentText(err.getMessage());
+
+        alert.showAndWait();
     }
 }

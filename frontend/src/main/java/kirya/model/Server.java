@@ -35,7 +35,7 @@ public interface Server {
      * @throws IOException          if an I/O error occurs
      * @throws InterruptedException if the operation is interrupted
      */
-    public void login(String username, String password) throws IOException, InterruptedException;
+    public boolean login(String username, String password) throws IOException, InterruptedException;
 
     /**
      * Attempts to log user out from the server.

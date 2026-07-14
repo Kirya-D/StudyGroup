@@ -12,6 +12,7 @@ import javafx.collections.FXCollections;
 import kirya.model.Server;
 import kirya.model.StudyGuide;
 import kirya.utils.DisplayableStudyGuide;
+import kirya.utils.SessionData;
 
 /**
  * Viewmodel of the Home view class
@@ -144,6 +145,17 @@ public class HomeViewmodel {
         Consumer<Boolean> setMethod = b -> concreteGuide.setFavorited(b);
         var collection = this.favoritedStudyGuidesProperty;
         this.toggleStudyGuideMember(concreteGuide, setMethod, favorite, collection);
+    }
+
+    /**
+     * Attempts to log the active user out.
+     * 
+     * @throws IOException          If a server error occurs
+     * @throws InterruptedException If a server error occurs
+     */
+    public void logOut() throws IOException, InterruptedException {
+        this.server.logout();
+        SessionData.logOut();
     }
 
     /**
