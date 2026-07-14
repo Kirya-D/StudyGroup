@@ -5,6 +5,7 @@ import java.io.IOException;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import kirya.model.Server;
+import kirya.utils.SessionData;
 
 public class LogInViewmodel {
 
@@ -44,6 +45,7 @@ public class LogInViewmodel {
             this.incorrectFieldProperty.set(INCORRECT_CREDENTIALS);
         } else {
             this.incorrectFieldProperty.set("");
+            SessionData.logInAs(accountUsername);
         }
 
         return loggedIn;

@@ -114,8 +114,10 @@ public class ServerConnection implements Server {
                 .build();
 
         var response = this.getResponse(request);
-        var responseTree = getResponseBodyAsTree(response);
-        this.throwIfNotSuccessful(responseTree);
+        if (response.statusCode() != Status.NO_CONTENT) {
+            var responseTree = getResponseBodyAsTree(response);
+            this.throwIfNotSuccessful(responseTree);
+        }
     }
 
     public void uploadStudyguide(DisplayableStudyGuide studyguide) throws IOException, InterruptedException {

@@ -93,8 +93,9 @@ app.route(Route.SESSION)
         const sessionId = req.cookies[SessionHandler.cookieName]
         SessionHandler.endSession(sessionId).then(
             (response) => {
-                if (response.cookieName) {
-                    res.clearCookie(cookieName)
+                if (response.cookieName ) {
+                    res.clearCookie(response.cookieName)
+                    response.cookieName = undefined
                 }
                 respond(res, response.status, response)
             },

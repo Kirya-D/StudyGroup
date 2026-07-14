@@ -36,6 +36,14 @@
                <children>
                   <HBox alignment="TOP_RIGHT" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0">
                      <children>
+                        <Label alignment="CENTER" contentDisplay="CENTER" layoutX="115.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" onMouseClicked="#onLogOutClick" onMouseEntered="#onInteractableElementEntered" onMouseExited="#onInteractableElementExited" text="Log out" textAlignment="CENTER">
+                           <padding>
+                              <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
+                           </padding>
+                           <graphic>
+                              <Ellipse fill="#1f93ff00" radiusX="30.0" radiusY="10.0" stroke="TRANSPARENT" strokeLineCap="ROUND" strokeLineJoin="ROUND" />
+                           </graphic>
+                        </Label>
                         <Label fx:id="headerLabel" alignment="CENTER" contentDisplay="CENTER" layoutX="366.0" layoutY="10.0" maxHeight="1.7976931348623157E308" maxWidth="1.7976931348623157E308" minHeight="1.0" minWidth="1.0" text="Dashboard" textAlignment="CENTER" HBox.hgrow="ALWAYS">
                            <padding>
                               <Insets bottom="5.0" left="5.0" right="5.0" top="5.0" />
