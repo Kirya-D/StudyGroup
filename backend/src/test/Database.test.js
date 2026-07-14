@@ -192,7 +192,7 @@ describe("Database", () => {
             const guide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
 
             await database.upsertStudyguide(guide)
-            const guides = await database.getStudyguidesWithSubstring("testUser", page)
+            const guides = await database.getStudyguidesWithSubstring(validTitle, page)
             
             expect(guides.size).toBe(1)
         })
@@ -205,7 +205,7 @@ describe("Database", () => {
             await database.upsertStudyguide(guide1)
             await database.upsertStudyguide(guide2)
             await database.upsertStudyguide(guide3)
-            const guides = await database.getStudyguidesWithSubstring("testUser", page)
+            const guides = await database.getStudyguidesWithSubstring(validTitle, page)
 
             expect(guides.size).toBe(3)
         })
@@ -217,7 +217,7 @@ describe("Database", () => {
                 await database.upsertStudyguide(guide)
             }
 
-            const guides = await database.getStudyguidesWithSubstring("testUser", page, maxResultCount)
+            const guides = await database.getStudyguidesWithSubstring(validTitle, page, maxResultCount)
 
             expect(guides.size).toBe(maxResultCount)
         })
@@ -230,7 +230,7 @@ describe("Database", () => {
                 await database.upsertStudyguide(guide)
             }
 
-            const guides = await database.getStudyguidesWithSubstring("testUser", page, maxResultCount)
+            const guides = await database.getStudyguidesWithSubstring(validTitle, page, maxResultCount)
 
             expect(guides.size).toBe(5)
         })
@@ -317,7 +317,7 @@ describe("Database", () => {
 
             const returnedId = await database.upsertStudyguide(guide)
 
-            const guides = Array.from(await database.getStudyguidesWithSubstring(testingUsername, page))
+            const guides = Array.from(await database.getStudyguidesWithSubstring(validTitle, page))
 
             expect(guides.length).toBe(1)
             expect(guides.at(0).id()).toBe(returnedId)
@@ -334,7 +334,7 @@ describe("Database", () => {
             const returnedId2 = await database.upsertStudyguide(guide2)
             const returnedId3 = await database.upsertStudyguide(guide3)
 
-            const guides = Array.from(await database.getStudyguidesWithSubstring(testingUsername, page))
+            const guides = Array.from(await database.getStudyguidesWithSubstring(validTitle, page))
 
             expect(guides.length).toBe(3)
             expect(guides.at(0).id()).toBe(returnedId1)
@@ -359,7 +359,7 @@ describe("Database", () => {
             const insertedId = await database.upsertStudyguide(originalGuide)
             const updatedId = await database.upsertStudyguide(updatedGuide)
 
-            const guides = Array.from(await database.getStudyguidesWithSubstring(testingUsername, page))
+            const guides = Array.from(await database.getStudyguidesWithSubstring(updatedGuide.title(), page))
 
             expect(guides.length).toBe(1)
             const guideIdExpectation = expect(guides.at(0).id())
@@ -390,7 +390,7 @@ describe("Database", () => {
             let updatedId = await database.upsertStudyguide(updatedGuide)
             updatedId = await database.upsertStudyguide(secondUpdatedGuide)
 
-            const guides = Array.from(await database.getStudyguidesWithSubstring(testingUsername, page))
+            const guides = Array.from(await database.getStudyguidesWithSubstring("desc", page))
 
             expect(guides.length).toBe(1)
             const guideIdExpectation = expect(guides.at(0).id())
@@ -425,7 +425,7 @@ describe("Database", () => {
 
         test("Test when no studyguides to delete", async () => {
             await database.deleteStudyguide("1", "1")
-            const guides = await database.getStudyguidesWithSubstring("testUser", page)
+            const guides = await database.getStudyguidesWithSubstring("anything", page)
             
             expect(guides.size).toBe(0)
         })
@@ -437,7 +437,7 @@ describe("Database", () => {
 
             await database.upsertStudyguide(guide)
             await database.deleteStudyguide(guideId, accountId)
-            const guides = Array.from(await database.getStudyguidesWithSubstring("testUser", page))
+            const guides = Array.from(await database.getStudyguidesWithSubstring(validTitle, page))
             
             expect(guides.length).toBe(1)
             expect(guides.at(0)).toEqual(guide)
@@ -450,7 +450,7 @@ describe("Database", () => {
 
             await database.upsertStudyguide(guide)
             await database.deleteStudyguide(guideId, accountId)
-            const guides = await database.getStudyguidesWithSubstring("testUser", page)
+            const guides = await database.getStudyguidesWithSubstring(validTitle, page)
             
             expect(guides.size).toBe(0)
         })
