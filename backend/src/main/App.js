@@ -4,6 +4,7 @@ import helmet from "helmet"
 import mssql from "mssql"
 import { Database } from "./Database.js"
 import { AccountHandler } from "./request_handlers/AccountHandler.js"
+import { CredentialValidationHandler } from "./request_handlers/CredentialValidationHandler.js"
 import { SessionHandler } from "./request_handlers/SessionHandler.js"
 import { StudyguideHandler } from "./request_handlers/StudyguideHandler.js"
 import { Route } from "./utils/Route.js"
@@ -65,7 +66,17 @@ function failureResponse(res, reason) {
     }
     respond(res, StatusCode.INTERNAL_SERVER_ERROR, failResponse)
 }
-
+app.route(Route.VALIDATE_CREDENTIAL)
+    .post((req, res) => {
+        const toValidate = req.body.value
+        const isUsername = req.body.isUsername === "true"
+        const method = isUsername ? CredentialValidationHandler.validateUsername : CredentialValidationHandler.validatePassword
+        
+        method(toValidate).then(
+            (response) => respond(res, response.status, response),
+            (reason) => failureResponse(res, reason.message)
+        )
+    })
 app.route(Route.SESSION)
     .post((req, res) => {
         const username = req.body.username
@@ -146,6 +157,7 @@ app.get(`${Route.SEARCH}${Route.STUDYGUIDE}/:search{page=0, max=50}`, (req, res)
         (reason) => failureResponse(res, reason.message)
     )
 })
+
 
 app.listen(port, host, () => {
     console.log(`Server is alive on ${host}:${port}`)

@@ -2,7 +2,7 @@
 /**
  * The return values given by typeof when used on primitive types 
  */
-const Primitives = {
+const Primitives = Object.freeze({
     /** @type {string} */
     STRING: typeof "string",
     /** @type {string} */
@@ -11,7 +11,7 @@ const Primitives = {
     BOOLEAN: typeof true,
     /** @type {string} */
     UNDEFINED: typeof undefined
-}
+})
     
 export {
     Primitives
