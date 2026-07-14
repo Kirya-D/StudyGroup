@@ -16,6 +16,12 @@ import kirya.utils.DisplayableStudyGuide;
 
 public class MockServer implements Server {
 
+    public static final String VALUE_TOO_SHORT = "VALUE_TOO_SHORT";
+    public static final String VALUE_TOO_LONG = "VALUE_TOO_LONG";
+    public static final String INVALID_CHARACTERS = "INVALID_CHARACTERS";
+    public static final int MIN_LENGTH = 8;
+    public static final int MAX_LENGTH = 32;
+
     private Entry<String, String> loggedInUser = null;
     private Map<String, String> accounts = new HashMap<>();
     private Map<String, DisplayableStudyGuide> guides = new HashMap<>();
@@ -25,8 +31,29 @@ public class MockServer implements Server {
     }
 
     @Override
-    public boolean isUsernameTaken(String username) throws IOException, InterruptedException {
-        return accounts.containsKey(username);
+    public String validateUsername(String username) throws IOException, InterruptedException {
+        if (username.length() < MIN_LENGTH || username.length() > MAX_LENGTH) {
+            return username.length() < MIN_LENGTH ? VALUE_TOO_SHORT : VALUE_TOO_LONG;
+        }
+
+        if (!username.matches("^[\\p{L}\\p{N}]+$")) {
+            return INVALID_CHARACTERS;
+        }
+
+        return "";
+    }
+
+    @Override
+    public String validatePassword(String password) throws IOException, InterruptedException {
+        if (password.length() < MIN_LENGTH || password.length() > MAX_LENGTH) {
+            return password.length() < MIN_LENGTH ? VALUE_TOO_SHORT : VALUE_TOO_LONG;
+        }
+
+        if (password.matches(".*\\s.*")) {
+            return INVALID_CHARACTERS;
+        }
+
+        return "";
     }
 
     @Override

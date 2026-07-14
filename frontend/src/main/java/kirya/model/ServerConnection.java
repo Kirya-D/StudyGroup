@@ -27,6 +27,7 @@ public class ServerConnection implements Server {
     private HttpClient client;
 
     public static final int GUIDES_PER_PAGE = 50;
+    private static final String VALIDATION_JSON = "{\"value\": \"%s\", \"isUsername\": \"%s\"}";
     private static final String CREDENTIALS_JSON = "{\"username\": \"%s\", \"password\": \"%s\"}";
     private static final String UNEXPECTED_RESPONSE = "Expected different server response format";
 
@@ -66,18 +67,32 @@ public class ServerConnection implements Server {
         return builder;
     }
 
-    public boolean isUsernameTaken(String username) throws IOException, InterruptedException {
-        var subroute = Route.SEARCH + Route.ACCOUNT + "/" + username;
-        var request = requestBuilderFactory(this.host, subroute, this.port)
-                .GET()
+    @Override
+    public String validateUsername(String username) throws IOException, InterruptedException {
+        var json = String.format(VALIDATION_JSON, username, true);
+        var request = requestBuilderFactory(this.host, Route.VALIDATE_CREDENTIAL, this.port)
+                .POST(BodyPublishers.ofString(json))
                 .build();
 
         var response = this.getResponse(request);
         var responseTree = getResponseBodyAsTree(response);
+        var issueNode = responseTree.path("message");
 
-        var account = responseTree.path("account");
-        var accountNodeExists = !(account.isMissingNode() || account.isNull());
-        return accountNodeExists;
+        return issueNode.asString("Missing server response");
+    }
+
+    @Override
+    public String validatePassword(String password) throws IOException, InterruptedException {
+        var json = String.format(VALIDATION_JSON, password, false);
+        var request = requestBuilderFactory(this.host, Route.VALIDATE_CREDENTIAL, this.port)
+                .POST(BodyPublishers.ofString(json))
+                .build();
+
+        var response = this.getResponse(request);
+        var responseTree = getResponseBodyAsTree(response);
+        var issueNode = responseTree.path("message");
+
+        return issueNode.asString("Missing server response");
     }
 
     public void createAccount(String username, String password) throws IOException, InterruptedException {
@@ -210,6 +225,7 @@ public class ServerConnection implements Server {
     }
 
     private class Route {
+        public static final String VALIDATE_CREDENTIAL = "/validate_credential";
         public static final String SEARCH = "/search";
         public static final String SESSION = "/session";
         public static final String ACCOUNT = "/account";

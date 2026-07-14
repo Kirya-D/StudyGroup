@@ -13,18 +13,11 @@ import kirya.model.Server;
  */
 public class AccountCreationViewmodel {
 
-    private static final int MIN_USERNAME_LENGTH = 3;
-    private static final int MIN_PASSWORD_LENGTH = 8;
-    private static final int MAX_FIELD_LENGTH = 32;
     public static final String VALID_FIELD = "";
-    public static final String REQUIRED_FIELD = "Required";
-    public static final String USERNAME_UNAVAILABLE = "Username is unavailable";
-    public static final String INVALID_USERNAME_LENGTH = "Must be " + MIN_USERNAME_LENGTH + "-" + MAX_FIELD_LENGTH
-            + " characters long";
-    public static final String INVALID_PASSWORD_LENGTH = "Must be " + MIN_PASSWORD_LENGTH + "-" + MAX_FIELD_LENGTH
-            + " characters long";
+    public static final String REQUIRED_FIELD = "Field is required";
     private Server server;
     private BooleanProperty usernameFinalizedProperty;
+    private BooleanProperty passwordFinalizedProperty;
     private StringProperty usernameProperty;
     private StringProperty passwordProperty;
     private StringProperty usernameIssueProperty;
@@ -38,6 +31,7 @@ public class AccountCreationViewmodel {
     public AccountCreationViewmodel(Server server) {
         this.server = server;
         this.usernameFinalizedProperty = new SimpleBooleanProperty(false);
+        this.passwordFinalizedProperty = new SimpleBooleanProperty(false);
         this.usernameProperty = new SimpleStringProperty("");
         this.passwordProperty = new SimpleStringProperty("");
         this.usernameIssueProperty = new SimpleStringProperty(REQUIRED_FIELD);
@@ -52,55 +46,36 @@ public class AccountCreationViewmodel {
                 return;
             }
             var currentText = this.usernameProperty.get();
-            var usernameIsTaken = false;
-            try {
-                if (!currentText.isEmpty())
-                    usernameIsTaken = this.server.isUsernameTaken(currentText);
-            } catch (IOException | InterruptedException err) {
-                System.out.println(err);
-                usernameIsTaken = true;
-            }
-
-            var currentIssue = this.usernameIssueProperty.get();
-            if (usernameIsTaken && currentIssue.isEmpty()) {
-                this.usernameIssueProperty.set(USERNAME_UNAVAILABLE);
-            }
-        });
-        this.usernameProperty.addListener((_, oldText, newText) -> {
-            var empty = newText.isBlank();
-            var tooShort = this.textIsInvalidLength(newText, MIN_USERNAME_LENGTH);
-            if (empty) {
+            if (currentText.isEmpty()) {
                 this.usernameIssueProperty.set(REQUIRED_FIELD);
-            } else if (tooShort) {
-                this.usernameIssueProperty.set(INVALID_USERNAME_LENGTH);
             } else {
-                this.usernameIssueProperty.set(VALID_FIELD);
+                var invalidationReason = VALID_FIELD;
+                try {
+                    invalidationReason = this.server.validateUsername(currentText);
+                } catch (IOException | InterruptedException err) {
+                    invalidationReason = err.getLocalizedMessage();
+                    System.out.println(err);
+                } finally {
+                    this.usernameIssueProperty.set(invalidationReason);
+                }
             }
         });
-        this.passwordProperty.addListener((_, oldText, newText) -> {
-            var empty = newText.isEmpty();
-            var tooShort = this.textIsInvalidLength(newText, MIN_PASSWORD_LENGTH);
-            if (empty) {
+        this.passwordFinalizedProperty.addListener((_, _, finalized) -> {
+            var currentText = this.passwordProperty.get();
+            if (currentText.isEmpty()) {
                 this.passwordIssueProperty.set(REQUIRED_FIELD);
-            } else if (tooShort) {
-                this.passwordIssueProperty.set(INVALID_PASSWORD_LENGTH);
             } else {
-                this.passwordIssueProperty.set(VALID_FIELD);
+                var invalidationReason = VALID_FIELD;
+                try {
+                    invalidationReason = this.server.validatePassword(currentText);
+                } catch (IOException | InterruptedException err) {
+                    invalidationReason = err.getLocalizedMessage();
+                    System.out.println(err);
+                } finally {
+                    this.passwordIssueProperty.set(invalidationReason);
+                }
             }
         });
-    }
-
-    private boolean textIsInvalidLength(String text, int minimumLength) {
-        var invalid = false;
-
-        var length = text.length();
-        var tooShort = length < minimumLength;
-        var tooLong = length > MAX_FIELD_LENGTH;
-        if (tooShort || tooLong) {
-            invalid = true;
-        }
-
-        return invalid;
     }
 
     /**
@@ -121,6 +96,13 @@ public class AccountCreationViewmodel {
      */
     public BooleanProperty getUsernameFinalizedProperty() {
         return this.usernameFinalizedProperty;
+    }
+
+    /**
+     * {@return the password finalized {@link BooleanProperty}}
+     */
+    public BooleanProperty getPasswordFinalizedProperty() {
+        return this.passwordFinalizedProperty;
     }
 
     /**

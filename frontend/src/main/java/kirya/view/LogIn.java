@@ -81,7 +81,7 @@ public class LogIn extends GridPane {
 
     private Node createWarningLabel(StringProperty textProperty) {
         var warningColor = Color.RED;
-        var circle = new Circle(5, warningColor);
+        var circle = new Circle(7, warningColor);
         var exclamationMark = new Text("!");
         var stackPane = new StackPane(circle, exclamationMark);
         var label = new Label();
@@ -90,6 +90,7 @@ public class LogIn extends GridPane {
         circle.radiusProperty().bind(label.heightProperty().divide(2.5));
         label.textProperty().bind(textProperty);
         label.setTextFill(warningColor);
+        label.setWrapText(true);
         hbox.setSpacing(5);
         hbox.managedProperty().bind(hbox.visibleProperty());
 
