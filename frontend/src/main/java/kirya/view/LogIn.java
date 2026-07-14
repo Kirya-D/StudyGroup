@@ -99,9 +99,11 @@ public class LogIn extends GridPane {
     @FXML
     private void onLogInButtonClick() {
         try {
-            this.viewmodel.attemptLogIn();
-            var pageRequestEvent = new PageRequestEvent(Page.HOME);
-            this.fireEvent(pageRequestEvent);
+            var success = this.viewmodel.attemptLogIn();
+            if (success) {
+                var pageRequestEvent = new PageRequestEvent(Page.HOME);
+                this.fireEvent(pageRequestEvent);
+            }
         } catch (IOException | InterruptedException err) {
             var alert = new Alert(AlertType.ERROR);
             alert.setHeaderText("Server error");

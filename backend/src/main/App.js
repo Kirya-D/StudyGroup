@@ -72,18 +72,22 @@ app.route(Route.SESSION)
         const password = req.body.password
         const account = AccountHandler.getAccountWithCredentials(username, password)
 
-        SessionHandler.startSession(account).then(
-            (response) => {
-                if (response.cookieInfo) {
-                    const name = response.cookieInfo.name
-                    const val = response.cookieInfo.value
-                    const options = response.cookieInfo.options
-                    res.cookie(name, val, options)
-                }
-                respond(res, response.status, response)
-            },
-            (reason) => failureResponse(res, reason.message)
-        )
+        if (!account) {
+            respond(res, StatusCode.UNAUTHORIZED, {success: false})
+        } else {
+            SessionHandler.startSession(account).then(
+                (response) => {
+                    if (response.cookieInfo) {
+                        const name = response.cookieInfo.name
+                        const val = response.cookieInfo.value
+                        const options = response.cookieInfo.options
+                        res.cookie(name, val, options)
+                    }
+                    respond(res, response.status, response)
+                },
+                (reason) => failureResponse(res, reason.message)
+            )
+        }
     })
     .delete((req, res) => {
         const sessionId = req.cookies[SessionHandler.cookieName]

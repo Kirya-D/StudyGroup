@@ -91,15 +91,21 @@ public class ServerConnection implements Server {
         this.throwIfNotSuccessful(responseTree);
     }
 
-    public void login(String username, String password) throws IOException, InterruptedException {
+    public boolean login(String username, String password) throws IOException, InterruptedException {
         var json = String.format(CREDENTIALS_JSON, username, password);
         var request = requestBuilderFactory(this.host, Route.SESSION, this.port)
                 .POST(BodyPublishers.ofString(json))
                 .build();
 
         var response = this.getResponse(request);
-        var responseTree = getResponseBodyAsTree(response);
-        this.throwIfNotSuccessful(responseTree);
+        var loggedIn = false;
+        if (response.statusCode() != Status.UNAUTHORIZED) {
+            var responseTree = getResponseBodyAsTree(response);
+            this.throwIfNotSuccessful(responseTree);
+            loggedIn = true;
+        }
+
+        return loggedIn;
     }
 
     public void logout() throws IOException, InterruptedException {
@@ -210,5 +216,6 @@ public class ServerConnection implements Server {
 
     private class Status {
         public static final int NO_CONTENT = 204;
+        public static final int UNAUTHORIZED = 401;
     }
 }

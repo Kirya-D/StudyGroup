@@ -5,7 +5,6 @@ import java.io.IOException;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import kirya.model.Server;
-import kirya.utils.SessionData;
 
 public class LogInViewmodel {
 
@@ -36,12 +35,18 @@ public class LogInViewmodel {
      * @throws IOException
      * @throws InterruptedException
      */
-    public void attemptLogIn() throws IOException, InterruptedException {
+    public boolean attemptLogIn() throws IOException, InterruptedException {
         var accountUsername = this.usernameProperty.get();
         var accountPassword = this.passwordProperty.get();
 
-        this.server.login(accountUsername, accountPassword);
-        SessionData.logInAs(accountUsername);
+        boolean loggedIn = this.server.login(accountUsername, accountPassword);
+        if (!loggedIn) {
+            this.incorrectFieldProperty.set(INCORRECT_CREDENTIALS);
+        } else {
+            this.incorrectFieldProperty.set("");
+        }
+
+        return loggedIn;
     }
 
     /**

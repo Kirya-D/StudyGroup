@@ -2,7 +2,9 @@ package kirya.viewmodel;
 
 import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
 
@@ -56,9 +58,12 @@ public class TestLogInViewmodel {
             viewmodel.getPasswordProperty().set(workingPassword);
             viewmodel.attemptLogIn();
 
+            boolean success = viewmodel.attemptLogIn();
             var actualLoggedInUsername = mockServer.getLoggedInUser();
 
-            assertEquals(workingUsername, actualLoggedInUsername);
+            assertAll(
+                    () -> assertEquals(workingUsername, actualLoggedInUsername),
+                    () -> assertTrue(success));
         }
 
         @Test
@@ -72,15 +77,17 @@ public class TestLogInViewmodel {
             }
             viewmodel.getUsernameProperty().set(workingUsername);
             viewmodel.getPasswordProperty().set(workingPassword);
-            viewmodel.attemptLogIn();
 
+            boolean success = viewmodel.attemptLogIn();
             var actualLoggedInUsername = mockServer.getLoggedInUser();
 
-            assertEquals(workingUsername, actualLoggedInUsername);
+            assertAll(
+                    () -> assertEquals(workingUsername, actualLoggedInUsername),
+                    () -> assertTrue(success));
         }
 
         @Test
-        public void throwsWhenUsernameDoesNotMatch() throws IOException, InterruptedException {
+        public void testWhenUsernameDoesNotMatch() throws IOException, InterruptedException {
             var workingUsername = "Testing";
             var notWorkingUsername = "Testing1";
             var workingPassword = "Password123";
@@ -89,11 +96,16 @@ public class TestLogInViewmodel {
             viewmodel.getUsernameProperty().set(notWorkingUsername);
             viewmodel.getPasswordProperty().set(workingPassword);
 
-            assertThrows(IOException.class, () -> viewmodel.attemptLogIn());
+            boolean success = viewmodel.attemptLogIn();
+            var actualLoggedInUsername = mockServer.getLoggedInUser();
+
+            assertAll(
+                    () -> assertNull(actualLoggedInUsername),
+                    () -> assertFalse(success));
         }
 
         @Test
-        public void throwsWhenPasswordDoesNotMatch() throws IOException, InterruptedException {
+        public void testWhenPasswordDoesNotMatch() throws IOException, InterruptedException {
             var workingUsername = "Testing";
             var workingPassword = "Password123";
             var notWorkingPassword = "Password456";
@@ -102,21 +114,31 @@ public class TestLogInViewmodel {
             viewmodel.getUsernameProperty().set(workingUsername);
             viewmodel.getPasswordProperty().set(notWorkingPassword);
 
-            assertThrows(IOException.class, () -> viewmodel.attemptLogIn());
+            boolean success = viewmodel.attemptLogIn();
+            var actualLoggedInUsername = mockServer.getLoggedInUser();
+
+            assertAll(
+                    () -> assertNull(actualLoggedInUsername),
+                    () -> assertFalse(success));
         }
 
         @Test
-        public void throwsWhenNoRegisteredAccounts() throws IOException, InterruptedException {
+        public void testWhenNoRegisteredAccounts() throws IOException, InterruptedException {
             var workingUsername = "Testing";
             var workingPassword = "Password123";
             viewmodel.getUsernameProperty().set(workingUsername);
             viewmodel.getPasswordProperty().set(workingPassword);
 
-            assertThrows(IOException.class, () -> viewmodel.attemptLogIn());
+            boolean success = viewmodel.attemptLogIn();
+            var actualLoggedInUsername = mockServer.getLoggedInUser();
+
+            assertAll(
+                    () -> assertNull(actualLoggedInUsername),
+                    () -> assertFalse(success));
         }
 
         @Test
-        public void throwsWhenOneRegisteredAccountDoesNotMatchCredentials() throws IOException, InterruptedException {
+        public void testWhenOneRegisteredAccountDoesNotMatchCredentials() throws IOException, InterruptedException {
             var workingUsername = "Testing";
             var workingPassword = "Password123";
             var nonWorkingUsername = "Testing1";
@@ -125,11 +147,16 @@ public class TestLogInViewmodel {
             viewmodel.getUsernameProperty().set(nonWorkingUsername);
             viewmodel.getPasswordProperty().set(workingPassword);
 
-            assertThrows(IOException.class, () -> viewmodel.attemptLogIn());
+            boolean success = viewmodel.attemptLogIn();
+            var actualLoggedInUsername = mockServer.getLoggedInUser();
+
+            assertAll(
+                    () -> assertNull(actualLoggedInUsername),
+                    () -> assertFalse(success));
         }
 
         @Test
-        public void throwsWhenMultipleRegisteredAccounts() throws IOException, InterruptedException {
+        public void testWhenUsernameDoesNotMultipleRegisteredAccounts() throws IOException, InterruptedException {
             var workingUsername = "Testing";
             var workingPassword = "Password123";
             var nonWorkingUsername = "Testing1";
@@ -141,7 +168,12 @@ public class TestLogInViewmodel {
             viewmodel.getUsernameProperty().set(nonWorkingUsername);
             viewmodel.getPasswordProperty().set(workingPassword);
 
-            assertThrows(IOException.class, () -> viewmodel.attemptLogIn());
+            boolean success = viewmodel.attemptLogIn();
+            var actualLoggedInUsername = mockServer.getLoggedInUser();
+
+            assertAll(
+                    () -> assertNull(actualLoggedInUsername),
+                    () -> assertFalse(success));
         }
     }
 }
