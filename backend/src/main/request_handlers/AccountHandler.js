@@ -89,12 +89,12 @@ async function createAccount(username, password) {
     }
 }
 
-const AccountHandler = {
+const AccountHandler = Object.freeze({
     getAccountWithUsername: getAccountWithUsername,
     getAccountWithCredentials: getAccountWithCredentials,
     loadAccountsFromDatabase: loadAccountsFromDatabase,
     createAccount: createAccount
-}
+})
 
 export { AccountHandler }
 

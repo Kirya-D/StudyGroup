@@ -113,12 +113,12 @@ async function endSession(sessionId) {
     return fullResponse
 }
 
-const SessionHandler = {
+const SessionHandler = Object.freeze({
     cookieName: sessionIdCookieName,
     getAccountFromRequest: getAccountFromRequest,
     startSession: startSession,
     endSession: endSession
-}
+})
 
 export { SessionHandler }
 

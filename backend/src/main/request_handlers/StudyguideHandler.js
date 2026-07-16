@@ -201,11 +201,11 @@ async function findStudyguides(requester, search, page, maxAmount) {
     }
 }
 
-const StudyguideHandler = {
+const StudyguideHandler = Object.freeze({
     upsertStudyguide: upsertStudyguide,
     deleteStudyguide: deleteStudyguide,
     findStudyguides: findStudyguides,
-}
+})
 
 export { StudyguideHandler }
 
