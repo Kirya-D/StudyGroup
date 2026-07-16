@@ -1,4 +1,4 @@
-import { Primitives } from "./utils/Primitives.js"
+import { Primitives } from "../utils/Primitives.js"
 
 class Choice {
 

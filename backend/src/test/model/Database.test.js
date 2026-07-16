@@ -1,11 +1,11 @@
 import { afterAll, beforeEach, describe, expect, test } from "@jest/globals";
 import filesystem from "fs";
 import path from "path";
-import { Account } from "../main/Account.js";
-import { Choice } from "../main/Choice.js";
-import { Database } from "../main/Database.js";
-import { Question } from "../main/Question.js";
-import { Studyguide } from "../main/Studyguide.js";
+import { Account } from "../../main/model/Account.js";
+import { Choice } from "../../main/model/Choice.js";
+import { Database } from "../../main/model/Database.js";
+import { Question } from "../../main/model/Question.js";
+import { Studyguide } from "../../main/model/Studyguide.js";
 
 const dbConfig = process.env.TESTING_DB_URL
 const validId = "1"

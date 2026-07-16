@@ -1,10 +1,10 @@
 import filesystem from "fs"
 import mssql from "mssql"
 import path from "path"
+import { Primitives } from "../utils/Primitives.js"
 import { Account } from "./Account.js"
 import { Question } from "./Question.js"
 import { Studyguide } from "./Studyguide.js"
-import { Primitives } from "./utils/Primitives.js"
 
 /**
  * 
@@ -31,7 +31,7 @@ const UPSERT_STUDYGUIDE = getQueryFromFile("upsert_studyguide.sql")
 class Database {
 
     /** @type {mssql.ConnectionPool | null} */
-    #pool
+    #pool = null
     
     /**
      * Connects to the database associated with the given config.
@@ -39,7 +39,7 @@ class Database {
      * @param {string | mssql.config} config the connection config.
      * @param {string | null} setupQuery The query to run once connected to the database.
      */
-    async connectToDatabase({config, setupQuery = null}) {
+    async connectToDatabase({ config, setupQuery = null }) {
         this.#pool = await mssql.connect(config)
         if (setupQuery != null) {
             await this.#pool.query(setupQuery)

@@ -1,5 +1,5 @@
+import { Primitives } from "../utils/Primitives.js"
 import { Choice } from "./Choice.js"
-import { Primitives } from "./utils/Primitives.js"
 
 class Question {
     /** @type {string} */

@@ -1,5 +1,5 @@
 import { describe, expect, test } from "@jest/globals";
-import { Account } from "../main/Account.js";
+import { Account } from "../../main/model/Account.js";
 
 const validId = "1"
 const validUsername = "user"

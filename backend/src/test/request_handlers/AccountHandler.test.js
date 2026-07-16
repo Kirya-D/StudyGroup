@@ -1,6 +1,5 @@
 import { describe, expect, test } from "@jest/globals"
 import crypto from "crypto"
-import { Account } from "../../main/Account.js"
 import { AccountHandler } from "../../main/request_handlers/AccountHandler.js"
 import { StatusCode } from "../../main/utils/StatusCode.js"
 
