@@ -164,52 +164,47 @@ class Database {
     }
 
     /**
-     * Upserts a studyguide in the database with the given information
-     * and returns the id of the studyguide in the database.
+     * Upserts the studyguides in the database with the given information.
      * 
-     * @param {Studyguide} studyguide The studyguide to upsert
-     * @param {boolean} favorited If the account has the studyguide favorited. default false
-     * @param {boolean} downloaded If the account has the studyguide downloaded. default false
+     * @param {Studyguide[]} guides The guides and the associated information to upsert
      * 
-     * @returns The id of the studyguide as stored in the database
-     * 
-     * @throws {TypeError} 
-     * - If studyguide isn't a Studyguide object
-     * - If favorited or downloaded aren't booleans
+     * @throws {TypeError} If an entry in guides isn't a Studyguide object
      */
-    async upsertStudyguide(studyguide, favorited = false, downloaded = false) {
-        if (!(studyguide instanceof Studyguide)) {
-            throw new TypeError("studyguide must be a Studyguide object")
-        }
-        if (typeof favorited !== Primitives.BOOLEAN) {
-            throw new TypeError("favorited must be an int")
-        }
-        if (typeof downloaded !== Primitives.BOOLEAN) {
-            throw new TypeError("downloaded must be an int")
+    async upsertStudyguides(guides) {
+        if (!Array.isArray(guides)) {
+            throw new TypeError("guides must be an array")
         }
 
-        const result = await this.#pool.request()
-            .input("studyguideId", mssql.NVarChar(36), studyguide.id())
-            .input("title", mssql.NVarChar(255), studyguide.title())
-            .input("description", mssql.NVarChar(255), studyguide.description())
-            .input("accountId", mssql.NVarChar(36), studyguide.creatorId())
-            .output("newStudyguideId", mssql.NVarChar(36))
-            .query(UPSERT_STUDYGUIDE)
+        for (const studyguide of guides) {
+            if (!(studyguide instanceof Studyguide)) {
+                throw new TypeError("studyguide must be a Studyguide object")
+            }
 
-        /** @type {string} */
-        const actualStudyguideId = result.output.newStudyguideId;
-
-        for (const question of studyguide.questions()) {
-            const questionId = await this.#createQuestion(question, actualStudyguideId)
-            
-            for (const choice of question.choices()) {
-                await this.#createChoice(choice, questionId)
+            try {
+                const guideId = studyguide.id()
+                const creatorId = studyguide.creatorId()
+                await this.#pool.request()
+                    .input("studyguideId", mssql.NVarChar(36), guideId)
+                    .input("title", mssql.NVarChar(255), studyguide.title())
+                    .input("description", mssql.NVarChar(255), studyguide.description())
+                    .input("accountId", mssql.NVarChar(36), creatorId)
+                    .query(UPSERT_STUDYGUIDE)
+                
+                const questions = studyguide.questions()
+                for (const question of questions) {
+                    const questionId = await this.#createQuestion(question, guideId)
+                    const choices = question.choices()
+                    
+                    for (const choice of choices) {
+                        await this.#createChoice(choice, questionId)
+                    }
+                }
+            } catch (error) {
+                if (error instanceof Error) {
+                    console.log(error.messag)
+                }
             }
         }
-
-        await this.upsertStudyguideStatus(studyguide.creatorId(), actualStudyguideId, favorited, downloaded)
-
-        return actualStudyguideId
     }
 
     /**
@@ -241,60 +236,89 @@ class Database {
     }
 
     /**
-     * Deletes the studyguide associated with studyguideId
-     * from the database if the given accountId is the creator's.
+     * Deletes the studyguides associated with studyguideIds from the database.
      * 
-     * @param {string} studyguideId The id of the studyguide to delete
-     * @param {string} accountId The id of the account attempting to delete
+     * @param {string[]} studyguideIds The id of the studyguides to delete
      * 
-     * @throws {TypeError} If studyguideId or accountId are not ints
+     * @throws {TypeError} If studyguideIds is not an array
+     * @throws {TypeError} If an entry in studyguideIds is not a string
      */
-    async deleteStudyguide(studyguideId, accountId) {
-        if (typeof studyguideId !== Primitives.STRING) {
-            throw new TypeError("studyguideId must be a string")
+    async deleteStudyguides(studyguideIds) {
+        if (!Array.isArray(studyguideIds)) {
+            throw new TypeError("studyguideIds must be an array")
         }
-        if (typeof accountId !== Primitives.STRING) {
-            throw new TypeError("accountId must be a string")
+        if (studyguideIds.length === 0) {
+            return
         }
+        
+        for (const id of studyguideIds) {
+            if (typeof id !== Primitives.STRING) {
+                throw new TypeError("id must be a string")
+            }
 
-        await this.#pool.request()
-            .input("id", mssql.NVarChar(36), studyguideId)
-            .input("creatorId", mssql.NVarChar(36), accountId)
-            .query(DELETE_STUDYGUIDE)
+            try {
+                await this.#pool.request()
+                    .input("id", mssql.NVarChar(36), id)
+                    .query(DELETE_STUDYGUIDE)
+            } catch (error) {
+                if (error instanceof Error) {
+                    console.log(error.messag)
+                }
+            }
+        }
     }
+
+    /**
+     * @typedef StatusInfo
+     * @property {string} accountId The account id
+     * @property {string} studyguideId The studyguide id
+     * @property {boolean} favorited The studyguide's favorited status for the account
+     * @property {boolean} downloaded The studyguide's downloaded status for the account
+     */
 
     /**
      * Upsert the status of the studyguide for the given account
      * 
-     * @param {string} accountId The account id
-     * @param {string} studyguideId The studyguide id 
-     * @param {boolean} favorited If the account has the studyguide favorited
-     * @param {boolean} downloaded If the account has the studyguide downloaded
+     * @param {StatusInfo[]} info The status info to upsert
      * 
-     * @throws {TypeError}
-     * - If accountId or studyguideId are not ints
-     * - If favorited or downloaded are not booleans
+     * @throws {TypeError} If an accountId or studyguideId in info are not ints
+     * @throws {TypeError} If a favorited or downloaded in info are not booleans
      */
-    async upsertStudyguideStatus(accountId, studyguideId, favorited, downloaded) {
-        if (typeof accountId !== Primitives.STRING) {
-            throw new TypeError("accountId must be a string")
+    async upsertStudyguideStatus(info) {
+        if (!Array.isArray(info)) {
+            throw new TypeError("info must be an array")
         }
-        if (typeof studyguideId !== Primitives.STRING) {
-            throw new TypeError("studyguideId must be a string")
-        }
-        if (typeof favorited !== Primitives.BOOLEAN) {
-            throw new TypeError("favorited must be an int")
-        }
-        if (typeof downloaded !== Primitives.BOOLEAN) {
-            throw new TypeError("downloaded must be an int")
+        if (info.length === 0) {
+            return
         }
 
-        await this.#pool.request()
-            .input("accountId", mssql.NVarChar(36), accountId)
-            .input("studyguideId", mssql.NVarChar(36), studyguideId)
-            .input("favorited", mssql.Bit(), favorited)
-            .input("downloaded", mssql.Bit(), downloaded)
-            .query(UPSERT_STUDYGUIDE_STATUS)
+        for (const rowInfo of info) {
+            if (typeof rowInfo.accountId !== Primitives.STRING) {
+                throw new TypeError("accountId must be a string")
+            }
+            if (typeof rowInfo.studyguideId !== Primitives.STRING) {
+                throw new TypeError("studyguideId must be a string")
+            }
+            if (typeof rowInfo.favorited !== Primitives.BOOLEAN) {
+                throw new TypeError("favorited must be an int")
+            }
+            if (typeof rowInfo.downloaded !== Primitives.BOOLEAN) {
+                throw new TypeError("downloaded must be an int")
+            }
+
+            try {
+                await this.#pool.request()
+                    .input("accountId", mssql.NVarChar(36), rowInfo.accountId)
+                    .input("studyguideId", mssql.NVarChar(36), rowInfo.studyguideId)
+                    .input("favorited", mssql.Bit(), rowInfo.favorited)
+                    .input("downloaded", mssql.Bit(), rowInfo.downloaded)
+                    .query(UPSERT_STUDYGUIDE_STATUS)
+            } catch (error) {
+                if (error instanceof Error) {
+                    console.log(error.messag)
+                }
+            }
+        }
     }
 }
 
