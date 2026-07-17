@@ -24,7 +24,7 @@ const database = new Database()
 describe("Database", () => {
 
     beforeEach(async () => {
-        await database.connectToDatabase({config: dbConfig, setupQuery: setupQuery})
+        await database.connectToDatabase({ config: dbConfig, setupQuery: setupQuery })
     })
 
     afterEach(() => {
@@ -57,7 +57,7 @@ describe("Database", () => {
                 const id = account.id()
                 const user = account.username()
                 const pass = account.password()
-                await database.createAccount(id, user, pass)
+                await database.createAccounts([{id: id, username: user, password: pass}])
             })
             
             const accountSet = await database.getAllAccounts()
@@ -143,7 +143,7 @@ describe("Database", () => {
             [true, true]
         ])("When Account Has Studyguides with Status' By Other Creator", async (favorited, downloaded) => {
             const guide = new Studyguide(validId, validTitle, validDescription, validQuestions, "2")
-            await database.createAccount("2", "fillerUser", "fillerPassword")
+            await database.createAccounts([{id: "2", username: "fillerUser", password: "fillerPassword"}])
             await database.upsertStudyguides([guide])
             await database.upsertStudyguideStatus([{
                 accountId: validCreatorId,
@@ -268,10 +268,20 @@ describe("Database", () => {
             [15.25],
             [undefined],
             [true]
+        ])("Throws when id isn't a string", async (info) => {
+            await expect(database.createAccounts(info)).rejects.toThrow("accountsInfo must be an array")
+        })
+
+        test.each([
+            [null],
+            [10],
+            [15.25],
+            [undefined],
+            [true]
         ])("Throws when id isn't a string", async (id) => {
             const username = "validUsername"
             const password = "validPassword"
-            await expect(database.createAccount(id, username, password)).rejects.toThrow("uuid must be a string")
+            await expect(database.createAccounts([{id: id, username: username, password: password}])).rejects.toThrow("id must be a string")
         })
 
         test.each([
@@ -283,7 +293,7 @@ describe("Database", () => {
         ])("Throws when username isn't a string", async (username) => {
             const id = "id"
             const password = "validPassword"
-            await expect(database.createAccount(id, username, password)).rejects.toThrow("username must be a string")
+            await expect(database.createAccounts([{id: id, username: username, password: password}])).rejects.toThrow("username must be a string")
         })
 
         test.each([
@@ -295,7 +305,7 @@ describe("Database", () => {
         ])("Throws when password isn't a string", async (password) => {
             const id = "id"
             const username = "validUsername"
-            await expect(database.createAccount(id, username, password)).rejects.toThrow("password must be a string")
+            await expect(database.createAccounts([{id: id, username: username, password: password}])).rejects.toThrow("password must be a string")
         })
     })
 

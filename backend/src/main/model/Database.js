@@ -135,32 +135,43 @@ class Database {
 
         return wrappedSearch
     }
+
+    /**
+     * @typedef AccountInfo
+     * @property {string} id The account id
+     * @property {string} username The account username
+     * @property {string} password The account password
+     */
     
     /**
-     * Create an account with the given credentials
+     * Creates accounts with the given credentials
      * 
-     * @param {string} uuid The uuid
-     * @param {string} username The username
-     * @param {string} password The password
+     * @param {AccountInfo[]} accountsInfo The account information
      * 
      * @throws {TypeError} If uuid, username, or password are not strings
      */
-    async createAccount(uuid, username, password) {
-        if (typeof uuid !== Primitives.STRING) {
-            throw new TypeError("uuid must be a string")
-        }
-        if (typeof username !== Primitives.STRING) {
-            throw new TypeError("username must be a string")
-        }
-        if (typeof password !== Primitives.STRING) {
-            throw new TypeError("password must be a string")
+    async createAccounts(accountsInfo) {
+        if (!Array.isArray(accountsInfo)) {
+            throw new TypeError("accountsInfo must be an array")
         }
 
-        await this.#pool.request()
-            .input("uuid", mssql.NVarChar(36), uuid)
-            .input("username", mssql.NVarChar(32), username)
-            .input("password", mssql.NVarChar(32), password)
-            .query(CREATE_ACCOUNT)
+        for (const accountInfo of accountsInfo) {
+            if (typeof accountInfo.id !== Primitives.STRING) {
+                throw new TypeError("id must be a string")
+            }
+            if (typeof accountInfo.username !== Primitives.STRING) {
+                throw new TypeError("username must be a string")
+            }
+            if (typeof accountInfo.password !== Primitives.STRING) {
+                throw new TypeError("password must be a string")
+            }
+
+            await this.#pool.request()
+                .input("uuid", mssql.NVarChar(36), accountInfo.id)
+                .input("username", mssql.NVarChar(32), accountInfo.username)
+                .input("password", mssql.NVarChar(32), accountInfo.password)
+                .query(CREATE_ACCOUNT)
+        }
     }
 
     /**
@@ -201,7 +212,7 @@ class Database {
                 }
             } catch (error) {
                 if (error instanceof Error) {
-                    console.log(error.messag)
+                    console.log(error.message)
                 }
             }
         }
@@ -247,9 +258,6 @@ class Database {
         if (!Array.isArray(studyguideIds)) {
             throw new TypeError("studyguideIds must be an array")
         }
-        if (studyguideIds.length === 0) {
-            return
-        }
         
         for (const id of studyguideIds) {
             if (typeof id !== Primitives.STRING) {
@@ -287,9 +295,6 @@ class Database {
     async upsertStudyguideStatus(info) {
         if (!Array.isArray(info)) {
             throw new TypeError("info must be an array")
-        }
-        if (info.length === 0) {
-            return
         }
 
         for (const rowInfo of info) {

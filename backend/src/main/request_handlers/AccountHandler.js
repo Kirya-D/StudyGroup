@@ -1,11 +1,13 @@
 import crypto from "crypto"
-import { Account } from "../Account.js"
-import { Database } from "../Database.js"
+import { Account } from "../model/Account.js"
+import { Database } from "../model/Database.js"
 import { Primitives } from "../utils/Primitives.js"
 import { StatusCode } from "../utils/StatusCode.js"
 
 /** @type {Map<string, Account>} */
 const usernameAccounts = new Map()
+/** @type {Set<string>} */
+const newAccountUsernames = new Set()
 
 /**
  * Returns the account that has the given username if any exists, otherwise undefined
@@ -73,7 +75,8 @@ async function createAccount(username, password) {
         if (usernameIsAvailable) {
             const id = crypto.randomUUID()
             const newAccount = new Account(id, username, password)
-            usernameAccounts.set(newAccount.username(), newAccount)
+            usernameAccounts.set(username, newAccount)
+            newAccountUsernames.add(username)
             success = true
             status = StatusCode.CREATED
         } else {
@@ -89,11 +92,41 @@ async function createAccount(username, password) {
     }
 }
 
+/**
+ * Propogates updated account information to the given database
+ * 
+ * @param {Database} database The database to propogate changes to
+ */
+async function propogateAccountChangesToDatabase(database) {
+    const accountsInformation = []
+
+    for (const accountName of newAccountUsernames) {
+        const account = usernameAccounts.get(accountName)
+        if (account != null) {
+            const newInformation = {
+                id: account.id(),
+                username: accountName,
+                password: account.password()
+            }
+            accountsInformation.push(newInformation)
+        }
+    }
+    
+    await database.createAccounts(accountsInformation)
+    clearStoredChanges()
+}
+
+function clearStoredChanges() {
+    newAccountUsernames.clear()
+}
+
 const AccountHandler = Object.freeze({
     getAccountWithUsername: getAccountWithUsername,
     getAccountWithCredentials: getAccountWithCredentials,
     loadAccountsFromDatabase: loadAccountsFromDatabase,
-    createAccount: createAccount
+    createAccount: createAccount,
+    propogateAccountChangesToDatabase: propogateAccountChangesToDatabase,
+    clearStoredChanges: clearStoredChanges
 })
 
 export { AccountHandler }

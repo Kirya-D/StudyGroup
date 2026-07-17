@@ -1,10 +1,22 @@
 import { describe, expect, test } from "@jest/globals"
 import crypto from "crypto"
+import filesystem from "fs"
+import path from "path"
+import { Database } from "../../main/model/Database.js"
 import { AccountHandler } from "../../main/request_handlers/AccountHandler.js"
 import { StatusCode } from "../../main/utils/StatusCode.js"
 
+const dbConfig = process.env.TESTING_DB_URL
+const setupPath = path.join("src/test/", "database_setup.sql")
+const setupQuery = filesystem.readFileSync(setupPath, "utf-8")
+const database = new Database()
+
 function createUniqueUsername(prefix = "user") {
     return `${prefix}-${crypto.randomUUID()}`
+}
+
+function createNewAccount() {
+
 }
 
 describe("AccountHandler", () => {
@@ -90,6 +102,35 @@ describe("AccountHandler", () => {
 
             expect(response.success).toBe(false)
             expect(response.status).toBe(StatusCode.BAD_REQUEST)
+        })
+    })
+
+    describe("PropogateAccountChangesToDatabase", () => {
+
+        beforeEach(async () => {
+            await database.connectToDatabase({ config: dbConfig, setupQuery: setupQuery })
+            AccountHandler.clearStoredChanges()
+        })
+
+        afterEach(async () => {
+            await database.disconnect()
+        })
+
+        test.each([
+            [0],
+            [1],
+            [2]
+        ])("When There Is %i New Accounts", async (numAccounts) => {
+            for (let i = 0; i < numAccounts; i++) {
+                await AccountHandler.createAccount(`NewAccount${i}`, "password")
+            }
+
+            await AccountHandler.propogateAccountChangesToDatabase(database)
+
+            for (let i = 0; i < numAccounts; i++) {
+                const account = await AccountHandler.getAccountWithUsername(`NewAccount${i}`)
+                expect(account).toBeDefined()
+            }
         })
     })
 })
