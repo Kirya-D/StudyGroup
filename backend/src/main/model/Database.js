@@ -262,7 +262,7 @@ class Database {
                     .query(DELETE_STUDYGUIDE)
             } catch (error) {
                 if (error instanceof Error) {
-                    console.log(error.messag)
+                    console.log(error.message)
                 }
             }
         }
@@ -315,7 +315,7 @@ class Database {
                     .query(UPSERT_STUDYGUIDE_STATUS)
             } catch (error) {
                 if (error instanceof Error) {
-                    console.log(error.messag)
+                    console.log(error.message)
                 }
             }
         }

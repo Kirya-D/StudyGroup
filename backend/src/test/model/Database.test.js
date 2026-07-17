@@ -1,4 +1,4 @@
-import { afterAll, beforeEach, describe, expect, test } from "@jest/globals";
+import { afterEach, beforeEach, describe, expect, test } from "@jest/globals";
 import filesystem from "fs";
 import path from "path";
 import { Account } from "../../main/model/Account.js";
@@ -27,7 +27,7 @@ describe("Database", () => {
         await database.connectToDatabase({config: dbConfig, setupQuery: setupQuery})
     })
 
-    afterAll(() => {
+    afterEach(() => {
         database.disconnect()
     })
 
