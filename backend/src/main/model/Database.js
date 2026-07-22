@@ -5,6 +5,7 @@ import { Primitives } from "../utils/Primitives.js"
 import { Account } from "./Account.js"
 import { Question } from "./Question.js"
 import { Studyguide } from "./Studyguide.js"
+/** @import { AccountInfo, StatusInfo } from "../utils/Types.js" */
 
 /**
  * 
@@ -135,13 +136,6 @@ class Database {
 
         return wrappedSearch
     }
-
-    /**
-     * @typedef AccountInfo
-     * @property {string} id The account id
-     * @property {string} username The account username
-     * @property {string} password The account password
-     */
     
     /**
      * Creates accounts with the given credentials
@@ -275,14 +269,6 @@ class Database {
             }
         }
     }
-
-    /**
-     * @typedef StatusInfo
-     * @property {string} accountId The account id
-     * @property {string} studyguideId The studyguide id
-     * @property {boolean} favorited The studyguide's favorited status for the account
-     * @property {boolean} downloaded The studyguide's downloaded status for the account
-     */
 
     /**
      * Upsert the status of the studyguide for the given account

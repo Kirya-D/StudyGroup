@@ -1,22 +1,14 @@
-import { describe, expect, test } from "@jest/globals"
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from "@jest/globals"
 import crypto from "crypto"
 import filesystem from "fs"
 import path from "path"
 import { Database } from "../../main/model/Database.js"
 import { AccountHandler } from "../../main/request_handlers/AccountHandler.js"
 import { StatusCode } from "../../main/utils/StatusCode.js"
-
-const dbConfig = process.env.TESTING_DB_URL
-const setupPath = path.join("src/test/", "database_setup.sql")
-const setupQuery = filesystem.readFileSync(setupPath, "utf-8")
-const database = new Database()
+import { MockDatabase, resetMockDatabaseState } from "../MockDatabase.js"
 
 function createUniqueUsername(prefix = "user") {
     return `${prefix}-${crypto.randomUUID()}`
-}
-
-function createNewAccount() {
-
 }
 
 describe("AccountHandler", () => {
@@ -107,13 +99,9 @@ describe("AccountHandler", () => {
 
     describe("PropogateAccountChangesToDatabase", () => {
 
-        beforeEach(async () => {
-            await database.connectToDatabase({ config: dbConfig, setupQuery: setupQuery })
+        beforeEach(() => {
             AccountHandler.clearStoredChanges()
-        })
-
-        afterEach(async () => {
-            await database.disconnect()
+            resetMockDatabaseState()
         })
 
         test.each([
@@ -125,7 +113,7 @@ describe("AccountHandler", () => {
                 await AccountHandler.createAccount(`NewAccount${i}`, "password")
             }
 
-            await AccountHandler.propogateAccountChangesToDatabase(database)
+            await AccountHandler.propogateAccountChangesToDatabase(MockDatabase)
 
             for (let i = 0; i < numAccounts; i++) {
                 const account = await AccountHandler.getAccountWithUsername(`NewAccount${i}`)

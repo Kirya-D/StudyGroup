@@ -27,8 +27,8 @@ describe("Database", () => {
         await database.connectToDatabase({ config: dbConfig, setupQuery: setupQuery })
     })
 
-    afterEach(() => {
-        database.disconnect()
+    afterEach(async () => {
+        await database.disconnect()
     })
 
     describe("GetAllAccounts", () => {
@@ -53,12 +53,12 @@ describe("Database", () => {
 
         test("When Multiple Accounts in Database", async () => {
             const accounts = [new Account("2", "testUser1", "password1"), new Account("3", "testUser2", "password2")]
-            accounts.forEach(async (account) => {
+            for (const account of accounts) {
                 const id = account.id()
                 const user = account.username()
                 const pass = account.password()
                 await database.createAccounts([{id: id, username: user, password: pass}])
-            })
+            }
             
             const accountSet = await database.getAllAccounts()
             const retrievedAccounts = Array.from(accountSet)

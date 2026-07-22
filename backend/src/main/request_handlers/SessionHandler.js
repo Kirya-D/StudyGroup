@@ -1,6 +1,6 @@
 import crypto from "crypto"
 import express from "express"
-import { Account } from "../Account.js"
+import { Account } from "../model/Account.js"
 import { Primitives } from "../utils/Primitives.js"
 import { StatusCode } from "../utils/StatusCode.js"
 

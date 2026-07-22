@@ -1,8 +1,8 @@
 import crypto from "crypto"
 import { Account } from "../model/Account.js"
-import { Database } from "../model/Database.js"
 import { Primitives } from "../utils/Primitives.js"
 import { StatusCode } from "../utils/StatusCode.js"
+/** @import { Queryable } from "../utils/Types.js" */
 
 /** @type {Map<string, Account>} */
 const usernameAccounts = new Map()
@@ -41,7 +41,7 @@ function getAccountWithCredentials(username, password) {
 /**
  * Attempt to load all accounts from databae
  * 
- * @param {Database} database The database to load from
+ * @param {Queryable} database The database to load from
  */
 async function loadAccountsFromDatabase(database) {
     usernameAccounts.clear()
@@ -95,7 +95,7 @@ async function createAccount(username, password) {
 /**
  * Propogates updated account information to the given database
  * 
- * @param {Database} database The database to propogate changes to
+ * @param {Queryable} database The database to propogate changes to
  */
 async function propogateAccountChangesToDatabase(database) {
     const accountsInformation = []

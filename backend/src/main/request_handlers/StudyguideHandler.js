@@ -1,30 +1,11 @@
 import crypto from "crypto"
 import { Account } from "../model/Account.js"
 import { Choice } from "../model/Choice.js"
-import { Database } from "../model/Database.js"
 import { Question } from "../model/Question.js"
 import { Studyguide } from "../model/Studyguide.js"
 import { Primitives } from "../utils/Primitives.js"
 import { StatusCode } from "../utils/StatusCode.js"
-
-/**
- * @typedef RequestQuestion
- * @property {string} question The text
- * @property {Array<string>} choices The choices
- * @property {Array<string>} answers The answers
- */
-
-/**
- * @typedef RequestStudyguide
- * @property {string | undefined} id The id of the studyguide
- * @property {string | undefined} creatorId The id of the creator of the studyguide
- * @property {string} title The title
- * @property {string} description The description
- * @property {boolean} downloaded If the creator has the studyguide downloaded
- * @property {boolean} favorited If the creator has the studyguide favorited
- * @property {Array<RequestQuestion>} questions The questions
- * @property {number} questionCount The number of questions
- */
+/** @import { Queryable, RequestStudyguide } from "../utils/Types.js" */
 
 /** @type {Map<string, Studyguide>} */
 const uuidStudyguides = new Map()
@@ -209,7 +190,7 @@ async function findStudyguides(requester, search, page, maxAmount) {
 /**
  * Propogates updated studyguide information to the given database
  * 
- * @param {Database} database The database to propogate changes to
+ * @param {Queryable} database The database to propogate changes to
  */
 async function propogateStudyguideChangesToDatabase(database) {    
     /** @type {UpsertGuide[]} */

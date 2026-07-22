@@ -1,16 +1,10 @@
-import { afterEach, beforeEach, describe, expect, test } from "@jest/globals"
+import { beforeEach, describe, expect, test } from "@jest/globals"
 import crypto from "crypto"
-import filesystem from "fs"
-import path from "path"
 import { Account } from "../../main/model/Account.js"
-import { Database } from "../../main/model/Database.js"
 import { StudyguideHandler } from "../../main/request_handlers/StudyguideHandler.js"
 import { StatusCode } from "../../main/utils/StatusCode.js"
+import { MockDatabase, resetMockDatabaseState } from "../MockDatabase.js"
 
-const dbConfig = process.env.TESTING_DB_URL
-const setupPath = path.join("src/test/", "database_setup.sql")
-const setupQuery = filesystem.readFileSync(setupPath, "utf-8")
-const database = new Database()
 const presetAccount = new Account("1", "testUser", "password")
 
 function createAccount() {
@@ -214,19 +208,15 @@ describe("StudyguideHandler", () => {
 
     describe("PropogateStudyguideChangesToDatabase", () => {
 
-        beforeEach(async () => {
-            await database.connectToDatabase({ config: dbConfig, setupQuery: setupQuery })
+        beforeEach(() => {
             StudyguideHandler.clearStoredChanges()
-        })
-
-        afterEach(async () => {
-            await database.disconnect()
+            resetMockDatabaseState()
         })
         
         test("When There Are No Upserted Or Deleted Guides", async () => {
-            await StudyguideHandler.propogateStudyguideChangesToDatabase(database)
+            await StudyguideHandler.propogateStudyguideChangesToDatabase(MockDatabase)
 
-            const guides = await database.getStudyguidesWithSubstring("anything", 0)
+            const guides = await MockDatabase.getStudyguidesWithSubstring("anything", 0)
             expect(guides.size).toBe(0)
         })
 
@@ -237,14 +227,15 @@ describe("StudyguideHandler", () => {
             const requester = presetAccount
 
             for (let i = 0; i < upsertCount; i++) {
-                await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
+                const result = await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
                     title: `Upsert ${i}`
                 }))
+                console.table(result)
             }
 
-            await StudyguideHandler.propogateStudyguideChangesToDatabase(database)
+            await StudyguideHandler.propogateStudyguideChangesToDatabase(MockDatabase)
 
-            const guides = await database.getStudyguidesWithSubstring("Upsert", 0)
+            const guides = await MockDatabase.getStudyguidesWithSubstring("Upsert", 0)
             expect(guides.size).toBe(upsertCount)
         })
 
@@ -261,9 +252,9 @@ describe("StudyguideHandler", () => {
                 await StudyguideHandler.deleteStudyguide(requester, response.id)
             }
 
-            await StudyguideHandler.propogateStudyguideChangesToDatabase(database)
+            await StudyguideHandler.propogateStudyguideChangesToDatabase(MockDatabase)
 
-            const guides = await database.getStudyguidesWithSubstring("Delete", 0)
+            const guides = await MockDatabase.getStudyguidesWithSubstring("Delete", 0)
             expect(guides.size).toBe(0)
         })
 
@@ -288,9 +279,9 @@ describe("StudyguideHandler", () => {
                 await StudyguideHandler.deleteStudyguide(requester, response.id)
             }
 
-            await StudyguideHandler.propogateStudyguideChangesToDatabase(database)
+            await StudyguideHandler.propogateStudyguideChangesToDatabase(MockDatabase)
 
-            const guides = await database.getStudyguidesWithSubstring("Mixed", 0)
+            const guides = await MockDatabase.getStudyguidesWithSubstring("Mixed", 0)
             expect(guides.size).toBe(upsertCount)
         })
     })
