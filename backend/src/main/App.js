@@ -1,16 +1,15 @@
-import cookieParser from "cookie-parser"
-import express from "express"
-import helmet from "helmet"
 import mssql from "mssql"
-import { Database } from "./Database.js"
+import { Database } from "./model/Database.js"
+import { Application, Server } from "./model/Server.js"
 import { AccountHandler } from "./request_handlers/AccountHandler.js"
-import { CredentialValidationHandler } from "./request_handlers/CredentialValidationHandler.js"
-import { SessionHandler } from "./request_handlers/SessionHandler.js"
 import { StudyguideHandler } from "./request_handlers/StudyguideHandler.js"
-import { Route } from "./utils/Route.js"
-import { StatusCode } from "./utils/StatusCode.js"
 
-const dbConfig = process.env.DB_URL
+const MILLISECOND = 1
+const SECOND = 1000 * MILLISECOND
+const MINUTE = 60 * SECOND
+const HOUR = 60 * MINUTE
+const DAY = 24 * HOUR
+const dbConfig = process.env.NODE_ENV === "production" ? process.env.DB_URL : process.env.TESTING_DB_URL
 const db = new Database()
 let curAttempt = 0
 const maxAttempts = 3
@@ -32,136 +31,49 @@ async function tryConnect() {
 await tryConnect()
 await AccountHandler.loadAccountsFromDatabase(db)
 
-const app = express()
 const port = process.env.PORT
 const host = process.env.HOST
+Application.startApplication()
+Server.startServer(port, host)
 
-app.enable('trust proxy')
-app.use(cookieParser())
-app.use(helmet())
-app.use(express.json())
-
-
-/**
- * Send response to client.
- * 
- * @param {express.Response} response The response object
- * @param {number} status The status number
- * @param {string} json The response body content
- */
-function respond(response, status, json) {
-    json.status = undefined
-    response.status(status).json(json)
+async function propogateChangesToDatabase() {
+    await AccountHandler.propogateAccountChangesToDatabase(db)
+    await StudyguideHandler.propogateStudyguideChangesToDatabase(db)
 }
 
 /**
- * Default response factory for requests that resulted in unhandled exceptions
- * @param {express.Response} res 
- * @param {string} reason 
+ * @param {Function | undefined} callback To call this loop
  */
-function failureResponse(res, reason) {
-    const failResponse = {
-        success: false,
-        message: reason
+function scheduleDailyDatabaseUpdates(callback) {
+    if (callback != undefined) {
+        callback()
     }
-    respond(res, StatusCode.INTERNAL_SERVER_ERROR, failResponse)
+
+    const currentMidnight = new Date()
+    const nextMidnight = new Date(currentMidnight)
+    const currentDate = currentMidnight.getDate()
+    nextMidnight.setDate(currentDate + 1)
+    nextMidnight.setHours(0, 0, 0, 0)
+
+    const delayUntilNextMidnight = nextMidnight.getTime() - currentMidnight.getTime()
+    
+    setTimeout(() => {
+        scheduleDailyDatabaseUpdates(propogateChangesToDatabase)
+    }, delayUntilNextMidnight)
 }
-app.route(Route.VALIDATE_CREDENTIAL)
-    .post((req, res) => {
-        const toValidate = req.body.value
-        const isUsername = req.body.isUsername === "true"
-        const method = isUsername ? CredentialValidationHandler.validateUsername : CredentialValidationHandler.validatePassword
-        
-        method(toValidate).then(
-            (response) => respond(res, response.status, response),
-            (reason) => failureResponse(res, reason.message)
-        )
-    })
-app.route(Route.SESSION)
-    .post((req, res) => {
-        const username = req.body.username
-        const password = req.body.password
-        const account = AccountHandler.getAccountWithCredentials(username, password)
 
-        if (!account) {
-            respond(res, StatusCode.UNAUTHORIZED, {success: false})
-        } else {
-            SessionHandler.startSession(account).then(
-                (response) => {
-                    if (response.cookieInfo) {
-                        const name = response.cookieInfo.name
-                        const val = response.cookieInfo.value
-                        const options = response.cookieInfo.options
-                        res.cookie(name, val, options)
-                    }
-                    respond(res, response.status, response)
-                },
-                (reason) => failureResponse(res, reason.message)
-            )
-        }
-    })
-    .delete((req, res) => {
-        const sessionId = req.cookies[SessionHandler.cookieName]
-        SessionHandler.endSession(sessionId).then(
-            (response) => {
-                if (response.cookieName ) {
-                    res.clearCookie(response.cookieName)
-                    response.cookieName = undefined
-                }
-                respond(res, response.status, response)
-            },
-            (reason) => failureResponse(res, reason.message)
-        )
-    })
-app.route(Route.ACCOUNT)
-    .post((req, res) => {
-        const username = req.body.username
-        const password = req.body.password
+scheduleDailyDatabaseUpdates()
 
-        AccountHandler.createAccount(username, password).then(
-            (response) => respond(res, response.status, response),
-            (reason) => failureResponse(res, reason.message)
-        )
-    })
-app.route(`${Route.STUDYGUIDE}{id}`)
-    .post((req, res) => {
-        const uploader = SessionHandler.getAccountFromRequest(req)
-        const studyguide = req.body.studyguide
-        StudyguideHandler.upsertStudyguide(uploader, studyguide).then(
-            (response) => respond(res, response.status, response),
-            (reason) => failureResponse(res, reason.message)
-        )
-    })
-    .delete((req, res) => {
-        const deleter = SessionHandler.getAccountFromRequest(req)
-        const id = req.query.id
-        StudyguideHandler.deleteStudyguide(deleter, id).then(
-            (response) => {
-                console.log(response.success)
-                console.table(response)
-                respond(res, response.status, response)
-            },
-            (reason) => failureResponse(res, reason.message)
-        )
-    })
-app.get(`${Route.SEARCH}${Route.ACCOUNT}/:username`, (req, res) => {
-    respond(res, 200, {})
-})
-app.get(`${Route.SEARCH}${Route.STUDYGUIDE}/:search{page=0, max=50}`, (req, res) => {
-    const searchingUser = SessionHandler.getAccountFromRequest(req)
-    const search = req.params.search
-    const page = parseInt(req.query.page)
-    const max = parseInt(req.query.max)
-    StudyguideHandler.findStudyguides(searchingUser, search, page, max).then(
-        (response) => respond(res, response.status, response),
-        (reason) => failureResponse(res, reason.message)
-    )
-})
+async function endProcess() {
+    Server.shutdownServer()
+    await propogateChangesToDatabase()
+    await db.disconnect()
 
+    process.exit()
+}
 
-app.listen(port, host, () => {
-    console.log(`Server is alive on ${host}:${port}`)
-})
+process.on("SIGINT", endProcess)
+process.on("SIGTERM", endProcess)
 
 export { }
 
