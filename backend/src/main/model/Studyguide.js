@@ -1,5 +1,5 @@
+import { Primitives } from "../utils/Primitives.js"
 import { Question } from "./Question.js"
-import { Primitives } from "./utils/Primitives.js"
 
 class Studyguide {
 

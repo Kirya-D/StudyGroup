@@ -1,7 +1,7 @@
 import { describe, expect, test } from "@jest/globals"
-import { Choice } from "../main/Choice.js"
-import { Question } from "../main/Question.js"
-import { Studyguide } from "../main/Studyguide.js"
+import { Choice } from "../../main/model/Choice.js"
+import { Question } from "../../main/model/Question.js"
+import { Studyguide } from "../../main/model/Studyguide.js"
 
 const validId = "1"
 const validTitle = "Studyguide"

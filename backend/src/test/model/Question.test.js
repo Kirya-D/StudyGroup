@@ -1,6 +1,6 @@
 import { describe, expect, test } from "@jest/globals"
-import { Question } from "../main/Question.js"
-import { Choice } from "../main/Choice.js"
+import { Choice } from "../../main/model/Choice.js"
+import { Question } from "../../main/model/Question.js"
 
 const validText = "Question?"
 const validChoices = new Set([

@@ -1,15 +1,18 @@
-import { describe, expect, test } from "@jest/globals"
+import { beforeEach, describe, expect, test } from "@jest/globals"
 import crypto from "crypto"
-import { Account } from "../../main/Account.js"
+import { Account } from "../../main/model/Account.js"
 import { StudyguideHandler } from "../../main/request_handlers/StudyguideHandler.js"
 import { StatusCode } from "../../main/utils/StatusCode.js"
+import { MockDatabase, resetMockDatabaseState } from "../MockDatabase.js"
+
+const presetAccount = new Account("1", "testUser", "password")
 
 function createAccount() {
     const id = crypto.randomUUID()
     return new Account(id, `user-${id}`, "password")
 }
 
-function createRequestedGuide(overrides = {}) {
+function createRequestGuide(overrides = {}) {
     return {
         id: overrides.id,
         creatorId: overrides.creatorId,
@@ -32,7 +35,7 @@ describe("StudyguideHandler", () => {
 
     describe("UpsertStudyguide", () => {
         test("When Missing Account Or Studyguide Information", async () => {
-            const response = await StudyguideHandler.upsertStudyguide(undefined, createRequestedGuide())
+            const response = await StudyguideHandler.upsertStudyguide(undefined, createRequestGuide())
 
             expect(response.success).toBe(false)
             expect(response.status).toBe(StatusCode.BAD_REQUEST)
@@ -41,7 +44,7 @@ describe("StudyguideHandler", () => {
         test("When Account Does Not Have Edit Permission", async () => {
             const firstRequester = createAccount()
             const secondRequester = createAccount()
-            const onlyGuide = createRequestedGuide({
+            const onlyGuide = createRequestGuide({
                 title: "My Guide",
                 favorited: true,
                 downloaded: true
@@ -58,11 +61,12 @@ describe("StudyguideHandler", () => {
 
         test("When Successful", async () => {
             const requester = createAccount()
-            const response = await StudyguideHandler.upsertStudyguide(requester, createRequestedGuide({
+            const guide = createRequestGuide({
                 title: "My Guide",
                 favorited: true,
                 downloaded: true
-            }))
+            })
+            const response = await StudyguideHandler.upsertStudyguide(requester, guide)
 
             expect(response.success).toBe(true)
             expect(response.status).toBe(StatusCode.CREATED)
@@ -74,7 +78,7 @@ describe("StudyguideHandler", () => {
 
         test("When Successful Update", async () => {
             const requester = createAccount()
-            const guide = createRequestedGuide({
+            const guide = createRequestGuide({
                 title: "My Guide",
                 favorited: true,
                 downloaded: true
@@ -83,7 +87,7 @@ describe("StudyguideHandler", () => {
             guide.title = "My Updated Guide"
             guide.favorited = true
 
-            const secondResponse = await StudyguideHandler.upsertStudyguide(requester, createRequestedGuide({
+            const secondResponse = await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
                 id: firstResponse.id,
                 title: "My Updated Guide",
                 favorited: false,
@@ -111,7 +115,7 @@ describe("StudyguideHandler", () => {
             const owner = createAccount()
             const requester = createAccount()
 
-            const createResponse = await StudyguideHandler.upsertStudyguide(owner, createRequestedGuide({
+            const createResponse = await StudyguideHandler.upsertStudyguide(owner, createRequestGuide({
                 title: "Owned Guide"
             }))
 
@@ -125,7 +129,7 @@ describe("StudyguideHandler", () => {
         test("When Successful", async () => {
             const requester = createAccount()
 
-            const createResponse = await StudyguideHandler.upsertStudyguide(requester, createRequestedGuide({
+            const createResponse = await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
                 title: "Removable Guide"
             }))
 
@@ -148,15 +152,15 @@ describe("StudyguideHandler", () => {
             const requester = createAccount()
             const uniqueSearch = crypto.randomUUID()
 
-            await StudyguideHandler.upsertStudyguide(requester, createRequestedGuide({
+            await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
                 title: `Alpha Guide 0 ${uniqueSearch}`,
                 description: `Contains alpha ${uniqueSearch}`
             }))
-            await StudyguideHandler.upsertStudyguide(requester, createRequestedGuide({
+            await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
                 title: `Alpha Guide 1 ${uniqueSearch}`,
                 description: `Contains alpha ${uniqueSearch}`
             }))
-            await StudyguideHandler.upsertStudyguide(requester, createRequestedGuide({
+            await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
                 title: `Alpha Guide 2 ${uniqueSearch}`,
                 description: `Contains alpha ${uniqueSearch}`
             }))
@@ -180,15 +184,15 @@ describe("StudyguideHandler", () => {
             const requester = createAccount()
             const uniqueSearch = crypto.randomUUID()
 
-            await StudyguideHandler.upsertStudyguide(requester, createRequestedGuide({
+            await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
                 title: `Alpha Guide 0 ${uniqueSearch}`,
                 description: `Contains alpha ${uniqueSearch}`
             }))
-            await StudyguideHandler.upsertStudyguide(requester, createRequestedGuide({
+            await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
                 title: `Alpha Guide 1 ${uniqueSearch}`,
                 description: `Contains alpha ${uniqueSearch}`
             }))
-            await StudyguideHandler.upsertStudyguide(requester, createRequestedGuide({
+            await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
                 title: `Alpha Guide 2 ${uniqueSearch}`,
                 description: `Contains alpha ${uniqueSearch}`
             }))
@@ -199,6 +203,86 @@ describe("StudyguideHandler", () => {
             expect(response.status).toBe(StatusCode.OK)
             expect(response.results).toHaveLength(1)
             expect(response.results[0].title).toBe(`Alpha Guide 2 ${uniqueSearch}`)
+        })
+    })
+
+    describe("PropogateStudyguideChangesToDatabase", () => {
+
+        beforeEach(() => {
+            StudyguideHandler.clearStoredChanges()
+            resetMockDatabaseState()
+        })
+        
+        test("When There Are No Upserted Or Deleted Guides", async () => {
+            await StudyguideHandler.propogateStudyguideChangesToDatabase(MockDatabase)
+
+            const guides = await MockDatabase.getStudyguidesWithSubstring("anything", 0)
+            expect(guides.size).toBe(0)
+        })
+
+        test.each([
+            [1],
+            [2]
+        ])("When There Are %i Upserted Guides And No Deleted Guides", async (upsertCount) => {
+            const requester = presetAccount
+
+            for (let i = 0; i < upsertCount; i++) {
+                const result = await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
+                    title: `Upsert ${i}`
+                }))
+                console.table(result)
+            }
+
+            await StudyguideHandler.propogateStudyguideChangesToDatabase(MockDatabase)
+
+            const guides = await MockDatabase.getStudyguidesWithSubstring("Upsert", 0)
+            expect(guides.size).toBe(upsertCount)
+        })
+
+        test.each([
+            [1],
+            [2]
+        ])("When There Are No Upserted Guides And %i Deleted Guides", async (deleteCount) => {
+            const requester = presetAccount
+
+            for (let i = 0; i < deleteCount; i++) {
+                const response = await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
+                    title: `Delete ${i}`
+                }))
+                await StudyguideHandler.deleteStudyguide(requester, response.id)
+            }
+
+            await StudyguideHandler.propogateStudyguideChangesToDatabase(MockDatabase)
+
+            const guides = await MockDatabase.getStudyguidesWithSubstring("Delete", 0)
+            expect(guides.size).toBe(0)
+        })
+
+        test.each([
+            [1, 1],
+            [2, 1],
+            [1, 2],
+            [2, 2]
+        ])("When There Are %i Upserted Guides And %i Deleted Guides", async (upsertCount, deleteCount) => {
+            const requester = presetAccount
+
+            for (let i = 0; i < upsertCount; i++) {
+                await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
+                    title: `Mixed Upsert ${i}`
+                }))
+            }
+
+            for (let i = 0; i < deleteCount; i++) {
+                const response = await StudyguideHandler.upsertStudyguide(requester, createRequestGuide({
+                    title: `Mixed Delete ${i}`
+                }))
+                await StudyguideHandler.deleteStudyguide(requester, response.id)
+            }
+
+            await StudyguideHandler.propogateStudyguideChangesToDatabase(MockDatabase)
+
+            const guides = await MockDatabase.getStudyguidesWithSubstring("Mixed", 0)
+            expect(guides.size).toBe(upsertCount)
         })
     })
 })

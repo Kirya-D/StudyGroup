@@ -1,5 +1,5 @@
 import { describe, expect, test } from "@jest/globals"
-import { Choice } from "../main/Choice.js"
+import { Choice } from "../../main/model/Choice.js"
 
 const validText = "Choice"
 const validIsAnswer = true

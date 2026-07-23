@@ -1,32 +1,16 @@
 import crypto from "crypto"
-import { Account } from "../Account.js"
-import { Choice } from "../Choice.js"
-import { Question } from "../Question.js"
-import { Studyguide } from "../Studyguide.js"
+import { Account } from "../model/Account.js"
+import { Choice } from "../model/Choice.js"
+import { Question } from "../model/Question.js"
+import { Studyguide } from "../model/Studyguide.js"
 import { Primitives } from "../utils/Primitives.js"
 import { StatusCode } from "../utils/StatusCode.js"
-
-/**
- * @typedef RequestQuestion
- * @property {string} question The text
- * @property {Array<string>} choices The choices
- * @property {Array<string>} answers The answers
- */
-
-/**
- * @typedef RequestStudyguide
- * @property {string | undefined} id The id of the studyguide
- * @property {string | undefined} creatorId The id of the creator of the studyguide
- * @property {string} title The title
- * @property {string} description The description
- * @property {boolean} downloaded If the creator has the studyguide downloaded
- * @property {boolean} favorited If the creator has the studyguide favorited
- * @property {Array<RequestQuestion>} questions The questions
- * @property {number} questionCount The number of questions
- */
+/** @import { Queryable, RequestStudyguide } from "../utils/Types.js" */
 
 /** @type {Map<string, Studyguide>} */
 const uuidStudyguides = new Map()
+/** @type {Set<string>} */
+const changedStudyguideIds = new Set()
 
 /**
  * Attempts to create or update a studyguide with the given
@@ -79,7 +63,8 @@ async function upsertStudyguide(requester, requestedGuide) {
         const serverGuide = new Studyguide(guideId, title, description, new Set(questions), requester.id(), questions.length)
         requestedGuide.favorited ? requester.favorite(guideId) : requester.unfavorite(guideId)
         requestedGuide.downloaded ? requester.download(guideId) : requester.undownload(guideId)
-        uuidStudyguides.set(serverGuide.id(), serverGuide)
+        uuidStudyguides.set(guideId, serverGuide)
+        changedStudyguideIds.add(guideId)
         status = updatingExistingGuide ? StatusCode.OK : StatusCode.CREATED
         success = true
     }
@@ -121,6 +106,7 @@ async function deleteStudyguide(requester, id) {
         success = true
         status = StatusCode.NO_CONTENT
         uuidStudyguides.delete(id)
+        changedStudyguideIds.add(id)
     }
 
     return {
@@ -201,11 +187,43 @@ async function findStudyguides(requester, search, page, maxAmount) {
     }
 }
 
-const StudyguideHandler = {
+/**
+ * Propogates updated studyguide information to the given database
+ * 
+ * @param {Queryable} database The database to propogate changes to
+ */
+async function propogateStudyguideChangesToDatabase(database) {    
+    /** @type {UpsertGuide[]} */
+    const upsertedGuides = []
+    /** @type {string[]} */
+    const deletedGuideIds = []
+
+    for (const id of changedStudyguideIds) {
+        const associatedGuide = uuidStudyguides.get(id)
+        if (associatedGuide) {
+            upsertedGuides.push(associatedGuide)
+        } else {
+            deletedGuideIds.push(id)
+        }
+    }
+
+    await database.deleteStudyguides(deletedGuideIds)
+    await database.upsertStudyguides(upsertedGuides)
+    
+    clearStoredChanges()
+}
+
+function clearStoredChanges() {
+    changedStudyguideIds.clear()
+}
+
+const StudyguideHandler = Object.freeze({
     upsertStudyguide: upsertStudyguide,
     deleteStudyguide: deleteStudyguide,
     findStudyguides: findStudyguides,
-}
+    propogateStudyguideChangesToDatabase: propogateStudyguideChangesToDatabase,
+    clearStoredChanges: clearStoredChanges
+})
 
 export { StudyguideHandler }
 

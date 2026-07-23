@@ -1,8 +1,11 @@
-import { describe, expect, test } from "@jest/globals"
+import { afterEach, beforeAll, beforeEach, describe, expect, test } from "@jest/globals"
 import crypto from "crypto"
-import { Account } from "../../main/Account.js"
+import filesystem from "fs"
+import path from "path"
+import { Database } from "../../main/model/Database.js"
 import { AccountHandler } from "../../main/request_handlers/AccountHandler.js"
 import { StatusCode } from "../../main/utils/StatusCode.js"
+import { MockDatabase, resetMockDatabaseState } from "../MockDatabase.js"
 
 function createUniqueUsername(prefix = "user") {
     return `${prefix}-${crypto.randomUUID()}`
@@ -91,6 +94,31 @@ describe("AccountHandler", () => {
 
             expect(response.success).toBe(false)
             expect(response.status).toBe(StatusCode.BAD_REQUEST)
+        })
+    })
+
+    describe("PropogateAccountChangesToDatabase", () => {
+
+        beforeEach(() => {
+            AccountHandler.clearStoredChanges()
+            resetMockDatabaseState()
+        })
+
+        test.each([
+            [0],
+            [1],
+            [2]
+        ])("When There Is %i New Accounts", async (numAccounts) => {
+            for (let i = 0; i < numAccounts; i++) {
+                await AccountHandler.createAccount(`NewAccount${i}`, "password")
+            }
+
+            await AccountHandler.propogateAccountChangesToDatabase(MockDatabase)
+
+            for (let i = 0; i < numAccounts; i++) {
+                const account = await AccountHandler.getAccountWithUsername(`NewAccount${i}`)
+                expect(account).toBeDefined()
+            }
         })
     })
 })
