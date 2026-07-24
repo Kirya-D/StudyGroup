@@ -68,11 +68,22 @@ public class TestHomeViewmodel {
     public class TestCreateNewStudyGuide {
 
         @Test
+        public void throwsWhenNoLoggedInUsername() throws IOException, InterruptedException {
+            assertThrows(IllegalArgumentException.class, () -> {
+                viewmodel.createNewStudyGuide();
+            });
+        }
+
+        @Test
         public void testWhenSuccessful() throws IOException, InterruptedException {
+            SessionData.logInAs("Non-null");
+
             var expectedType = DisplayableStudyGuide.class;
             var actualGuide = viewmodel.createNewStudyGuide();
 
             assertInstanceOf(expectedType, actualGuide);
+
+            SessionData.logOut();
         }
     }
 

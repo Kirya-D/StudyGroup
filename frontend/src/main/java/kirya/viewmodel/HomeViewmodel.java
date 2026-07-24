@@ -81,6 +81,8 @@ public class HomeViewmodel {
      */
     public DisplayableStudyGuide createNewStudyGuide() {
         var newGuide = new StudyGuide();
+        var loggedUser = SessionData.getLoggedInUsername();
+        newGuide.setCreatorUsername(loggedUser);
         return newGuide;
     }
 
