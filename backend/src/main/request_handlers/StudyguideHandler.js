@@ -118,7 +118,7 @@ async function deleteStudyguide(requester, id) {
 
 
 /**
- * Returns the studyguides that contain the search in the title or description and are indexed
+ * Returns the studyguides that contain the search (case-insensitive) in the title or description and are indexed
  * between [(page * maxAmount), (page * maxAmount) + maxAmount] inclusive 
  * 
  * @param {Account} requester The account that sent the request
@@ -129,6 +129,7 @@ async function deleteStudyguide(requester, id) {
  * @returns A response to the request
  */
 async function findStudyguides(requester, search, page, maxAmount) {
+    const caseInsensitiveSearch = search.toLowerCase()
     let success = false
     const found = []
     let status = undefined
@@ -151,8 +152,10 @@ async function findStudyguides(requester, search, page, maxAmount) {
         const skipFirst = page * maxAmount
         let skipped = 0 
         for (const guide of uuidStudyguides.values()) {
-            const foundInTitle = guide.title().includes(search)
-            const foundInDescription = foundInTitle ? true : guide.description().includes(search)
+            const caseInsensitiveTitle = guide.title().toLowerCase()
+            const caseInsensitiveDescription = guide.title().toLowerCase()
+            const foundInTitle = caseInsensitiveTitle.includes(caseInsensitiveSearch)
+            const foundInDescription = foundInTitle ? true : caseInsensitiveDescription.includes(caseInsensitiveSearch)
 
             if (foundInTitle || foundInDescription) {
                 if (skipped < skipFirst) {
