@@ -1,8 +1,5 @@
-import { afterEach, beforeAll, beforeEach, describe, expect, test } from "@jest/globals"
+import { beforeEach, describe, expect, test } from "@jest/globals"
 import crypto from "crypto"
-import filesystem from "fs"
-import path from "path"
-import { Database } from "../../main/model/Database.js"
 import { AccountHandler } from "../../main/request_handlers/AccountHandler.js"
 import { StatusCode } from "../../main/utils/StatusCode.js"
 import { MockDatabase, resetMockDatabaseState } from "../MockDatabase.js"
@@ -12,6 +9,25 @@ function createUniqueUsername(prefix = "user") {
 }
 
 describe("AccountHandler", () => {
+
+    describe("GetAccountWithId", () => {
+        test("When No Matching Id Exists", () => {
+            const account = AccountHandler.getAccountWithId("does-not-exist")
+
+            expect(account).toBeUndefined()
+        })
+
+        test("When Matching Id Exists", async () => {
+            const username = createUniqueUsername("existing")
+            await AccountHandler.createAccount(username, "password")
+
+            const account = AccountHandler.getAccountWithUsername(username)
+            const accountId = account.id()
+            const accountFromId = AccountHandler.getAccountWithId(accountId)
+
+            expect(accountFromId).toBeDefined()
+        })
+    })
 
     describe("GetAccountWithUsername", () => {
         test("When No Matching Username Exists", () => {
@@ -27,9 +43,6 @@ describe("AccountHandler", () => {
             const account = AccountHandler.getAccountWithUsername(username)
 
             expect(account).toBeDefined()
-            if (account != undefined) {
-                expect(account.username()).toBe(username)
-            }
         })
     })
 

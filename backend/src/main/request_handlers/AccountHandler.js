@@ -5,9 +5,21 @@ import { StatusCode } from "../utils/StatusCode.js"
 /** @import { Queryable } from "../utils/Types.js" */
 
 /** @type {Map<string, Account>} */
+const idAccounts = new Map()
+/** @type {Map<string, Account>} */
 const usernameAccounts = new Map()
 /** @type {Set<string>} */
 const newAccountUsernames = new Set()
+
+/**
+ * Returns the account that has the given id if any exists, otherwise undefined
+ * 
+ * @param {string} id The id to match
+ * @returns The account whose id matches the given
+ */
+function getAccountWithId(id) {
+    return idAccounts.get(id)
+}
 
 /**
  * Returns the account that has the given username if any exists, otherwise undefined
@@ -47,7 +59,9 @@ async function loadAccountsFromDatabase(database) {
     usernameAccounts.clear()
     const dbAccounts = await database.getAllAccounts()
     for (const acc of dbAccounts) {
+        const id = acc.id()
         const username = acc.username()
+        idAccounts.set(id, acc)
         usernameAccounts.set(username, acc)
     }
 }
@@ -75,6 +89,7 @@ async function createAccount(username, password) {
         if (usernameIsAvailable) {
             const id = crypto.randomUUID()
             const newAccount = new Account(id, username, password)
+            idAccounts.set(id, newAccount)
             usernameAccounts.set(username, newAccount)
             newAccountUsernames.add(username)
             success = true
@@ -121,6 +136,7 @@ function clearStoredChanges() {
 }
 
 const AccountHandler = Object.freeze({
+    getAccountWithId: getAccountWithId,
     getAccountWithUsername: getAccountWithUsername,
     getAccountWithCredentials: getAccountWithCredentials,
     loadAccountsFromDatabase: loadAccountsFromDatabase,

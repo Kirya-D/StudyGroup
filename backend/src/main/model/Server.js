@@ -153,7 +153,14 @@ function routeSearchRequests() {
         const page = parseInt(req.query.page)
         const max = parseInt(req.query.max)
         StudyguideHandler.findStudyguides(searchingUser, search, page, max).then(
-            (response) => respond(res, response.status, response),
+            (response) => {
+                for (const guideObject of response.results) {
+                    const creatorId = guideObject.creatorId
+                    const creatorAccount = AccountHandler.getAccountWithId(creatorId)
+                    guideObject.creatorUsername = creatorAccount != undefined ? creatorAccount.username() : undefined
+                }
+                respond(res, response.status, response)
+            },
             (reason) => failureResponse(res, reason.message)
         )
     })

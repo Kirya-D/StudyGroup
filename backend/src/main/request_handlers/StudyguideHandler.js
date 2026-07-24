@@ -175,7 +175,7 @@ async function findStudyguides(requester, search, page, maxAmount) {
                 }
                 const guideInfo = {
                     id: guideId,
-
+                    creatorUsername: undefined,
                     creatorId: guide.creatorId(),
                     title: guide.title(),
                     description: guide.description(),
