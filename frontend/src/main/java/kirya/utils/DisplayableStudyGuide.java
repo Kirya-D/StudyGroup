@@ -47,11 +47,6 @@ public abstract class DisplayableStudyGuide {
      */
     public abstract Collection<DisplayableQuestion> getQuestions();
 
-    /**
-     * {@return the number of questions}
-     */
-    public abstract int getQuestionCount();
-
     @Override
     public String toString() {
         return this.getTitle() + " by " + this.getCreatorUsername();

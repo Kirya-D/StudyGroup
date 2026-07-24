@@ -45,7 +45,6 @@ import { Studyguide } from "../model/Studyguide.js"
  * @property {boolean} downloaded If the creator has the studyguide downloaded
  * @property {boolean} favorited If the creator has the studyguide favorited
  * @property {Array<RequestQuestion>} questions The questions
- * @property {number} questionCount The number of questions
  */
 
 export { }

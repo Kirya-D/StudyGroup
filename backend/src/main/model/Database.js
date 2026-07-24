@@ -112,8 +112,7 @@ class Database {
             const description = guideInfo.description
             const questions = new Set()
             const creatorId = guideInfo.creatorId
-            const questionCount = guideInfo.questionCount
-            const newGuide = new Studyguide(id, title, description, questions, creatorId, questionCount)
+            const newGuide = new Studyguide(id, title, description, questions, creatorId)
             studyguides.add(newGuide)
         })
 

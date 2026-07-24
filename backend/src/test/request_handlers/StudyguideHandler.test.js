@@ -27,7 +27,6 @@ function createRequestGuide(overrides = {}) {
                 answers: ["Choice A"]
             }
         ],
-        questionCount: overrides.questionCount ?? 1
     }
 }
 

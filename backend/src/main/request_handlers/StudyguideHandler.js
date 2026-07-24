@@ -160,15 +160,28 @@ async function findStudyguides(requester, search, page, maxAmount) {
                     continue
                 }
                 const guideId = guide.id()
+                const questionsObject = []
+                for (const question of guide.questions()) {
+                    const jsonified = {
+                        answers: [...question.choices()].filter((c) => c.isAnswer()).map((c) => c.text()),
+                        choices: [...question.choices()].map((c) => c.text()),
+                        question: question.text(),
+                        questionType: "FREE_RESPONSE"
+                    }
+                    if (jsonified.choices.length > 1) {
+                        jsonified.questionType = "MULTIPLE_CHOICE"
+                    }
+                    questionsObject.push(jsonified)
+                }
                 const guideInfo = {
                     id: guideId,
+
                     creatorId: guide.creatorId(),
                     title: guide.title(),
                     description: guide.description(),
                     downloaded: requester.downloadedStudyguides().has(guideId),
                     favorited: requester.favoritedStudyguides().has(guideId),
-                    questions: undefined,
-                    questionCount: guide.questionCount()
+                    questions: questionsObject,
                 }
                 found.push(guideInfo)
             }

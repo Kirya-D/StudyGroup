@@ -41,8 +41,6 @@ public class TestStudyGuide {
             var actualDescription = studyguide.getDescription();
             var expectedQuestions = List.of();
             var actualQuestions = studyguide.getQuestions();
-            var expectedQuestionCount = 0;
-            var actualQuestionCount = studyguide.getQuestionCount();
 
             assertAll("Members",
                     () -> assertEquals(expectedId, actualId),
@@ -52,8 +50,7 @@ public class TestStudyGuide {
                     () -> assertEquals(expectedUsername, actualUsername),
                     () -> assertEquals(expectedTitle, actualTitle),
                     () -> assertEquals(expectedDescription, actualDescription),
-                    () -> assertEquals(expectedQuestions, actualQuestions),
-                    () -> assertEquals(expectedQuestionCount, actualQuestionCount));
+                    () -> assertEquals(expectedQuestions, actualQuestions));
         }
 
         @Test
@@ -262,20 +259,6 @@ public class TestStudyGuide {
             assertThrows(IllegalArgumentException.class, () -> {
                 studyguide.setQuestions(Collections.emptyList());
             });
-        }
-    }
-
-    @Nested
-    public class TestSetQuestionCount {
-
-        @Test
-        public void testWhenSuccessful() {
-            var expectedCount = 5;
-            studyguide.setQuestionCount(expectedCount);
-
-            var actualCount = studyguide.getQuestionCount();
-
-            assertEquals(expectedCount, actualCount);
         }
     }
 }

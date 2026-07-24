@@ -191,6 +191,7 @@ public class ServerConnection implements Server {
             var typeRef = new TypeReference<ArrayList<StudyGuide>>() {
             };
             var convertedGuides = mapper.convertValue(guidesNode, typeRef);
+            System.out.println(convertedGuides);
             guides.addAll(convertedGuides);
         }
 
