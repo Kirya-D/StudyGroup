@@ -153,7 +153,7 @@ async function findStudyguides(requester, search, page, maxAmount) {
         let skipped = 0 
         for (const guide of uuidStudyguides.values()) {
             const caseInsensitiveTitle = guide.title().toLowerCase()
-            const caseInsensitiveDescription = guide.title().toLowerCase()
+            const caseInsensitiveDescription = guide.description().toLowerCase()
             const foundInTitle = caseInsensitiveTitle.includes(caseInsensitiveSearch)
             const foundInDescription = foundInTitle ? true : caseInsensitiveDescription.includes(caseInsensitiveSearch)
 
