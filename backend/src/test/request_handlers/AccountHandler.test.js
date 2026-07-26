@@ -110,6 +110,27 @@ describe("AccountHandler", () => {
         })
     })
 
+    describe("LoadAccountsFromDatabase", () => {
+
+        beforeEach(() => {
+            resetMockDatabaseState()
+        })
+
+        test("When there is 1 account loaded", async () => {
+            const id = "id-1"
+            const username = "username"
+            const password = "password"
+            MockDatabase.createAccounts([{ id: id, username: username, password: password }])
+            await AccountHandler.loadAccountsFromDatabase(MockDatabase)
+            const associatedAccount = AccountHandler.getAccountWithUsername(username)
+
+            expect(associatedAccount).toBeDefined()
+            expect(associatedAccount.id()).toBe(id)
+            expect(associatedAccount.username()).toBe(username)
+            expect(associatedAccount.password()).toBe(password)
+        })
+    })
+
     describe("PropogateAccountChangesToDatabase", () => {
 
         beforeEach(() => {

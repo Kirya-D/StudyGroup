@@ -51,22 +51,6 @@ function getAccountWithCredentials(username, password) {
 }
 
 /**
- * Attempt to load all accounts from databae
- * 
- * @param {Queryable} database The database to load from
- */
-async function loadAccountsFromDatabase(database) {
-    usernameAccounts.clear()
-    const dbAccounts = await database.getAllAccounts()
-    for (const acc of dbAccounts) {
-        const id = acc.id()
-        const username = acc.username()
-        idAccounts.set(id, acc)
-        usernameAccounts.set(username, acc)
-    }
-}
-
-/**
  * Attempts to create a new account with the given username and password
  * 
  * @param {string} username The username to use
@@ -108,6 +92,23 @@ async function createAccount(username, password) {
 }
 
 /**
+ * Attempt to load all accounts from databae
+ * 
+ * @param {Queryable} database The database to load from
+ */
+async function loadAccountsFromDatabase(database) {
+    idAccounts.clear()
+    usernameAccounts.clear()
+    const dbAccounts = await database.getAllAccounts()
+    for (const acc of dbAccounts) {
+        const id = acc.id()
+        const username = acc.username()
+        idAccounts.set(id, acc)
+        usernameAccounts.set(username, acc)
+    }
+}
+
+/**
  * Propogates updated account information to the given database
  * 
  * @param {Queryable} database The database to propogate changes to
@@ -139,8 +140,8 @@ const AccountHandler = Object.freeze({
     getAccountWithId: getAccountWithId,
     getAccountWithUsername: getAccountWithUsername,
     getAccountWithCredentials: getAccountWithCredentials,
-    loadAccountsFromDatabase: loadAccountsFromDatabase,
     createAccount: createAccount,
+    loadAccountsFromDatabase: loadAccountsFromDatabase,
     propogateAccountChangesToDatabase: propogateAccountChangesToDatabase,
     clearStoredChanges: clearStoredChanges
 })

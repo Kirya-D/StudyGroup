@@ -11,7 +11,11 @@ const mockGuides = new Map()
 /** @type {Queryable} */
 const MockDatabase = {
     async getAllAccounts() {
-        return new Set(accounts.values())
+        return new Set(mockAccounts.values())
+    },
+
+    async getAllStudyguides() {
+        return new Set(mockGuides.values())
     },
 
     async createAccounts(accountsInfo) {

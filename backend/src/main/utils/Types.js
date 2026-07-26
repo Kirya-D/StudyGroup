@@ -4,6 +4,7 @@ import { Studyguide } from "../model/Studyguide.js"
 /**
  * @typedef {object} Queryable
  * @property {() => Promise<Set<Account>>} getAllAccounts
+ * @property {() => Promise<Set<Studyguide>>} getAllStudyguides
  * @property {(accountsInfo: AccountInfo[]) => Promise<void>} createAccounts
  * @property {(guides: Studyguide[]) => Promise<void>} upsertStudyguides
  * @property {(guideIds: string[]) => Promise<void>} deleteStudyguides

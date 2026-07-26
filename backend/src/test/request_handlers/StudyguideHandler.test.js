@@ -1,6 +1,7 @@
 import { beforeEach, describe, expect, test } from "@jest/globals"
 import crypto from "crypto"
 import { Account } from "../../main/model/Account.js"
+import { Studyguide } from "../../main/model/Studyguide.js"
 import { StudyguideHandler } from "../../main/request_handlers/StudyguideHandler.js"
 import { StatusCode } from "../../main/utils/StatusCode.js"
 import { MockDatabase, resetMockDatabaseState } from "../MockDatabase.js"
@@ -202,6 +203,27 @@ describe("StudyguideHandler", () => {
             expect(response.status).toBe(StatusCode.OK)
             expect(response.results).toHaveLength(1)
             expect(response.results[0].title).toBe(`Alpha Guide 2 ${uniqueSearch}`)
+        })
+    })
+
+    describe("LoadStudyguidesFromDatabase", () => {
+
+        beforeEach(() => {
+            resetMockDatabaseState()
+        })
+
+        test("When there is 1 account loaded", async () => {
+            const mockAccount = new Account("creatorId-1", "username", "password")
+            const studyguideId = "id-1"
+            const title = "title"
+            MockDatabase.upsertStudyguides([new Studyguide(studyguideId, title, "desc", new Set(), "creatorId-1")])
+            await StudyguideHandler.loadStudyguidesFromDatabase(MockDatabase)
+            const foundResults = await StudyguideHandler.findStudyguides(mockAccount, title, 0, 10)
+            const guides = foundResults.results
+
+            expect(guides.length).toBe(1)
+            expect(guides.at(0).id).toBe(studyguideId)
+            expect(guides.at(0).title).toBe(title)
         })
     })
 

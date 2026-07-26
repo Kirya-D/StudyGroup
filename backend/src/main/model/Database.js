@@ -3,6 +3,7 @@ import mssql from "mssql"
 import path from "path"
 import { Primitives } from "../utils/Primitives.js"
 import { Account } from "./Account.js"
+import { Choice } from "./Choice.js"
 import { Question } from "./Question.js"
 import { Studyguide } from "./Studyguide.js"
 /** @import { AccountInfo, StatusInfo } from "../utils/Types.js" */
@@ -25,7 +26,7 @@ const CREATE_CHOICE = getQueryFromFile("create_choice.sql")
 const CREATE_QUESTION = getQueryFromFile("create_question.sql")
 const DELETE_STUDYGUIDE = getQueryFromFile("delete_studyguide.sql")
 const GET_ALL_ACCOUNTS = getQueryFromFile("get_all_accounts.sql")
-const GET_STUDYGUIDES_WITH_SUBSTRING = getQueryFromFile("get_studyguides_with_substring.sql")
+const GET_ALL_STUDYGUIDES = getQueryFromFile("get_all_studyguides.sql")
 const UPSERT_STUDYGUIDE_STATUS = getQueryFromFile("upsert_studyguide_status.sql")
 const UPSERT_STUDYGUIDE = getQueryFromFile("upsert_studyguide.sql")
 
@@ -79,41 +80,53 @@ class Database {
     }
 
     /**
-     * Returns a set of studyguides matching the search criteria.
-     * 
-     * @param {string} search The search criteria
-     * @param {number} pageNum The offset multiplier for the result index
-     * @param {number} maxResultCount The max number of results to return. Defaults to 50
-     * 
-     * @throws {TypeError} If search is not a string or pageNum/maxResultCount are not ints
+     * Returns all studyguides in the database
      */
-    async getStudyguidesWithSubstring(search, pageNum, maxResultCount = 50) {
-        if (typeof search !== Primitives.STRING) {
-            throw new TypeError("search must be a string")
-        }
-        if (!Number.isInteger(pageNum)) {
-            throw new TypeError("pageNum must be an int")
-        }
-        if (!Number.isInteger(maxResultCount)) {
-            throw new TypeError("maxResultCount must be an int")
-        }
-        /** @type {Set<Studyguide>} */
-        const studyguides = new Set()
-        const preppedSearch = this.#prepareSearchText(search)
-        const result = await this.#pool.request()
-            .input("search", mssql.NVarChar(255), preppedSearch)
-            .input("offset", mssql.Int(), pageNum)
-            .input("maxResults", mssql.Int(), maxResultCount)
-            .query(GET_STUDYGUIDES_WITH_SUBSTRING)
-        
-        result.recordset.forEach(guideInfo => {
+    async getAllStudyguides() {
+        const results = await this.#pool.query(GET_ALL_STUDYGUIDES)
+        const guideArray = this.#extractResultsIntoStudyguides(results)
+
+        return new Set(guideArray)
+    }
+
+    /**
+     * @param {mssql.IResult<any>} result 
+     */
+    #extractResultsIntoStudyguides(result) {
+        /** @type {Map<number, Choice>} */
+        const questionsChoices = new Map()
+        /** @type {Map<string, Question>} */
+        const guideQuestions = new Map()
+        /** @type {Studyguide[]} */
+        const studyguides = []
+
+        result.recordsets[2].forEach((choiceInfo) => { // Create choices
+            const questionId = choiceInfo.idQuestion
+            const choice = new Choice(choiceInfo.text, choiceInfo.isAnswer)
+            const choicesForQuestion = questionsChoices.get(questionId) ?? []
+            choicesForQuestion.push(choice)
+            questionsChoices.set(questionId, choicesForQuestion)
+        })
+
+        result.recordsets[1].forEach((questionInfo) => { // Create questions
+            const questionId = questionInfo.id
+            const studyguideId = questionInfo.idStudyguide
+            const choices = questionsChoices.get(questionId) ?? []
+            const question = new Question(questionInfo.text, new Set(choices))
+            const questionsForGuide = guideQuestions.get(studyguideId) ?? []
+            questionsForGuide.push(question)
+            guideQuestions.set(studyguideId, questionsForGuide)
+        })
+
+        result.recordsets[0].forEach(guideInfo => { // Create studyguides
             const id = guideInfo.id
             const title = guideInfo.title
             const description = guideInfo.description
-            const questions = new Set()
+            const questions = new Set(guideQuestions.get(id) ?? [])
             const creatorId = guideInfo.creatorId
             const newGuide = new Studyguide(id, title, description, questions, creatorId)
-            studyguides.add(newGuide)
+
+            studyguides.push(newGuide)
         })
 
         return studyguides

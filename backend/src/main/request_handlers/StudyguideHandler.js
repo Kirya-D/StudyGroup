@@ -204,6 +204,20 @@ async function findStudyguides(requester, search, page, maxAmount) {
 }
 
 /**
+ * Attempt to load all studyguides from databae
+ * 
+ * @param {Queryable} database The database to load from
+ */
+async function loadStudyguidesFromDatabase(database) {
+    uuidStudyguides.clear()
+    const dbStudyguides = await database.getAllStudyguides()
+    for (const guide of dbStudyguides) {
+        const id = guide.id()
+        uuidStudyguides.set(id, guide)
+    }
+}
+
+/**
  * Propogates updated studyguide information to the given database
  * 
  * @param {Queryable} database The database to propogate changes to
@@ -237,6 +251,7 @@ const StudyguideHandler = Object.freeze({
     upsertStudyguide: upsertStudyguide,
     deleteStudyguide: deleteStudyguide,
     findStudyguides: findStudyguides,
+    loadStudyguidesFromDatabase: loadStudyguidesFromDatabase,
     propogateStudyguideChangesToDatabase: propogateStudyguideChangesToDatabase,
     clearStoredChanges: clearStoredChanges
 })
