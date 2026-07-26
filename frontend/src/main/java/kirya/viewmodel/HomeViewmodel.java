@@ -54,11 +54,11 @@ public class HomeViewmodel {
         this.searchedStudyGuidesProperty.addListener((_, _, newList) -> {
             newList.forEach(searchedGuide -> {
                 var matchingFavorites = this.favoritedStudyGuidesProperty.stream()
-                        .filter(sg -> searchedGuide.getId() == sg.getId()).toList();
+                        .filter(sg -> searchedGuide.getId().equals(sg.getId())).toList();
                 var matchingDownloads = this.downloadedStudyGuidesProperty.stream()
-                        .filter(sg -> searchedGuide.getId() == sg.getId()).toList();
+                        .filter(sg -> searchedGuide.getId().equals(sg.getId())).toList();
                 var matchingUploads = this.uploadedStudyGuidesProperty.stream()
-                        .filter(sg -> searchedGuide.getId() == sg.getId()).toList();
+                        .filter(sg -> searchedGuide.getId().equals(sg.getId())).toList();
 
                 for (var favMatch : matchingFavorites) {
                     var index = this.favoritedStudyGuidesProperty.indexOf(favMatch);

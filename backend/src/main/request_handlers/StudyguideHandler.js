@@ -184,6 +184,7 @@ async function findStudyguides(requester, search, page, maxAmount) {
                     description: guide.description(),
                     downloaded: requester.downloadedStudyguides().has(guideId),
                     favorited: requester.favoritedStudyguides().has(guideId),
+                    uploaded: true,
                     questions: questionsObject,
                 }
                 found.push(guideInfo)
