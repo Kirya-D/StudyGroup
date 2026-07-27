@@ -197,8 +197,8 @@ function startServer(port, host) {
         shutdownServer()
     }
 
-    appServer = app.listen(port, host, () => {
-        console.log(`Server is alive on ${host}:${port}`)
+    appServer = app.listen(port, () => {
+        console.log(`Server is alive on ${port}`)
     })
 }
 
