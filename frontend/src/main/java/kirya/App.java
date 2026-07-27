@@ -36,7 +36,6 @@ public class App extends Application {
         var root = new Root();
         this.showGui(stage, root);
         this.connectToServer(root);
-        this.loadLocalData();
     }
 
     private void showGui(Stage stage, Root root) {
@@ -100,27 +99,39 @@ public class App extends Application {
 
     }
 
-    private void loadLocalData() {
-        var downloadedStudyguides = FileIO.Read();
-        var favoritedStudyguides = downloadedStudyguides.stream().filter(sg -> sg.getFavorited()).toList();
-        var uploadedStudyguides = downloadedStudyguides.stream().filter(sg -> sg.getUploaded()).toList();
-
-        SessionData.getDownloadedStudyguides().setAll(downloadedStudyguides);
-        SessionData.getFavoritedStudyguides().setAll(favoritedStudyguides);
-        SessionData.getUploadedStudyguides().setAll(uploadedStudyguides);
-    }
-
     @Override
     public void stop() {
         this.save();
     }
 
     private void save() {
+        String loggedUser = SessionData.getLoggedInUsername();
+        if (loggedUser == null) {
+            return;
+        }
+
         var toWrite = SessionData.getDownloadedStudyguides().stream()
                 .filter(sg -> sg instanceof StudyGuide)
                 .map(sg -> (StudyGuide) sg).toList();
 
-        FileIO.Write(toWrite);
+        FileIO.Write(loggedUser, toWrite);
+
+        SessionData.logOut();
+        int logoutAttemptNum = 1;
+        int logoutAttemptMax = 3;
+        boolean success = false;
+        while (!success && logoutAttemptNum <= logoutAttemptMax) {
+            try {
+                this.server.logout();
+                success = true;
+            } catch (IOException | InterruptedException err) {
+                String errMessage = "Failed to log out " + loggedUser + " on app close " + logoutAttemptNum
+                        + " time(s)";
+                System.out.println(errMessage);
+            }
+
+            logoutAttemptNum += 1;
+        }
     }
 
     /**

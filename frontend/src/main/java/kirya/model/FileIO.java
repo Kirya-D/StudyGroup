@@ -17,38 +17,48 @@ import tools.jackson.databind.ObjectMapper;
 public class FileIO {
 
     private final static String STORAGE_DIRECTORY = Path.of(System.getenv("LOCALAPPDATA"), "StudyGroup").toString();
-    private final static String DATA_PATH = Path.of(FileIO.STORAGE_DIRECTORY, "studyguides.json").toString();
-    private final static String CUSTOMIZATION_PATH = Path.of(FileIO.STORAGE_DIRECTORY, "preferences.json").toString();
-    private final static File DATA_FILE = new File(FileIO.DATA_PATH);
-    private final static File CUSTOMIZATION_FILE = new File(FileIO.CUSTOMIZATION_PATH);
 
     /**
-     * Serializes the given collection of StudyGuides and to file.
+     * Serializes the given collection of StudyGuides to a file with the given name.
      * Creates the necessary directories and file if needed.
+     * 
+     * @param fileName   The name of the file.
      * @param collection The collection of StudyGuides to write to file.
      */
-    public static void Write(SequencedCollection<StudyGuide> collection) {
+    public static void Write(String fileName, SequencedCollection<StudyGuide> collection) {
         ObjectMapper mapper = new ObjectMapper();
-        FileIO.verifyFileExists(FileIO.DATA_FILE);
-        mapper.writeValue(FileIO.DATA_FILE, collection);
+        File file = getFileFromName(fileName);
+        mapper.writeValue(file, collection);
     }
 
     /**
-     * Reads from file and returns a collection of StudyGuides.
+     * Reads from the file with the given name and returns a collection of
+     * StudyGuides.
+     * 
+     * @param fileName The name of the file.
      * @return The deserialized StudyGuides collection
      */
-    public static SequencedCollection<StudyGuide> Read() {
+    public static SequencedCollection<StudyGuide> Read(String fileName) {
         ObjectMapper mapper = new ObjectMapper();
-        FileIO.verifyFileExists(FileIO.DATA_FILE);
+        File file = getFileFromName(fileName);
         List<StudyGuide> readValue = new ArrayList<>();
 
-        if (FileIO.DATA_FILE.length() > 0) {
-            readValue = mapper.readValue(FileIO.DATA_FILE, new TypeReference<List<StudyGuide>>() {});
+        if (file.length() > 0) {
+            readValue = mapper.readValue(file, new TypeReference<List<StudyGuide>>() {
+            });
         }
-        
+
         return readValue;
     }
-    
+
+    private static File getFileFromName(String name) {
+        String filePath = Path.of(FileIO.STORAGE_DIRECTORY, name).toString();
+        File file = new File(filePath);
+        FileIO.verifyFileExists(file);
+
+        return file;
+    }
+
     private static void verifyFileExists(File file) {
         try {
             file.createNewFile();

@@ -59,7 +59,6 @@ public class Root extends StackPane {
         this.addEventHandler(StudyGuideEvent.START_EDIT, handler -> this.startEditingHandler(handler));
         this.addEventHandler(StudyGuideEvent.FINISH_EDIT, handler -> this.finishEditStudyGuideHandler(handler));
         this.addEventHandler(StudyGuideEvent.CLOSE, handler -> this.switchToPage(Page.HOME));
-
         this.addEventHandler(PageRequestEvent.PAGE_REQUEST, handler -> this.switchToPage(handler.getRequestedPage()));
     }
 

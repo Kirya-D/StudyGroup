@@ -151,7 +151,6 @@ function routeSearchRequests() {
     app.get(`${Route.SEARCH}${Route.STUDYGUIDE}{search=${defaultSearch}, page=${defaultPage}, max=${defaultMaxSize}}`, (req, res) => {
         const searchingUser = SessionHandler.getAccountFromRequest(req)
         const search = req.query.search
-        console.log(search)
         const page = parseInt(req.query.page)
         const max = parseInt(req.query.max)
         StudyguideHandler.findStudyguides(searchingUser, search, page, max).then(

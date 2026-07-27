@@ -9,6 +9,7 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import kirya.model.FileIO;
 import kirya.model.Server;
 import kirya.model.StudyGuide;
 import kirya.utils.DisplayableStudyGuide;
@@ -156,8 +157,22 @@ public class HomeViewmodel {
      * @throws InterruptedException If a server error occurs
      */
     public void logOut() throws IOException, InterruptedException {
+        String username = SessionData.getLoggedInUsername();
+        if (username == null) {
+            return;
+        }
+
+        var toWrite = SessionData.getDownloadedStudyguides().stream()
+                .filter(sg -> sg instanceof StudyGuide)
+                .map(sg -> (StudyGuide) sg).toList();
+
+        FileIO.Write(username, toWrite);
+
         this.server.logout();
         SessionData.logOut();
+        SessionData.getDownloadedStudyguides().clear();
+        SessionData.getFavoritedStudyguides().clear();
+        SessionData.getUploadedStudyguides().clear();
     }
 
     /**
