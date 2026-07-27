@@ -1,4 +1,3 @@
-import mssql from "mssql"
 import { Database } from "./model/Database.js"
 import { Application, Server } from "./model/Server.js"
 import { AccountHandler } from "./request_handlers/AccountHandler.js"
@@ -11,24 +10,32 @@ const HOUR = 60 * MINUTE
 const DAY = 24 * HOUR
 const dbConfig = process.env.NODE_ENV === "production" ? process.env.DB_URL : process.env.TESTING_DB_URL
 const db = new Database()
-let curAttempt = 0
-const maxAttempts = 3
 
 async function tryConnect() {
+    let success = undefined
+
+    console.log("Starting database connection attempt")
     await db.connectToDatabase({ config: dbConfig }).then(
         (value) => {
             console.log("Connected to database")
+            success = true
         },
-        (reason) => {
-            if (reason instanceof mssql.ConnectionError && curAttempt <= maxAttempts) {
-                curAttempt++
-                tryConnect()
-            }
+        async (reason) => {
+            console.log(`Failed to connect: ${reason}`)
+            success = false
         }
     )
+
+    return success
 }
 
-await tryConnect()
+let successfulConnect = false
+let currentAttempts = 0
+const maxAttempts = 3
+while (!successfulConnect && currentAttempts < maxAttempts) {
+    successfulConnect = await tryConnect()
+    currentAttempts += 1
+}
 await AccountHandler.loadAccountsFromDatabase(db)
 await StudyguideHandler.loadStudyguidesFromDatabase(db)
 

@@ -4,8 +4,7 @@
   "description": "",
   "main": "src/main/App.js",
   "scripts": {
-    "start": "node src/main/App.js",
-    "prod": "set NODE_ENV=production && node --env-file=.env src/main/App.js",
+    "start": "node --env-file=.env src/main/App.js",
     "debug": "set NODE_ENV=debug && node --env-file=.env src/main/App.js",
     "test": "node --env-file=.env --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
