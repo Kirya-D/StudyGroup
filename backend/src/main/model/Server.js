@@ -145,15 +145,23 @@ function routeSearchRequests() {
     app.get(`${Route.SEARCH}${Route.ACCOUNT}/:username`, (req, res) => {
         respond(res, 200, {})
     })
+    const defaultSearch = ""
     const defaultPage = 0
     const defaultMaxSize = 50
-    app.get(`${Route.SEARCH}${Route.STUDYGUIDE}/:search{page=${defaultPage}, max=${defaultMaxSize}}`, (req, res) => {
+    app.get(`${Route.SEARCH}${Route.STUDYGUIDE}{search=${defaultSearch}, page=${defaultPage}, max=${defaultMaxSize}}`, (req, res) => {
         const searchingUser = SessionHandler.getAccountFromRequest(req)
-        const search = req.params.search
+        const search = req.query.search
         const page = parseInt(req.query.page)
         const max = parseInt(req.query.max)
         StudyguideHandler.findStudyguides(searchingUser, search, page, max).then(
-            (response) => respond(res, response.status, response),
+            (response) => {
+                for (const guideObject of response.results) {
+                    const creatorId = guideObject.creatorId
+                    const creatorAccount = AccountHandler.getAccountWithId(creatorId)
+                    guideObject.creatorUsername = creatorAccount != undefined ? creatorAccount.username() : undefined
+                }
+                respond(res, response.status, response)
+            },
             (reason) => failureResponse(res, reason.message)
         )
     })
@@ -169,6 +177,7 @@ function startApplication() {
     app.use(cookieParser())
     app.use(helmet())
     app.use(express.json())
+    app.use(express.urlencoded())
 
     routeCredentialValidation()
     routeAccountRequests()

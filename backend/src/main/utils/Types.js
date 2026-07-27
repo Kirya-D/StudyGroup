@@ -4,6 +4,7 @@ import { Studyguide } from "../model/Studyguide.js"
 /**
  * @typedef {object} Queryable
  * @property {() => Promise<Set<Account>>} getAllAccounts
+ * @property {() => Promise<Set<Studyguide>>} getAllStudyguides
  * @property {(accountsInfo: AccountInfo[]) => Promise<void>} createAccounts
  * @property {(guides: Studyguide[]) => Promise<void>} upsertStudyguides
  * @property {(guideIds: string[]) => Promise<void>} deleteStudyguides
@@ -45,7 +46,6 @@ import { Studyguide } from "../model/Studyguide.js"
  * @property {boolean} downloaded If the creator has the studyguide downloaded
  * @property {boolean} favorited If the creator has the studyguide favorited
  * @property {Array<RequestQuestion>} questions The questions
- * @property {number} questionCount The number of questions
  */
 
 export { }

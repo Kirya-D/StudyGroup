@@ -22,7 +22,6 @@ public class StudyGuide extends DisplayableStudyGuide {
     private String title;
     private String description;
     private final Set<Question> questions;
-    private int questionCount;
 
     /**
      * Initializes a StudyGuide with default state.
@@ -41,8 +40,6 @@ public class StudyGuide extends DisplayableStudyGuide {
      * <p>
      * Postcondition: {@link StudyGuide#getQuestions()} ==
      * {@link Collections#emptyList()}
-     * <p>
-     * Postcondition: {@link StudyGuide#getQuestionCount()} == 0
      */
     public StudyGuide() {
         this.id = null;
@@ -53,7 +50,6 @@ public class StudyGuide extends DisplayableStudyGuide {
         this.title = "";
         this.description = "";
         this.questions = new LinkedHashSet<>();
-        this.questionCount = 0;
     }
 
     /**
@@ -161,15 +157,6 @@ public class StudyGuide extends DisplayableStudyGuide {
         this.questions.addAll(questions);
     }
 
-    /**
-     * Sets the question count.
-     * 
-     * @param count The new question count
-     */
-    public void setQuestionCount(int count) {
-        this.questionCount = count;
-    }
-
     @Override
     public String getId() {
         return this.id;
@@ -208,10 +195,5 @@ public class StudyGuide extends DisplayableStudyGuide {
     @Override
     public boolean getUploaded() {
         return this.uploaded;
-    }
-
-    @Override
-    public int getQuestionCount() {
-        return this.questionCount;
     }
 }

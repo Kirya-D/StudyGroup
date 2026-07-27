@@ -166,100 +166,6 @@ describe("Database", () => {
         })
     })
 
-    describe("GetStudyguidesWithSubstring", () => {
-
-        let placeholderSearch = "filler search"
-        let page = 0;
-        
-        beforeEach(() => {
-            page = 0
-        })
-
-        test.each([
-            [null],
-            [undefined],
-            [10],
-            [10.53],
-            [true]
-        ])("Throws when search is not a string", async (search) => {
-            await expect(database.getStudyguidesWithSubstring(search, page)).rejects.toThrow("search must be a string")
-        })
-
-        test.each([
-            [null],
-            [undefined],
-            ["10"],
-            [10.53],
-            [true]
-        ])("Throws when pageNum is not an int", async (pageNum) => {
-            await expect(database.getStudyguidesWithSubstring(placeholderSearch, pageNum)).rejects.toThrow("pageNum must be an int")
-        })
-
-        test.each([
-            [null],
-            ["10"],
-            [10.53],
-            [true]
-        ])("Throws when maxResultCount is not an int", async (maxResultCount) => {
-            await expect(database.getStudyguidesWithSubstring(placeholderSearch, page, maxResultCount)).rejects.toThrow("maxResultCount must be an int")
-        })
-        
-        test("When no studyguides matching criteria", async () => {
-            const guides = await database.getStudyguidesWithSubstring("Nothing matches this", page)
-            
-            expect(guides.size).toBe(0)
-        })
-        
-        test("When one studyguide matches criteria", async () => {
-            const guide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
-
-            await database.upsertStudyguides([guide])
-            const guides = await database.getStudyguidesWithSubstring(validTitle, page)
-            
-            expect(guides.size).toBe(1)
-        })
-        
-        test("When multiple studyguides matches criteria", async () => {
-            const guide1 = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
-            const guide2 = new Studyguide("2", validTitle, validDescription, validQuestions, validCreatorId)
-            const guide3 = new Studyguide("3", validTitle, validDescription, validQuestions, validCreatorId)
-
-            await database.upsertStudyguides([guide1, guide2, guide3])
-            const guides = await database.getStudyguidesWithSubstring(validTitle, page)
-
-            expect(guides.size).toBe(3)
-        })
-
-        test("When more studyguides than maxResultCount matches criteria", async () => {
-            const maxResultCount = 50
-            const guidesArray = []
-            for (let i = 0; i < maxResultCount + 5; i++) {
-                const guide = new Studyguide(`${i}`, validTitle, validDescription, validQuestions, validCreatorId)
-                guidesArray.push(guide)
-            }
-            await database.upsertStudyguides(guidesArray)
-
-            const searchedGuides = await database.getStudyguidesWithSubstring(validTitle, page, maxResultCount)
-
-            expect(searchedGuides.size).toBe(maxResultCount)
-        })
-
-        test("When requesting a later 'page'", async () => {
-            page = 1
-            const maxResultCount = 50
-            const guides = []
-            for (let i = 0; i < maxResultCount + 5; i++) {
-                const guide = new Studyguide(`${i}`, validTitle, validDescription, validQuestions, validCreatorId)
-                guides.push(guide)
-            }
-            await database.upsertStudyguides(guides)
-
-            const searchedGuides = await database.getStudyguidesWithSubstring(validTitle, page, maxResultCount)
-
-            expect(searchedGuides.size).toBe(5)
-        })
-    })
-
     describe("CreateAccount", () => {
 
         test.each([
@@ -329,7 +235,7 @@ describe("Database", () => {
 
             await database.upsertStudyguides([guide])
 
-            const guides = Array.from(await database.getStudyguidesWithSubstring(validTitle, page))
+            const guides = Array.from(await database.getAllStudyguides())
 
             expect(guides.length).toBe(1)
             expect(guides.at(0)).toEqual(guide)
@@ -342,7 +248,7 @@ describe("Database", () => {
 
             await database.upsertStudyguides([guide1, guide2, guide3])
 
-            const guides = Array.from(await database.getStudyguidesWithSubstring(validTitle, page))
+            const guides = Array.from(await database.getAllStudyguides())
 
             expect(guides.length).toBe(3)
             expect(guides.at(0)).toEqual(guide3)
@@ -363,7 +269,7 @@ describe("Database", () => {
             await database.upsertStudyguides([originalGuide])
             await database.upsertStudyguides([updatedGuide])
 
-            const guides = Array.from(await database.getStudyguidesWithSubstring(updatedGuide.title(), page))
+            const guides = Array.from(await database.getAllStudyguides())
 
             expect(guides.length).toBe(1)
             const guideIdExpectation = expect(guides.at(0).id())
@@ -391,7 +297,7 @@ describe("Database", () => {
             await database.upsertStudyguides([updatedGuide])
             await database.upsertStudyguides([secondUpdatedGuide])
 
-            const guides = Array.from(await database.getStudyguidesWithSubstring("desc", page))
+            const guides = Array.from(await database.getAllStudyguides())
 
             expect(guides.length).toBe(1)
             const guideIdExpectation = expect(guides.at(0).id())
@@ -426,7 +332,7 @@ describe("Database", () => {
 
         test("Test when no studyguides to delete", async () => {
             await database.deleteStudyguides([])
-            const guides = await database.getStudyguidesWithSubstring("anything", page)
+            const guides = await database.getAllStudyguides()
             
             expect(guides.size).toBe(0)
         })
@@ -437,7 +343,7 @@ describe("Database", () => {
 
             await database.upsertStudyguides([guide])
             await database.deleteStudyguides([guideId])
-            const guides = await database.getStudyguidesWithSubstring(validTitle, page)
+            const guides = await database.getAllStudyguides()
             
             expect(guides.size).toBe(0)
         })
@@ -450,7 +356,7 @@ describe("Database", () => {
 
             await database.upsertStudyguides([guide])
             await database.deleteStudyguides([guideId1, guideId2, guideId3])
-            const guides = await database.getStudyguidesWithSubstring(validTitle, page)
+            const guides = await database.getAllStudyguides()
             
             expect(guides.size).toBe(0)
         })

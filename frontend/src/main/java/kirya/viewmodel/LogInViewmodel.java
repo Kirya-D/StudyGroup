@@ -1,10 +1,13 @@
 package kirya.viewmodel;
 
 import java.io.IOException;
+import java.util.SequencedCollection;
 
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
+import kirya.model.FileIO;
 import kirya.model.Server;
+import kirya.model.StudyGuide;
 import kirya.utils.SessionData;
 
 public class LogInViewmodel {
@@ -41,11 +44,20 @@ public class LogInViewmodel {
         var accountPassword = this.passwordProperty.get();
 
         boolean loggedIn = this.server.login(accountUsername, accountPassword);
-        if (!loggedIn) {
-            this.incorrectFieldProperty.set(INCORRECT_CREDENTIALS);
-        } else {
+        if (loggedIn) {
             this.incorrectFieldProperty.set("");
+            SequencedCollection<StudyGuide> downloadedStudyguides = FileIO.Read(accountUsername);
+            SequencedCollection<StudyGuide> favoritedStudyguides = downloadedStudyguides.stream()
+                    .filter(sg -> sg.getFavorited()).toList();
+            SequencedCollection<StudyGuide> uploadedStudyguides = downloadedStudyguides.stream()
+                    .filter(sg -> sg.getUploaded()).toList();
+
             SessionData.logInAs(accountUsername);
+            SessionData.getDownloadedStudyguides().setAll(downloadedStudyguides);
+            SessionData.getFavoritedStudyguides().setAll(favoritedStudyguides);
+            SessionData.getUploadedStudyguides().setAll(uploadedStudyguides);
+        } else {
+            this.incorrectFieldProperty.set(INCORRECT_CREDENTIALS);
         }
 
         return loggedIn;

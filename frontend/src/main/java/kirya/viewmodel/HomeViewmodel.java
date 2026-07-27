@@ -9,6 +9,7 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.beans.property.SimpleStringProperty;
 import javafx.beans.property.StringProperty;
 import javafx.collections.FXCollections;
+import kirya.model.FileIO;
 import kirya.model.Server;
 import kirya.model.StudyGuide;
 import kirya.utils.DisplayableStudyGuide;
@@ -54,11 +55,11 @@ public class HomeViewmodel {
         this.searchedStudyGuidesProperty.addListener((_, _, newList) -> {
             newList.forEach(searchedGuide -> {
                 var matchingFavorites = this.favoritedStudyGuidesProperty.stream()
-                        .filter(sg -> searchedGuide.getId() == sg.getId()).toList();
+                        .filter(sg -> searchedGuide.getId().equals(sg.getId())).toList();
                 var matchingDownloads = this.downloadedStudyGuidesProperty.stream()
-                        .filter(sg -> searchedGuide.getId() == sg.getId()).toList();
+                        .filter(sg -> searchedGuide.getId().equals(sg.getId())).toList();
                 var matchingUploads = this.uploadedStudyGuidesProperty.stream()
-                        .filter(sg -> searchedGuide.getId() == sg.getId()).toList();
+                        .filter(sg -> searchedGuide.getId().equals(sg.getId())).toList();
 
                 for (var favMatch : matchingFavorites) {
                     var index = this.favoritedStudyGuidesProperty.indexOf(favMatch);
@@ -81,6 +82,8 @@ public class HomeViewmodel {
      */
     public DisplayableStudyGuide createNewStudyGuide() {
         var newGuide = new StudyGuide();
+        var loggedUser = SessionData.getLoggedInUsername();
+        newGuide.setCreatorUsername(loggedUser);
         return newGuide;
     }
 
@@ -154,8 +157,22 @@ public class HomeViewmodel {
      * @throws InterruptedException If a server error occurs
      */
     public void logOut() throws IOException, InterruptedException {
+        String username = SessionData.getLoggedInUsername();
+        if (username == null) {
+            return;
+        }
+
+        var toWrite = SessionData.getDownloadedStudyguides().stream()
+                .filter(sg -> sg instanceof StudyGuide)
+                .map(sg -> (StudyGuide) sg).toList();
+
+        FileIO.Write(username, toWrite);
+
         this.server.logout();
         SessionData.logOut();
+        SessionData.getDownloadedStudyguides().clear();
+        SessionData.getFavoritedStudyguides().clear();
+        SessionData.getUploadedStudyguides().clear();
     }
 
     /**

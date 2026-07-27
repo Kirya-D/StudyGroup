@@ -16,7 +16,6 @@ const validQuestions = new Set([
         ])
     )
 ])
-const validQuestionCount = 0
 const validCreatorId = "1"
 
 describe("Studyguide", () => {
@@ -35,7 +34,6 @@ describe("Studyguide", () => {
                 validTitle,
                 validDescription,
                 validQuestions,
-                validQuestionCount,
                 validCreatorId
             )).toThrow("id must be a string")
         })
@@ -53,7 +51,6 @@ describe("Studyguide", () => {
                 title,
                 validDescription,
                 validQuestions,
-                validQuestionCount,
                 validCreatorId
             )).toThrow("title must be a string")
         })
@@ -71,7 +68,6 @@ describe("Studyguide", () => {
                 validTitle,
                 description,
                 validQuestions,
-                validQuestionCount,
                 validCreatorId
             )).toThrow("description must be a string")
         })
@@ -110,23 +106,6 @@ describe("Studyguide", () => {
         })
 
         test.each([
-            [null],
-            [1.2],
-            ["1"],
-            [new Object("1")],
-            [true]
-        ])("Throws when questionCount isn't an int", (questionCount) => {
-            expect(() => new Studyguide(
-                validId,
-                validTitle,
-                validDescription,
-                validQuestions,
-                validCreatorId,
-                questionCount
-            )).toThrow("questionCount must be an int")
-        })
-
-        test.each([
             [undefined],
             [null],
             [1.2],
@@ -138,20 +117,18 @@ describe("Studyguide", () => {
                 validTitle,
                 validDescription,
                 validQuestions,
-                validQuestionCount,
                 creatorId
             )).toThrow("creatorId must be a string")
         })
 
         test("When Successful", () => {
-            const studyguide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId, validQuestionCount)
+            const studyguide = new Studyguide(validId, validTitle, validDescription, validQuestions, validCreatorId)
 
             expect(studyguide.id()).toBe(validId)
             expect(studyguide.title()).toBe(validTitle)
             expect(studyguide.description()).toBe(validDescription)
             expect(studyguide.questions()).toBe(validQuestions)
             expect(studyguide.creatorId()).toBe(validCreatorId)
-            expect(studyguide.questionCount()).toBe(validQuestions.size)
         })
     })
 })

@@ -4,10 +4,12 @@ import java.io.IOException;
 import java.net.CookieManager;
 import java.net.CookiePolicy;
 import java.net.URI;
+import java.net.URLEncoder;
 import java.net.http.HttpClient;
 import java.net.http.HttpRequest;
 import java.net.http.HttpRequest.BodyPublishers;
 import java.net.http.HttpResponse;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Collection;
 
@@ -65,6 +67,10 @@ public class ServerConnection implements Server {
         var builder = HttpRequest.newBuilder(uri)
                 .header("Content-Type", "application/json");
         return builder;
+    }
+
+    private static String encodeURL(String input) {
+        return URLEncoder.encode(input, StandardCharsets.UTF_8);
     }
 
     @Override
@@ -174,8 +180,9 @@ public class ServerConnection implements Server {
 
     public Collection<DisplayableStudyGuide> searchForStudyguides(String search, int page, int max)
             throws IOException, InterruptedException {
-        var queryParams = "?page=" + page + "&max=" + max;
-        var subroute = Route.SEARCH + Route.STUDYGUIDE + "/" + search + queryParams;
+        var encodedSearch = encodeURL(search);
+        var queryParams = "?search=" + encodedSearch + "&page=" + page + "&max=" + max;
+        var subroute = Route.SEARCH + Route.STUDYGUIDE + queryParams;
         var request = requestBuilderFactory(this.host, subroute, this.port)
                 .GET()
                 .build();

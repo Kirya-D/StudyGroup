@@ -11,8 +11,6 @@ class Studyguide {
     #description
     /** @type {Set<Question>} */
     #questions
-    /** @type {number} */
-    #questionCount
     /** @type {string} */
     #creatorId
 
@@ -24,9 +22,8 @@ class Studyguide {
      * @param {string} description The password
      * @param {Set<Question>} questions The questions
      * @param {string} creatorId The creator's account id
-     * @param {number} questionCount The number of questions. default 0
      */
-    constructor(id, title, description, questions, creatorId, questionCount = 0) {
+    constructor(id, title, description, questions, creatorId) {
         if (typeof id !== Primitives.STRING) {
             throw new TypeError("id must be a string")
         }
@@ -51,9 +48,6 @@ class Studyguide {
         if (typeof creatorId !== Primitives.STRING) {
             throw new TypeError("creatorId must be a string")
         }
-        if (!Number.isInteger(questionCount)) {
-            throw new TypeError("questionCount must be an int")
-        }
 
         this.#id = id
         this.#title = title
@@ -76,10 +70,6 @@ class Studyguide {
 
     questions() {
         return this.#questions
-    }
-
-    questionCount() {
-        return this.#questions.size == 0 ? this.#questionCount : this.#questions.size
     }
 
     creatorId() {

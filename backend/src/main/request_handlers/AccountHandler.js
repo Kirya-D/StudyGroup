@@ -5,9 +5,21 @@ import { StatusCode } from "../utils/StatusCode.js"
 /** @import { Queryable } from "../utils/Types.js" */
 
 /** @type {Map<string, Account>} */
+const idAccounts = new Map()
+/** @type {Map<string, Account>} */
 const usernameAccounts = new Map()
 /** @type {Set<string>} */
 const newAccountUsernames = new Set()
+
+/**
+ * Returns the account that has the given id if any exists, otherwise undefined
+ * 
+ * @param {string} id The id to match
+ * @returns The account whose id matches the given
+ */
+function getAccountWithId(id) {
+    return idAccounts.get(id)
+}
 
 /**
  * Returns the account that has the given username if any exists, otherwise undefined
@@ -39,20 +51,6 @@ function getAccountWithCredentials(username, password) {
 }
 
 /**
- * Attempt to load all accounts from databae
- * 
- * @param {Queryable} database The database to load from
- */
-async function loadAccountsFromDatabase(database) {
-    usernameAccounts.clear()
-    const dbAccounts = await database.getAllAccounts()
-    for (const acc of dbAccounts) {
-        const username = acc.username()
-        usernameAccounts.set(username, acc)
-    }
-}
-
-/**
  * Attempts to create a new account with the given username and password
  * 
  * @param {string} username The username to use
@@ -75,6 +73,7 @@ async function createAccount(username, password) {
         if (usernameIsAvailable) {
             const id = crypto.randomUUID()
             const newAccount = new Account(id, username, password)
+            idAccounts.set(id, newAccount)
             usernameAccounts.set(username, newAccount)
             newAccountUsernames.add(username)
             success = true
@@ -89,6 +88,23 @@ async function createAccount(username, password) {
         success: success,
         status: status,
         message: message
+    }
+}
+
+/**
+ * Attempt to load all accounts from databae
+ * 
+ * @param {Queryable} database The database to load from
+ */
+async function loadAccountsFromDatabase(database) {
+    idAccounts.clear()
+    usernameAccounts.clear()
+    const dbAccounts = await database.getAllAccounts()
+    for (const acc of dbAccounts) {
+        const id = acc.id()
+        const username = acc.username()
+        idAccounts.set(id, acc)
+        usernameAccounts.set(username, acc)
     }
 }
 
@@ -121,10 +137,11 @@ function clearStoredChanges() {
 }
 
 const AccountHandler = Object.freeze({
+    getAccountWithId: getAccountWithId,
     getAccountWithUsername: getAccountWithUsername,
     getAccountWithCredentials: getAccountWithCredentials,
-    loadAccountsFromDatabase: loadAccountsFromDatabase,
     createAccount: createAccount,
+    loadAccountsFromDatabase: loadAccountsFromDatabase,
     propogateAccountChangesToDatabase: propogateAccountChangesToDatabase,
     clearStoredChanges: clearStoredChanges
 })

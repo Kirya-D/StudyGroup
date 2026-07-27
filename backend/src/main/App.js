@@ -30,6 +30,7 @@ async function tryConnect() {
 
 await tryConnect()
 await AccountHandler.loadAccountsFromDatabase(db)
+await StudyguideHandler.loadStudyguidesFromDatabase(db)
 
 const port = process.env.PORT
 const host = process.env.HOST
