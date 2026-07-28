@@ -25,7 +25,6 @@ import tools.jackson.databind.ObjectMapper;
 public class ServerConnection implements Server {
 
     private final String host;
-    private final String port;
     private HttpClient client;
 
     public static final int GUIDES_PER_PAGE = 50;
@@ -40,20 +39,16 @@ public class ServerConnection implements Server {
     public ServerConnection() {
         var dotenv = Dotenv.load();
         var host = dotenv.get("HOST");
-        var port = dotenv.get("PORT");
-        this(host, port);
+        this(host);
     }
 
     /**
-     * Initializes a new {@link ServerConnection} with the given {@code host} and
-     * {@code port}
+     * Initializes a new {@link ServerConnection} with the given {@code host}
      * 
      * @param host The host to connect to
-     * @param port The port to use
      */
-    public ServerConnection(String host, String port) {
+    public ServerConnection(String host) {
         this.host = host;
-        this.port = port;
         var cookieManager = new CookieManager();
         cookieManager.setCookiePolicy(CookiePolicy.ACCEPT_ORIGINAL_SERVER);
         this.client = HttpClient.newBuilder()
@@ -61,9 +56,8 @@ public class ServerConnection implements Server {
                 .build();
     }
 
-    private static HttpRequest.Builder requestBuilderFactory(String host, String subPath, String port) {
-        var uriPrefix = "http://";
-        var uri = URI.create(uriPrefix + host + ":" + port + subPath);
+    private static HttpRequest.Builder requestBuilderFactory(String host, String subPath) {
+        var uri = URI.create(host + subPath);
         var builder = HttpRequest.newBuilder(uri)
                 .header("Content-Type", "application/json");
         return builder;
@@ -76,7 +70,7 @@ public class ServerConnection implements Server {
     @Override
     public String validateUsername(String username) throws IOException, InterruptedException {
         var json = String.format(VALIDATION_JSON, username, true);
-        var request = requestBuilderFactory(this.host, Route.VALIDATE_CREDENTIAL, this.port)
+        var request = requestBuilderFactory(this.host, Route.VALIDATE_CREDENTIAL)
                 .POST(BodyPublishers.ofString(json))
                 .build();
 
@@ -90,7 +84,7 @@ public class ServerConnection implements Server {
     @Override
     public String validatePassword(String password) throws IOException, InterruptedException {
         var json = String.format(VALIDATION_JSON, password, false);
-        var request = requestBuilderFactory(this.host, Route.VALIDATE_CREDENTIAL, this.port)
+        var request = requestBuilderFactory(this.host, Route.VALIDATE_CREDENTIAL)
                 .POST(BodyPublishers.ofString(json))
                 .build();
 
@@ -103,7 +97,7 @@ public class ServerConnection implements Server {
 
     public void createAccount(String username, String password) throws IOException, InterruptedException {
         var json = String.format(CREDENTIALS_JSON, username, password);
-        var request = requestBuilderFactory(this.host, Route.ACCOUNT, this.port)
+        var request = requestBuilderFactory(this.host, Route.ACCOUNT)
                 .POST(BodyPublishers.ofString(json))
                 .build();
 
@@ -114,7 +108,7 @@ public class ServerConnection implements Server {
 
     public boolean login(String username, String password) throws IOException, InterruptedException {
         var json = String.format(CREDENTIALS_JSON, username, password);
-        var request = requestBuilderFactory(this.host, Route.SESSION, this.port)
+        var request = requestBuilderFactory(this.host, Route.SESSION)
                 .POST(BodyPublishers.ofString(json))
                 .build();
 
@@ -130,7 +124,7 @@ public class ServerConnection implements Server {
     }
 
     public void logout() throws IOException, InterruptedException {
-        var request = requestBuilderFactory(this.host, Route.SESSION, this.port)
+        var request = requestBuilderFactory(this.host, Route.SESSION)
                 .DELETE()
                 .build();
 
@@ -143,7 +137,7 @@ public class ServerConnection implements Server {
 
     public void uploadStudyguide(DisplayableStudyGuide studyguide) throws IOException, InterruptedException {
         var json = "{ \"studyguide\":" + new ObjectMapper().writeValueAsString(studyguide) + "}";
-        var request = requestBuilderFactory(this.host, Route.STUDYGUIDE, this.port)
+        var request = requestBuilderFactory(this.host, Route.STUDYGUIDE)
                 .POST(BodyPublishers.ofString(json))
                 .build();
 
@@ -160,7 +154,7 @@ public class ServerConnection implements Server {
 
     public void deleteStudyguide(DisplayableStudyGuide studyguide) throws IOException, InterruptedException {
         var queryParam = "?id=" + studyguide.getId();
-        var request = requestBuilderFactory(this.host, Route.STUDYGUIDE + queryParam, this.port)
+        var request = requestBuilderFactory(this.host, Route.STUDYGUIDE + queryParam)
                 .DELETE()
                 .build();
 
@@ -183,7 +177,7 @@ public class ServerConnection implements Server {
         var encodedSearch = encodeURL(search);
         var queryParams = "?search=" + encodedSearch + "&page=" + page + "&max=" + max;
         var subroute = Route.SEARCH + Route.STUDYGUIDE + queryParams;
-        var request = requestBuilderFactory(this.host, subroute, this.port)
+        var request = requestBuilderFactory(this.host, subroute)
                 .GET()
                 .build();
 

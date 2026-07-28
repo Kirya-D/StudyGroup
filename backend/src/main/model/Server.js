@@ -32,6 +32,7 @@ function respond(response, status, json) {
  * @param {string} reason 
  */
 function failureResponse(res, reason) {
+    console.log(reason)
     const failResponse = {
         success: false,
         message: reason
