@@ -144,7 +144,7 @@ function routeStudyguideRequests() {
  */
 function routeSearchRequests() {
     app.get(`${Route.SEARCH}${Route.ACCOUNT}/:username`, (req, res) => {
-        respond(res, 200, {})
+        respond(res, StatusCode.OK, {})
     })
     const defaultSearch = ""
     const defaultPage = 0
@@ -168,6 +168,12 @@ function routeSearchRequests() {
     })
 }
 
+function routeHealthChecks() {
+    app.get(`${Route.HEALTH_CHECK}`, () => {
+        respond(res, StatusCode.OK, {})
+    })
+}
+
 /**
  * Initializes the express application.
  */
@@ -185,6 +191,7 @@ function startApplication() {
     routeSessionRequests()
     routeStudyguideRequests()
     routeSearchRequests()
+    routeHealthChecks()
 }
 
 /**

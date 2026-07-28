@@ -3,7 +3,8 @@ const Route = Object.freeze({
     SEARCH: "/search",
     SESSION: "/session",
     ACCOUNT: "/account",
-    STUDYGUIDE: "/studyguide"
+    STUDYGUIDE: "/studyguide",
+    HEALTH_CHECK: "/health"
 })
 
 export { Route }
