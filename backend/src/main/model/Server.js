@@ -32,6 +32,7 @@ function respond(response, status, json) {
  * @param {string} reason 
  */
 function failureResponse(res, reason) {
+    console.log(reason)
     const failResponse = {
         success: false,
         message: reason
@@ -143,7 +144,7 @@ function routeStudyguideRequests() {
  */
 function routeSearchRequests() {
     app.get(`${Route.SEARCH}${Route.ACCOUNT}/:username`, (req, res) => {
-        respond(res, 200, {})
+        respond(res, StatusCode.OK, {})
     })
     const defaultSearch = ""
     const defaultPage = 0
@@ -167,6 +168,12 @@ function routeSearchRequests() {
     })
 }
 
+function routeHealthChecks() {
+    app.get(`${Route.HEALTH_CHECK}`, (req, res) => {
+        respond(res, StatusCode.OK, {})
+    })
+}
+
 /**
  * Initializes the express application.
  */
@@ -184,6 +191,7 @@ function startApplication() {
     routeSessionRequests()
     routeStudyguideRequests()
     routeSearchRequests()
+    routeHealthChecks()
 }
 
 /**
@@ -197,8 +205,8 @@ function startServer(port, host) {
         shutdownServer()
     }
 
-    appServer = app.listen(port, host, () => {
-        console.log(`Server is alive on ${host}:${port}`)
+    appServer = app.listen(port, () => {
+        console.log(`Server is alive on ${port}`)
     })
 }
 
