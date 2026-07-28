@@ -42,14 +42,7 @@ class Database {
      * @param {string | null} setupQuery The query to run once connected to the database.
      */
     async connectToDatabase({ config, setupQuery = null }) {
-        let finalConfig = config
-        if (typeof config === Primitives.STRING) {
-            finalConfig = {
-                connectionString: config,
-                connectionTimeout: 30000,
-            }
-        }
-        this.#pool = await mssql.connect(finalConfig)
+        this.#pool = await mssql.connect(config)
         if (setupQuery != null) {
             await this.#pool.query(setupQuery)
         }
