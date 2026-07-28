@@ -169,7 +169,7 @@ function routeSearchRequests() {
 }
 
 function routeHealthChecks() {
-    app.get(`${Route.HEALTH_CHECK}`, () => {
+    app.get(`${Route.HEALTH_CHECK}`, (req, res) => {
         respond(res, StatusCode.OK, {})
     })
 }
