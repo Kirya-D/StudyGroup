@@ -1,11 +1,13 @@
 package kirya.utils;
 
+import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertInstanceOf;
 import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 
-import org.junit.jupiter.api.AfterAll;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Nested;
 import org.junit.jupiter.api.Test;
@@ -16,11 +18,6 @@ public class TestSessionData {
 
     @BeforeEach
     public void perTestSetup() {
-        SessionData.logOut();
-    }
-
-    @AfterAll
-    public static void perSuiteCleanup() {
         SessionData.logOut();
     }
 
@@ -72,10 +69,48 @@ public class TestSessionData {
         }
 
         @Test
+        public void testWhenPreviouslyAGuest() {
+            SessionData.continueAsGuest();
+            var expectedUsername = "myUser123";
+
+            SessionData.logInAs(expectedUsername);
+
+            var actualUsername = SessionData.getLoggedInUsername();
+
+            assertAll(
+                    () -> assertEquals(expectedUsername, actualUsername),
+                    () -> assertFalse(SessionData.getIsGuest()));
+            ;
+        }
+
+        @Test
         public void throwsWhenNullUsername() {
             assertThrows(IllegalArgumentException.class, () -> {
                 SessionData.logInAs(null);
             });
+        }
+    }
+
+    @Nested
+    public class TestContinueAsGuest {
+
+        @Test
+        public void throwsWhenAlreadyLoggedInWithAccount() {
+            SessionData.logInAs("filler name");
+
+            assertThrows(IllegalStateException.class, () -> {
+                SessionData.continueAsGuest();
+            });
+        }
+
+        @Test
+        public void testWhenNotLoggedIn() {
+            SessionData.continueAsGuest();
+            var actualUsername = SessionData.getLoggedInUsername();
+
+            assertAll(
+                    () -> assertNull(actualUsername),
+                    () -> assertTrue(SessionData.getIsGuest()));
         }
     }
 
@@ -87,7 +122,9 @@ public class TestSessionData {
             SessionData.logOut();
             var actualUsername = SessionData.getLoggedInUsername();
 
-            assertNull(actualUsername);
+            assertAll(
+                    () -> assertNull(actualUsername),
+                    () -> assertFalse(SessionData.getIsGuest()));
         }
 
         @Test
@@ -96,7 +133,20 @@ public class TestSessionData {
             SessionData.logOut();
             var actualUsername = SessionData.getLoggedInUsername();
 
-            assertNull(actualUsername);
+            assertAll(
+                    () -> assertNull(actualUsername),
+                    () -> assertFalse(SessionData.getIsGuest()));
+        }
+
+        @Test
+        public void testWhenPreviouslyAGuest() {
+            SessionData.continueAsGuest();
+            SessionData.logOut();
+            var actualUsername = SessionData.getLoggedInUsername();
+
+            assertAll(
+                    () -> assertNull(actualUsername),
+                    () -> assertFalse(SessionData.getIsGuest()));
         }
     }
 }

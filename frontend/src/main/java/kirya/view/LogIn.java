@@ -102,10 +102,7 @@ public class LogIn extends GridPane {
         try {
             var success = this.viewmodel.attemptLogIn();
             if (success) {
-                usernameTextField.textProperty().set("");
-                passwordField.textProperty().set("");
-                var pageRequestEvent = new PageRequestEvent(Page.HOME);
-                this.fireEvent(pageRequestEvent);
+                this.goToHome();
             }
         } catch (IOException | InterruptedException err) {
             var alert = new Alert(AlertType.ERROR);
@@ -118,6 +115,19 @@ public class LogIn extends GridPane {
     @FXML
     private void onRegisterHyperlinkClick() {
         var pageRequestEvent = new PageRequestEvent(Page.ACCOUNT_CREATION);
+        this.fireEvent(pageRequestEvent);
+    }
+
+    @FXML
+    private void onGuestLoginLinkClick() {
+        this.viewmodel.continueAsGuest();
+        this.goToHome();
+    }
+
+    private void goToHome() {
+        usernameTextField.textProperty().set("");
+        passwordField.textProperty().set("");
+        var pageRequestEvent = new PageRequestEvent(Page.HOME);
         this.fireEvent(pageRequestEvent);
     }
 }

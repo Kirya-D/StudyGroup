@@ -64,6 +64,15 @@ public class LogInViewmodel {
     }
 
     /**
+     * Continue's through the system as a guest user.
+     * 
+     * @throws IllegalStateException If a user is already logged in with an account.
+     */
+    public void continueAsGuest() {
+        SessionData.continueAsGuest();
+    }
+
+    /**
      * {@return the username {@link StringProperty}}
      */
     public StringProperty getUsernameProperty() {
