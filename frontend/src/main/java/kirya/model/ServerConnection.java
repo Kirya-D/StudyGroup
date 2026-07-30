@@ -38,7 +38,8 @@ public class ServerConnection implements Server {
      */
     public ServerConnection() {
         var dotenv = Dotenv.load();
-        var host = dotenv.get("HOST");
+        var production = dotenv.get("ENV").equals("production");
+        var host = production ? dotenv.get("HOST") : dotenv.get("TEST_HOST");
         this(host);
     }
 
