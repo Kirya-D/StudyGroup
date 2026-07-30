@@ -7,10 +7,8 @@ import javafx.application.Application;
 import javafx.application.Platform;
 import javafx.scene.Scene;
 import javafx.stage.Stage;
-import kirya.model.FileIO;
 import kirya.model.Server;
 import kirya.model.ServerConnection;
-import kirya.model.StudyGuide;
 import kirya.utils.SessionData;
 import kirya.view.ConfirmationDialog;
 import kirya.view.Root;
@@ -30,6 +28,7 @@ public class App extends Application {
 
     private Server server = null;
     private int connectionAttempts = 0;
+    private Runnable exitMethod = null;
 
     @Override
     public void start(Stage stage) throws IOException {
@@ -97,40 +96,19 @@ public class App extends Application {
         root.logIn.setViewmodel(logInViewmodel);
         root.home.setViewmodel(homeViewmodel);
 
+        this.exitMethod = () -> {
+            try {
+                homeViewmodel.logOut();
+            } catch (IOException | InterruptedException err) {
+                System.out.println("Failed to log user out due to error: " + err);
+            }
+        };
     }
 
     @Override
     public void stop() {
-        this.save();
-    }
-
-    private void save() {
-        String loggedUser = SessionData.getLoggedInUsername();
-        if (loggedUser == null) {
-            return;
-        }
-
-        var toWrite = SessionData.getDownloadedStudyguides().stream()
-                .filter(sg -> sg instanceof StudyGuide)
-                .map(sg -> (StudyGuide) sg).toList();
-
-        FileIO.Write(loggedUser, toWrite);
-
-        SessionData.logOut();
-        int logoutAttemptNum = 1;
-        int logoutAttemptMax = 3;
-        boolean success = false;
-        while (!success && logoutAttemptNum <= logoutAttemptMax) {
-            try {
-                this.server.logout();
-                success = true;
-            } catch (IOException | InterruptedException err) {
-                String errMessage = "Failed to log out " + loggedUser + " on app close " + logoutAttemptNum
-                        + " time(s)";
-                System.out.println(errMessage);
-            }
-
-            logoutAttemptNum += 1;
+        if (this.exitMethod != null) {
+            this.exitMethod.run();
         }
     }
 

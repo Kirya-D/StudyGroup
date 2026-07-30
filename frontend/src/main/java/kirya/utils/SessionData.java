@@ -5,6 +5,7 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 
 public class SessionData {
+    public static final String GUEST_NAME = "Guest";
     private static boolean isGuest = false;
     private static String loggedInUsername = null;
     private static ListProperty<DisplayableStudyGuide> favoritedStudyguides = new SimpleListProperty<>(

@@ -90,7 +90,7 @@ public class Home extends StackPane {
             if (!visible) {
                 return;
             }
-            String username = SessionData.getIsGuest() ? "Guest" : SessionData.getLoggedInUsername();
+            String username = SessionData.getIsGuest() ? SessionData.GUEST_NAME : SessionData.getLoggedInUsername();
             String possessiveUsername = username.endsWith("s") ? username + "'" : username + "'s";
             String header = MessageFormat.format(HEADER_STRING, possessiveUsername);
             this.headerLabel.setText(header);

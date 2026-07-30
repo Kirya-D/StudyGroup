@@ -2,6 +2,9 @@ package kirya.viewmodel;
 
 import java.io.IOException;
 import java.sql.SQLException;
+import java.util.ArrayList;
+import java.util.Collection;
+import java.util.List;
 import java.util.function.Consumer;
 
 import javafx.beans.property.ListProperty;
@@ -47,34 +50,6 @@ public class HomeViewmodel {
         this.uploadedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
         this.searchProperty = new SimpleStringProperty("");
         this.searchedStudyGuidesProperty = new SimpleListProperty<>(FXCollections.observableArrayList());
-
-        this.bindToSelf();
-    }
-
-    private void bindToSelf() {
-        this.searchedStudyGuidesProperty.addListener((_, _, newList) -> {
-            newList.forEach(searchedGuide -> {
-                var matchingFavorites = this.favoritedStudyGuidesProperty.stream()
-                        .filter(sg -> searchedGuide.getId().equals(sg.getId())).toList();
-                var matchingDownloads = this.downloadedStudyGuidesProperty.stream()
-                        .filter(sg -> searchedGuide.getId().equals(sg.getId())).toList();
-                var matchingUploads = this.uploadedStudyGuidesProperty.stream()
-                        .filter(sg -> searchedGuide.getId().equals(sg.getId())).toList();
-
-                for (var favMatch : matchingFavorites) {
-                    var index = this.favoritedStudyGuidesProperty.indexOf(favMatch);
-                    this.favoritedStudyGuidesProperty.set(index, searchedGuide);
-                }
-                for (var downloadMatch : matchingDownloads) {
-                    var index = this.downloadedStudyGuidesProperty.indexOf(downloadMatch);
-                    this.downloadedStudyGuidesProperty.set(index, searchedGuide);
-                }
-                for (var uploadMatch : matchingUploads) {
-                    var index = this.uploadedStudyGuidesProperty.indexOf(uploadMatch);
-                    this.uploadedStudyGuidesProperty.set(index, searchedGuide);
-                }
-            });
-        });
     }
 
     /**
@@ -157,8 +132,10 @@ public class HomeViewmodel {
      * @throws InterruptedException If a server error occurs
      */
     public void logOut() throws IOException, InterruptedException {
-        String username = SessionData.getLoggedInUsername();
-        if (username == null) {
+        boolean isGuest = SessionData.getIsGuest();
+        String username = isGuest ? SessionData.GUEST_NAME : SessionData.getLoggedInUsername();
+        boolean isLoggedIn = username != null;
+        if (!isGuest && !isLoggedIn) {
             return;
         }
 
@@ -168,11 +145,15 @@ public class HomeViewmodel {
 
         FileIO.Write(username, toWrite);
 
-        this.server.logout();
+        if (!isGuest) {
+            this.server.logout();
+        }
         SessionData.logOut();
         SessionData.getDownloadedStudyguides().clear();
         SessionData.getFavoritedStudyguides().clear();
         SessionData.getUploadedStudyguides().clear();
+        this.searchedStudyGuidesProperty.clear();
+        this.searchProperty.set("");
     }
 
     /**
@@ -237,6 +218,7 @@ public class HomeViewmodel {
         this.lastEnteredSearch = searchString;
 
         var results = this.server.searchForStudyguides(searchString, 0, 50);
+        results = this.syncResultsWithGuideCollections(results);
         this.searchedStudyGuidesProperty.setAll(results);
     }
 
@@ -259,9 +241,42 @@ public class HomeViewmodel {
         var search = this.lastEnteredSearch;
         var pageNum = this.uninterruptedSearchRequests;
         var results = this.server.searchForStudyguides(search, pageNum, 50);
+        results = this.syncResultsWithGuideCollections(results);
         this.searchedStudyGuidesProperty.addAll(results);
 
         this.allowMoreRequests = results.size() > 0;
+    }
+
+    private List<DisplayableStudyGuide> syncResultsWithGuideCollections(
+            Collection<DisplayableStudyGuide> newSearchResults) {
+        List<DisplayableStudyGuide> replacedList = new ArrayList<>();
+
+        for (DisplayableStudyGuide searchedGuide : newSearchResults) {
+            var matchingFavorite = this.favoritedStudyGuidesProperty.stream()
+                    .filter(sg -> searchedGuide.getId().equals(sg.getId()))
+                    .findFirst()
+                    .orElse(null);
+            var matchingDownload = this.downloadedStudyGuidesProperty.stream()
+                    .filter(sg -> searchedGuide.getId().equals(sg.getId()))
+                    .findFirst()
+                    .orElse(null);
+            var matchingUpload = this.uploadedStudyGuidesProperty.stream()
+                    .filter(sg -> searchedGuide.getId().equals(sg.getId()))
+                    .findFirst()
+                    .orElse(null);
+
+            if (matchingFavorite != null) {
+                replacedList.add(matchingFavorite);
+            } else if (matchingDownload != null) {
+                replacedList.add(matchingDownload);
+            } else if (matchingUpload != null) {
+                replacedList.add(matchingUpload);
+            } else {
+                replacedList.add(searchedGuide);
+            }
+        }
+
+        return replacedList;
     }
 
     private StudyGuide getConcreteGuide(DisplayableStudyGuide studyGuide) {
