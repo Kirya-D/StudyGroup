@@ -7,7 +7,7 @@
     "start": "node --env-file=etc/secrets/.env src/main/App.js",
     "production": "node --env-file=/etc/secrets/.env src/main/App.js",
     "debug": "set NODE_ENV=debug && node --env-file=etc/secrets/.env src/main/App.js",
-    "test": "node --env-file=.env --experimental-vm-modules node_modules/jest/bin/jest.js"
+    "test": "node --env-file=etc/secrets/.env --experimental-vm-modules node_modules/jest/bin/jest.js"
   },
   "keywords": [],
   "author": "Kirya Duncan II",

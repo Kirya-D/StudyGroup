@@ -46,21 +46,35 @@ public class LogInViewmodel {
         boolean loggedIn = this.server.login(accountUsername, accountPassword);
         if (loggedIn) {
             this.incorrectFieldProperty.set("");
-            SequencedCollection<StudyGuide> downloadedStudyguides = FileIO.Read(accountUsername);
-            SequencedCollection<StudyGuide> favoritedStudyguides = downloadedStudyguides.stream()
-                    .filter(sg -> sg.getFavorited()).toList();
-            SequencedCollection<StudyGuide> uploadedStudyguides = downloadedStudyguides.stream()
-                    .filter(sg -> sg.getUploaded()).toList();
-
             SessionData.logInAs(accountUsername);
-            SessionData.getDownloadedStudyguides().setAll(downloadedStudyguides);
-            SessionData.getFavoritedStudyguides().setAll(favoritedStudyguides);
-            SessionData.getUploadedStudyguides().setAll(uploadedStudyguides);
+            this.loadLocalUserData(accountUsername);
         } else {
             this.incorrectFieldProperty.set(INCORRECT_CREDENTIALS);
         }
 
         return loggedIn;
+    }
+
+    /**
+     * Continue's through the system as a guest user.
+     * 
+     * @throws IllegalStateException If a user is already logged in with an account.
+     */
+    public void continueAsGuest() {
+        SessionData.continueAsGuest();
+        this.loadLocalUserData(SessionData.GUEST_NAME);
+    }
+
+    private void loadLocalUserData(String username) {
+        SequencedCollection<StudyGuide> downloadedStudyguides = FileIO.Read(username);
+        SequencedCollection<StudyGuide> favoritedStudyguides = downloadedStudyguides.stream()
+                .filter(sg -> sg.getFavorited()).toList();
+        SequencedCollection<StudyGuide> uploadedStudyguides = downloadedStudyguides.stream()
+                .filter(sg -> sg.getUploaded()).toList();
+
+        SessionData.getDownloadedStudyguides().setAll(downloadedStudyguides);
+        SessionData.getFavoritedStudyguides().setAll(favoritedStudyguides);
+        SessionData.getUploadedStudyguides().setAll(uploadedStudyguides);
     }
 
     /**

@@ -136,10 +136,11 @@ public class StudyGuideOverview extends GridPane {
         var downloaded = this.displayableStudyGuide.getDownloaded();
         var favorited = this.displayableStudyGuide.getFavorited();
         var uploaded = this.displayableStudyGuide.getUploaded();
-        var isCreatedByCurrentUser = creatorUser.equals(currentUser);
+        var isCreatedByCurrentUser = SessionData.getIsGuest() ? creatorUser == null : creatorUser.equals(currentUser);
+        var isUploadable = currentUser != null && isCreatedByCurrentUser;
 
         this.editButton.setVisible(isCreatedByCurrentUser);
-        this.uploadButton.setVisible(isCreatedByCurrentUser);
+        this.uploadButton.setVisible(isUploadable);
 
         var downloadButtonTextFill = downloaded ? Color.BLUE : Color.BLACK;
         var favoriteButtonTextFill = favorited ? Color.YELLOW : Color.BLACK;

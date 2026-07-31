@@ -141,8 +141,16 @@ describe("StudyguideHandler", () => {
     })
 
     describe("FindStudyguides", () => {
-        test("When Missing Account Information Or Search Text", async () => {
-            const response = await StudyguideHandler.findStudyguides(undefined, "test", 0, 10)
+
+        test("When Missing Account", async () => {
+            const response = await StudyguideHandler.findStudyguides(undefined, "search", 0, 10)
+
+            expect(response.success).toBe(true)
+            expect(response.status).toBe(StatusCode.OK)
+        })
+
+        test("When Missing Search Text", async () => {
+            const response = await StudyguideHandler.findStudyguides(undefined, undefined, 0, 10)
 
             expect(response.success).toBe(false)
             expect(response.status).toBe(StatusCode.BAD_REQUEST)

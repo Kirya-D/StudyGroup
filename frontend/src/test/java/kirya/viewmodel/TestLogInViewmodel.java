@@ -4,6 +4,7 @@ import static org.junit.jupiter.api.Assertions.assertAll;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 import java.io.IOException;
@@ -174,6 +175,26 @@ public class TestLogInViewmodel {
             assertAll(
                     () -> assertNull(actualLoggedInUsername),
                     () -> assertFalse(success));
+        }
+    }
+
+    @Nested
+    public class TestContinueAsGuest {
+
+        @Test
+        public void throwsWhenUserAlreadyLoggedIn() {
+            SessionData.logInAs("Filler username");
+
+            assertThrows(IllegalStateException.class, () -> {
+                viewmodel.continueAsGuest();
+            });
+        }
+
+        @Test
+        public void testWhenSuccessful() {
+            viewmodel.continueAsGuest();
+
+            assertTrue(SessionData.getIsGuest());
         }
     }
 }

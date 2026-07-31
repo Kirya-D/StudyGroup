@@ -90,9 +90,9 @@ public class Home extends StackPane {
             if (!visible) {
                 return;
             }
-            var username = SessionData.getLoggedInUsername();
-            var possessiveUsername = username.endsWith("s") ? username + "'" : username + "'s";
-            var header = MessageFormat.format(HEADER_STRING, possessiveUsername);
+            String username = SessionData.getIsGuest() ? SessionData.GUEST_NAME : SessionData.getLoggedInUsername();
+            String possessiveUsername = username.endsWith("s") ? username + "'" : username + "'s";
+            String header = MessageFormat.format(HEADER_STRING, possessiveUsername);
             this.headerLabel.setText(header);
             this.updateDashboardDisplay();
             this.updateSearchedDisplay();
