@@ -104,9 +104,6 @@ public class StudyGuide extends DisplayableStudyGuide {
      * @param username The new non-null username
      */
     public void setCreatorUsername(String username) {
-        if (username == null) {
-            throw new IllegalArgumentException("username can't be null");
-        }
         this.creatorUsername = username;
     }
 

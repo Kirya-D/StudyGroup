@@ -129,20 +129,21 @@ async function deleteStudyguide(requester, id) {
  * @returns A response to the request
  */
 async function findStudyguides(requester, search, page, maxAmount) {
-    const caseInsensitiveSearch = search.toLowerCase()
+    const caseInsensitiveSearch = search?.toLowerCase()
     let success = false
     const found = []
     let status = undefined
     let message = ""
 
-    const missingInformation = !(requester instanceof Account) || typeof search !== Primitives.STRING
-    const invalidInformation = !Number.isInteger(page) || !Number.isInteger(maxAmount)
+    const missingInformation = typeof caseInsensitiveSearch !== Primitives.STRING
+    const expectedNumbersNotNums = typeof page != Primitives.NUMBER || typeof maxAmount != Primitives.NUMBER
+    const expectedNumbersNotInts = !Number.isInteger(page) || !Number.isInteger(maxAmount)
     if (missingInformation) {
         status = StatusCode.BAD_REQUEST
-        message = "Missing account information or search text"
-    } else if (invalidInformation) {
+        message = "Missing search text"
+    } else if (expectedNumbersNotNums || expectedNumbersNotInts) {
         status = StatusCode.BAD_REQUEST
-        message = "Missing page or max return size"
+        message = "Invalid page number or return size"
     }
 
     if (status == undefined) {
@@ -182,8 +183,8 @@ async function findStudyguides(requester, search, page, maxAmount) {
                     creatorId: guide.creatorId(),
                     title: guide.title(),
                     description: guide.description(),
-                    downloaded: requester.downloadedStudyguides().has(guideId),
-                    favorited: requester.favoritedStudyguides().has(guideId),
+                    downloaded: requester?.downloadedStudyguides().has(guideId) ?? false,
+                    favorited: requester?.favoritedStudyguides().has(guideId) ?? false,
                     uploaded: true,
                     questions: questionsObject,
                 }

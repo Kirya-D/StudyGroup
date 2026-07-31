@@ -5,6 +5,8 @@ import javafx.beans.property.SimpleListProperty;
 import javafx.collections.FXCollections;
 
 public class SessionData {
+    public static final String GUEST_NAME = "Guest";
+    private static boolean isGuest = false;
     private static String loggedInUsername = null;
     private static ListProperty<DisplayableStudyGuide> favoritedStudyguides = new SimpleListProperty<>(
             FXCollections.observableArrayList());
@@ -12,6 +14,13 @@ public class SessionData {
             FXCollections.observableArrayList());
     private static ListProperty<DisplayableStudyGuide> uploadedStudyguides = new SimpleListProperty<>(
             FXCollections.observableArrayList());
+
+    /**
+     * {@return the guest status of the current user}
+     */
+    public static boolean getIsGuest() {
+        return SessionData.isGuest;
+    }
 
     /**
      * {@return the username of the currently logged-in account}
@@ -56,16 +65,37 @@ public class SessionData {
             throw new IllegalArgumentException("username can not be null");
         }
         SessionData.loggedInUsername = username;
+        SessionData.isGuest = false;
     }
 
     /**
-     * Clears the logged in user
+     * Sets the current user to be treated as a guest user.
      * 
      * <p>
-     * Postcondition: {@link SessionData#Username} == null
+     * Postcondition: {@link SessionData#getIsGuest()} == {@code true}
+     * </p>
+     * 
+     * @throws IllegalStateException If a user is already logged in with an account.
+     */
+    public static void continueAsGuest() {
+        if (SessionData.loggedInUsername != null) {
+            throw new IllegalStateException("can't continue as guest while currently logged in");
+        }
+        SessionData.isGuest = true;
+    }
+
+    /**
+     * Clears the logged in user and guest status.
+     * 
+     * <p>
+     * Postcondition: {@link SessionData#loggedInUsername} == null
+     * </p>
+     * <p>
+     * Postcondition: {@link SessionData#isGuest} == null
      * </p>
      */
     public static void logOut() {
         SessionData.loggedInUsername = null;
+        SessionData.isGuest = false;
     }
 }

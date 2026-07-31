@@ -138,7 +138,7 @@ public class TestStudyGuide {
     public class TestSetCreatorUsername {
 
         @Test
-        public void testWhenSuccessful() {
+        public void testWhenNotNull() {
             var validUser = "Valid username";
             studyguide.setCreatorUsername(validUser);
 
@@ -149,10 +149,13 @@ public class TestStudyGuide {
         }
 
         @Test
-        public void throwsWhenNull() {
-            assertThrows(IllegalArgumentException.class, () -> {
-                studyguide.setCreatorUsername(null);
-            });
+        public void testWhenNull() {
+            String validUser = null;
+            studyguide.setCreatorUsername(validUser);
+
+            var actual = studyguide.getCreatorUsername();
+
+            assertNull(actual);
         }
     }
 
