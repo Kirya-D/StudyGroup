@@ -42,14 +42,6 @@ StudyGroup is a JavaFX desktop application with a Node.js backend for managing s
 
 ![Search Results](docs/screenshots/studyguide-search.png)
 
-Recommended screenshots:
-
-- **Home/Browse Page** – The main screen users see after launching the application.
-- **Study Guide Editor** – Creating or editing a study guide.
-- **Study Guide Viewer** – Viewing questions and answer choices.
-- **Search Results** – Demonstrating the search functionality.
-- **Login/Guest Screen** _(optional)_ – Showing the authentication options.
-
 ## Features
 
 - Create and edit study guides
@@ -63,10 +55,8 @@ Recommended screenshots:
 
 If you only want to use StudyGroup and do not plan to modify the source code:
 
-1. Download the latest release from the project's [Releases](https://github.com/Kirya-D/StudyGroup/releases) page.
-2. Extract the downloaded archive (if applicable).
-3. Launch the packaged frontend application.
-4. If the release includes an installer or launcher, use that instead of building the project from source.
+1. Download the .jar file from the latest release from the project's [Releases](https://github.com/Kirya-D/StudyGroup/releases) page.
+2. Launch the packaged frontend application.
 
 > The frontend connects to a hosted backend, so no backend setup is required to use the application.
 
